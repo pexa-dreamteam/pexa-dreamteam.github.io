@@ -100,7 +100,7 @@ function evento(g,e){g.nEvento=(g.nEvento||0)+1;e.n=g.nEvento;g.evento=e;g.evs=g
 // cfg: {dts:[{dt:0-4, nombre, bot}], modo:'completo'|'rapido', semilla}
 function nuevaPartida(cfg){
   var n=cfg.dts.length;
-  var g={v:1,t0:cfg.t0||0,host:cfg.host||null,seed:(cfg.semilla||1)*7919+13,n:n,modo:cfg.modo||'completo',meta:cfg.modo==='rapido'?3:4,num:[],rec:[],porNum:[[],[],[],[],[],[],[]],banco:{},tokens:{V:6,E:6},bolsa:{},
+  var g={v:1,limite:cfg.limite||0,rel:null,t0:cfg.t0||0,host:cfg.host||null,seed:(cfg.semilla||1)*7919+13,n:n,modo:cfg.modo||'completo',meta:cfg.modo==='rapido'?3:4,num:[],rec:[],porNum:[[],[],[],[],[],[],[]],banco:{},tokens:{V:6,E:6},bolsa:{},
     mazoB:[],descB:[],mercados:[],jug:[],barras:[],turno:0,primero:0,nTurnos:0,ganador:null,log:[],fase:'ubicar',faltaUbicar:[],dados:null,mv:null,descartes:{},oferta:null,barraPend:[],barraPaso:0,tiradas:[],nTirada:0,volverMover:false,mercadoAbierto:null,ultimaVista:null};
   var pre=PREDIOS_OK[Math.floor(az(g)*PREDIOS_OK.length)];
   g.rec[0]=null;for(var i=0;i<5;i++){g.rec[1+i]=INNER[i];g.rec[6+i]=pre[i];g.rec[11+i]=null;}
@@ -448,8 +448,62 @@ function quienDebe(g){
   return [g.turno];
 }
 
+// ---------- El reloj opcional por turno ----------
+// Queda dentro del estado para que todos los celus vean lo mismo. Se frena mientras hay una oferta en la mesa.
+function claveReloj(g){
+  if(g.fase==='fin')return null;
+  if(g.fase==='ubicar'||g.fase==='barraIni')return 'u'+g.fase+g.faltaUbicar.length+'-'+g.barraPaso;
+  if(g.fase==='descarte')return 'd'+g.nTurnos+'-'+g.nTirada;
+  return 't'+g.nTurnos;
+}
+function reloj(g){
+  if(!g.limite)return;
+  var ahora=Date.now(),ms=g.limite*1000,k=claveReloj(g),r=g.rel;
+  if(!r||r.clave!==k){var cortado=k&&k.charAt(0)==='t'&&g.relVencio===g.nTurnos;r=g.rel={clave:k,fin:ahora+(cortado?0:ms),pausa:null,oferKey:null,oferFin:0};}
+  if(g.oferta){
+    if(r.pausa==null)r.pausa=Math.max(0,r.fin-ahora);
+    var ok=JSON.stringify([g.oferta.de,g.oferta.a,g.oferta.doy,g.oferta.pido,leToca(g.oferta)]);
+    if(r.oferKey!==ok){r.oferKey=ok;r.oferFin=ahora+Math.max(ms,60000);}
+  } else {
+    if(r.pausa!=null){r.fin=ahora+Math.max(r.pausa,10000);r.pausa=null;}
+    r.oferKey=null;
+  }
+}
+// Lo mínimo que hace el juego por el que se colgó: sin gastar nada ni usar Beneficios
+function jugadaForzada(g,q){
+  switch(g.fase){
+    case 'canje':return {t:'fin'};
+    case 'mercado':return {t:'cerrar'};
+    case 'espiar':return {t:'noEspiar'};
+    case 'tirar':return {t:'tirar'};
+    case 'mover':{var ds=destinos(g,q),sin=ds.filter(function(k){return k!==CENTRO;});
+      if(sin.length)return {t:'mover',k:sin[Math.floor(az(g)*sin.length)]};
+      return ds.length?{t:'mover',k:ds[0]}:{t:'quedarse'};}
+    default:return botAccion(g,q);
+  }
+}
+function vencer(g){
+  if(!g.limite||!g.rel)falla('Este partido no tiene reloj.');
+  var ahora=Date.now(),r=g.rel;
+  if(g.oferta){
+    if(ahora<r.oferFin-1500)falla('Todavía hay tiempo.');
+    var q=leToca(g.oferta);anotar(g,g.jug[q].nombre+' no contestó a tiempo: la oferta se toma como un no.');
+    accion0(g,q,{t:'responder',ok:false});return;
+  }
+  if(ahora<r.fin-1500)falla('Todavía hay tiempo.');
+  var deben=quienDebe(g);if(!deben.some(function(x){return !g.jug[x].bot;}))falla('Le toca a la máquina.');
+  anotar(g,'A '+deben.map(function(x){return g.jug[x].nombre;}).join(' y ')+' se le acabó el tiempo.');
+  deben.forEach(function(x){if(!g.jug[x].bot)golpe(g,'Se te acabó el tiempo: el juego siguió por vos.',x);});
+  if(r.clave.charAt(0)==='t')g.relVencio=g.nTurnos;
+  var pasos=0;
+  while(claveReloj(g)===r.clave&&g.fase!=='fin'&&!g.oferta&&pasos++<40){var d=quienDebe(g)[0];accion0(g,d,jugadaForzada(g,d));}
+}
 // ---------- Todas las jugadas pasan por acá ----------
 function accion(g,j,a){
+  if(a.t==='vencio')vencer(g);else accion0(g,j,a);
+  reloj(g);
+}
+function accion0(g,j,a){
   if(g.fase==='fin')falla('El partido terminó.');
   var esTurno=j===g.turno;
   function turno(f){if(!esTurno)falla('No es tu turno.');if(f&&f.indexOf(g.fase)<0)falla('Ahora no se puede.');if(g.oferta)falla('Primero resolvé la oferta que está en la mesa.');}
@@ -659,6 +713,6 @@ function botAccion(g,j){
 
 root.PEXA={REC:REC,NOMBRE_REC:NOMBRE_REC,CLUB:CLUB,MULTA:MULTA,PRECIO:PRECIO,INNER:INNER,NUM:NUM,ESTADIO:ESTADIO,PREDIO:PREDIO,ZONA:ZONA,POS:POS,HABILIDAD:HABILIDAD,PLANTEL:PLANTEL,DTS:DTS,BENEF:BENEF,
   NODOS:NODOS,ADJ:ADJ,PALCO:PALCO,MERCADOS:MERCADOS,CENTRO:CENTRO,BASE:BASE,mercadosCercanos:mercadosCercanos,leToca:leToca,
-  nuevaPartida:nuevaPartida,accion:accion,quienDebe:quienDebe,destinos:destinos,opcionesBarra:opcionesBarra,botAccion:botAccion,puedeUsarB:puedeUsarB,
+  nuevaPartida:function(cfg){var g=nuevaPartida(cfg);reloj(g);return g;},accion:accion,quienDebe:quienDebe,destinos:destinos,opcionesBarra:opcionesBarra,botAccion:botAccion,puedeUsarB:puedeUsarB,
   gana:gana,pagoEntrada:pagoEntrada,menciones:menciones,estadisticas:st,contratados:contratados,usable:usable,suma:suma,tasaBanco:tasaBanco,boleDe:boleDe,mercadoDe:mercadoDe,hab:hab,ocupado:ocupado,nombreNodo:nombreNodo,nombreArea:nombreArea,nombreCarta:nombreCarta,textoCarta:textoCarta,textoOferta:textoOferta,puedePagar:puedePagar,vacio:vacio};
 })(typeof window!=='undefined'?window:this);

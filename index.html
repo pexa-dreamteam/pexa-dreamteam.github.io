@@ -24,6 +24,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .fila{display:flex;gap:8px;align-items:stretch}.fila>*{flex:1;min-width:0}
 h1,h2,h3{font-family:var(--d);font-weight:400;margin:0}
 .barra{background:var(--piluso);color:var(--crema);padding:8px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+.reloj{flex:none;font:400 18px var(--d);padding:4px 9px;border-radius:7px;background:rgba(255,255,255,.14);min-width:62px;text-align:center;white-space:nowrap}
+.reloj[hidden]{display:none}
+.reloj.urgente{background:var(--rojo);color:#fff;animation:relojLatido 1s ease-in-out infinite}
+.reloj.pausa{font-size:13px;background:rgba(226,189,87,.28);color:#ffe9a8}
+@keyframes relojLatido{50%{transform:scale(1.1)}}
 .barra .cono{flex:none}
 .barra .q{flex:1;min-width:0;line-height:1.2}
 .barra .q b{display:block;font-family:var(--d);font-weight:400;font-size:17px}
@@ -237,7 +242,32 @@ h1,h2,h3{font-family:var(--d);font-weight:400;margin:0}
 .campeon h2{font-size:24px}
 @keyframes lat{50%{opacity:.25}}
 .lat{animation:lat 1.2s infinite}
-@media (prefers-reduced-motion:reduce){.lat,.rueda,.fj-gira,.fj-pone,.mu-rayos,.mu-est,.copa,.mu-carta,.cj-tk{animation:none}.tq-c.ida,.tq-c.vuelta{animation-duration:.01s}}
+/* Versión para computadora: el tablero fijo a la izquierda y todo lo demás al costado */
+@media (min-width:1000px){
+  #app{max-width:none;background:var(--crema)}
+  .ini{width:100%;max-width:640px;margin:0 auto}
+  .juego{display:grid;grid-template-columns:minmax(0,1fr) 440px;align-items:start}
+  .barra{grid-column:1/-1;padding:8px 20px;min-height:56px}
+  .mesa{grid-column:1;position:sticky;top:56px;height:calc(100vh - 56px);justify-content:center;min-width:0}
+  #tablero{height:100%;width:100%;flex:1 1 auto;min-width:0}
+  .hist{width:66px;padding:12px 8px 12px 0}
+  .col-der{grid-column:2;min-width:0;border-left:2px solid var(--tinta);min-height:calc(100vh - 56px);background:var(--crema)}
+  .modal{align-items:center}
+  .hoja{border-radius:14px;max-width:560px}
+  button:not(:disabled):hover{filter:brightness(1.06)}
+  .cartita{transition:transform .12s ease}
+  .cartita:hover{transform:translateY(-3px) scale(1.03)}
+  #panel .bt.oro,#panel .bt.fuerte{cursor:pointer}
+}
+@media (min-width:1500px){
+  .juego{grid-template-columns:minmax(0,1fr) 880px}
+  .col-der{display:grid;grid-template-columns:440px 440px;align-items:start}
+  .col-der>#panel{grid-column:1;grid-row:1}
+  .col-der>.p-tabs{grid-column:1;grid-row:2}
+  .col-der>.p-pz{grid-column:2;grid-row:1 / span 3;padding-top:12px!important;border-left:2px solid var(--linea);min-height:calc(100vh - 56px)}
+  .col-der>.campeon,.col-der>.campeon+.panel{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){.reloj.urgente{animation:none}.lat,.rueda,.fj-gira,.fj-pone,.mu-rayos,.mu-est,.copa,.mu-carta,.cj-tk{animation:none}.tq-c.ida,.tq-c.vuelta{animation-duration:.01s}}
 </style>
 </head>
 <body>

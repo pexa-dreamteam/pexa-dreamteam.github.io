@@ -57,6 +57,28 @@ var sala={g:null,
 var ui={tab:'canjes',yo:null,cubierto:false,modal:null,bancoDa:null,descarte:null,barraSel:null,verDT:null,tiradaVista:null,tiradaT:0,eventoVisto:null,cola:[],animando:false,logVisto:null,festejo:false,sinAnim:false,lobby:null};
 try{ui.sinAnim=localStorage.getItem('pexa-sin-anim')==='1';}catch(e){}
 function humanos(g){return g.jug.filter(function(p){return !p.bot;});}
+// El reloj por turno: se dibuja solo, sin repintar la pantalla, y cuando llega a cero avisa al motor
+var LIMITES=[[0,'Sin límite'],[45,'45 s'],[60,'1 min'],[120,'2 min']];
+function textoReloj(ms){var s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;}
+function vencioRed(){sala.red.transaccion('partida',function(cur){if(cur==null)return null;var g=JSON.parse(cur);try{P.accion(g,-1,{t:'vencio'});}catch(e){return;}g.nA=(g.nA||0)+1;return JSON.stringify(g);},function(){});}
+function tickReloj(){
+  var g=sala.g,e=document.getElementById('reloj');if(!g||!g.limite||!g.rel||g.fase==='fin'){if(e)e.hidden=true;return;}
+  var r=g.rel,ahora=Date.now(),deben=P.quienDebe(g),hum=deben.filter(function(j){return !g.jug[j].bot;});
+  if(e){
+    if(!hum.length&&r.pausa==null){e.hidden=true;}
+    else{e.hidden=false;var rest=r.pausa!=null?r.pausa:r.fin-ahora;e.textContent=(r.pausa!=null?'En pausa ':'')+textoReloj(rest);e.classList.toggle('urgente',r.pausa==null&&rest<=10000);e.classList.toggle('pausa',r.pausa!=null);}
+  }
+  var mia=ui.yo!=null&&hum.indexOf(ui.yo)>=0;
+  if(mia&&r.pausa==null){var s=Math.ceil((r.fin-ahora)/1000);if(s===10&&ui.avisoReloj!==r.clave){ui.avisoReloj=r.clave;try{if(navigator.vibrate)navigator.vibrate(120);}catch(x){}}}
+  var limiteMs=g.oferta?r.oferFin:r.fin;if(!hum.length||ahora<limiteMs)return;
+  // En una sala lo manda primero el que debe; si tiene el celu dormido, lo hace cualquier otro
+  if(sala.red&&!mia&&ahora<limiteMs+3000)return;
+  if(ui.vencioEnvio&&ahora-ui.vencioEnvio<4000)return;
+  ui.vencioEnvio=ahora;
+  if(mia){var abierta=document.querySelector('.modal');if(abierta)abierta.remove();ui.modal=null;ui.bancoDa=null;}
+  if(sala.red)vencioRed();else sala.enviar(hum[0],{t:'vencio'});
+}
+setInterval(tickReloj,250);
 function aviso(m,cls,ms){var v=document.querySelector('.toast');if(v)v.remove();var t=el('<div class="toast '+cls+'" role="alert">'+esc(m)+'</div>').firstChild;document.body.appendChild(t);setTimeout(function(){t.remove();},ms);}
 function mostrarError(m){aviso(m,'',3200);}
 function mostrarAviso(m){aviso(m,'ok',3800);}
@@ -234,7 +256,8 @@ function mostrarFichaje(g,e){
 }
 
 // ---------- Inicio ----------
-var conf={sel:[0,1,2,3],modo:'completo',filas:[{h:true},{h:false},{h:false},{h:false},{h:false}],nombres:['','','','','']};
+var conf={limite:0,sel:[0,1,2,3],modo:'completo',filas:[{h:true},{h:false},{h:false},{h:false},{h:false}],nombres:['','','','','']};
+function selectorLimite(actual,attr){return '<div><h3 style="font-size:16px;margin:0 0 6px">Tiempo por turno</h3><div class="sel" role="group" aria-label="Tiempo por turno">'+LIMITES.map(function(l){return '<button class="chip" '+attr+'="'+l[0]+'" aria-pressed="'+(actual===l[0])+'">'+l[1]+'</button>';}).join('')+'</div><p class="nota" style="margin:6px 0 0">Si se acaba, el juego sigue por el colgado sin gastarle nada. Se frena mientras hay una oferta.</p></div>';}
 function pantallaInicio(){
   var hay=false;try{hay=!!localStorage.getItem(CLAVE);}catch(e){}
   var redOk=window.PEXA_RED&&PEXA_RED.disponible(),salaGuardada=null;try{salaGuardada=localStorage.getItem('pexa-sala');}catch(e){}
@@ -243,6 +266,7 @@ function pantallaInicio(){
   if(redOk)s+='<div class="amigos"><h2>Jugar con amigos</h2><p class="nota" style="margin:0">Cada uno desde su celu. Uno arma la sala y les pasa el link a los demás.</p><input id="miNombre" aria-label="Tu nombre" placeholder="Tu nombre" maxlength="16" value="'+esc(miNombre())+'">'+(salaGuardada?'<button class="bt oro" id="volverSala">Volver a la sala '+esc(salaGuardada)+'</button>':'')+'<button class="bt fuerte" id="crearSala">Armar una sala</button><div class="fila"><input id="codSala" aria-label="Código de la sala" placeholder="Código" maxlength="4" autocapitalize="characters"><button class="bt" id="unirme">Entrar</button></div></div><h2 style="font-size:19px;margin-top:4px">O en este celular</h2>';
   s+=(redOk?'':'<h2 style="font-size:19px">Partido nuevo</h2>')+'';
   s+='<div class="sel" role="group" aria-label="Duración"><button class="chip" data-m="completo" aria-pressed="'+(conf.modo==='completo')+'">Completo: 4 Jugadores</button><button class="chip" data-m="rapido" aria-pressed="'+(conf.modo==='rapido')+'">Rápido: 3 Jugadores</button></div>';
+  s+=selectorLimite(conf.limite,'data-lim');
   s+='<h3 style="font-size:16px;margin:0">Elegí los DTs: '+conf.sel.length+' de 5</h3><p class="nota" style="margin:0">Tocá la cara para sumarlo o sacarlo, y el + para conocerlo. Tienen que ser 2 como mínimo.</p>';
   for(var i=0;i<5;i++){var d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0;s+='<div class="dtelige'+(on?' on':'')+'"><div class="dt-cara"><button class="dt-tog" data-togdt="'+i+'" aria-pressed="'+on+'" aria-label="'+(on?'Sacar a ':'Sumar a ')+d.nombre+'">'+K.retrato(i)+'</button><button class="dt-mas" data-verficha="'+i+'" aria-label="Conocer a '+d.nombre+'">+</button></div>'+(on?'<div class="dt-dat"><input data-nom="'+i+'" aria-label="Nombre de '+d.nombre+'" placeholder="'+d.nombre+'" maxlength="16" value="'+esc(conf.nombres[i]||d.nombre)+'"><div class="seg" role="group" aria-label="Quién juega"><button data-h="'+i+'" data-v="1" aria-pressed="'+h+'">Persona</button><button data-h="'+i+'" data-v="0" aria-pressed="'+(!h)+'">Máquina</button></div></div>':'<div class="dt-dat"><b>'+d.nombre+'</b><span class="nota">No juega. Tocá la cara para sumarlo.</span></div>')+cono(i,22)+'</div>';}
   s+='<button class="bt oro" id="empezar">Empezar el partido</button>';
@@ -250,6 +274,7 @@ function pantallaInicio(){
   app.innerHTML=s;
   var b=document.getElementById('seguir');if(b)b.onclick=function(){sala.cargar();ui.yo=null;reiniciarVista();ui.festejo=sala.g.fase==='fin';actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
   if(redOk)conectarAmigos(salaGuardada);
+  app.querySelectorAll('[data-lim]').forEach(function(x){x.onclick=function(){leerNombres();conf.limite=+x.dataset.lim;pantallaInicio();};});
   app.querySelectorAll('[data-togdt]').forEach(function(x){x.onclick=function(){leerNombres();var v=+x.dataset.togdt,ix=conf.sel.indexOf(v);if(ix>=0){if(conf.sel.length<=2){mostrarAviso('Tienen que jugar 2 DTs como mínimo.');return;}conf.sel.splice(ix,1);}else{conf.sel.push(v);conf.sel.sort();}if(!conf.sel.some(function(q){return conf.filas[q].h;}))conf.filas[conf.sel[0]].h=true;pantallaInicio();};});
   app.querySelectorAll('[data-verficha]').forEach(function(x){x.onclick=function(){leerNombres();ui.modal={tipo:'dt',dt:+x.dataset.verficha};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-m]').forEach(function(x){x.onclick=function(){leerNombres();conf.modo=x.dataset.m;pantallaInicio();};});
@@ -257,7 +282,7 @@ function pantallaInicio(){
   app.querySelectorAll('[data-nom]').forEach(function(x){x.onfocus=function(){x.select();};});
   document.getElementById('empezar').onclick=function(){leerNombres();
     var d=conf.sel.map(function(i){return {dt:i,nombre:conf.nombres[i].trim()||P.DTS[i].nombre,bot:!conf.filas[i].h};});
-    sala.g=P.nuevaPartida({dts:d,modo:conf.modo,semilla:Math.floor(Math.random()*1e9),t0:Date.now()});ui.yo=null;ui.tab='canjes';reiniciarVista();ui.verDT=null;sala.guardar();actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
+    sala.g=P.nuevaPartida({dts:d,modo:conf.modo,limite:conf.limite,semilla:Math.floor(Math.random()*1e9),t0:Date.now()});ui.yo=null;ui.tab='canjes';reiniciarVista();ui.verDT=null;sala.guardar();actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
 }
 function reiniciarVista(){ui.pausa=false;ui.tabVer=null;ui.tiradaVista=null;ui.eventoVisto=null;ui.cola=[];ui.animando=false;ui.logVisto=null;ui.festejo=false;ui.faseVista=null;}
 function leerNombres(){app.querySelectorAll('[data-nom]').forEach(function(x){conf.nombres[+x.dataset.nom]=x.value;});}
@@ -273,8 +298,8 @@ function pintar(){
   var nLog=g.nLog||0;if(ui.logVisto!=null&&nLog>ui.logVisto){var gp=g.log.filter(function(l){return l.golpe&&l.i>ui.logVisto&&l.solo===ui.yo;});if(gp.length)aviso(gp[gp.length-1].t,'golpe',5200);}ui.logVisto=nLog;
   var yo=ui.yo,me=yo!=null?g.jug[yo]:null,marcados=[],tap=null,deben=P.quienDebe(g),miTurno=yo!=null&&deben.indexOf(yo)>=0;
   var h='',turno=g.fase==='ubicar'?g.jug[g.faltaUbicar[0]]:g.fase==='barraIni'?g.jug[deben[0]]:g.jug[g.turno];
-  h+='<div class="barra">'+cono(turno.dt,28)+'<div class="q"><b>'+esc(turno.nombre)+'</b><span>'+esc(textoFase(g,yo))+'</span></div>'+(g.dados?'<div class="dados">'+dado(g.dados[0],'a',36)+dado(g.dados[1],'b',36)+'</div>':'')+'</div>';
-  if(g.fase==='fin')h+='<div class="campeon"><h2>¡'+esc(g.jug[g.ganador].nombre)+' campeón!</h2><p style="margin:4px 0 10px">Entró al Palco con su Dream Team en '+g.nTurnos+' turnos.</p><button class="bt fuerte" id="otra">Otro partido</button></div><div class="panel">'+resumen(g)+'</div>';
+  h+='<div class="juego"><div class="barra">'+cono(turno.dt,28)+'<div class="q"><b>'+esc(turno.nombre)+'</b><span>'+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span>'+(g.dados?'<div class="dados">'+dado(g.dados[0],'a',36)+dado(g.dados[1],'b',36)+'</div>':'')+'</div>';
+  var finH=g.fase==='fin'?'<div class="campeon"><h2>¡'+esc(g.jug[g.ganador].nombre)+' campeón!</h2><p style="margin:4px 0 10px">Entró al Palco con su Dream Team en '+g.nTurnos+' turnos.</p><button class="bt fuerte" id="otra">Otro partido</button></div><div class="panel">'+resumen(g)+'</div>':'';
   // qué se puede tocar
   if(miTurno&&!g.oferta){
     if(g.fase==='ubicar'){marcados=[0,1,2,3,4].map(function(i){return P.BASE.B+i;}).filter(function(k){return !P.ocupado(g,k);});tap=function(k){sala.enviar(yo,{t:'ubicar',k:k});};}
@@ -293,9 +318,10 @@ function pintar(){
     if(ui.modal&&ui.modal.tipo==='tocarMercado'){marcados=[0,1,2,3,4].filter(function(m){return g.mercados[m].length;}).map(function(m){return P.MERCADOS[m];});tap=function(k){var m=P.MERCADOS.indexOf(k);ui.modal=null;sala.enviar(yo,{t:'usar',b:'espionaje',m:m},function(){ui.modal={tipo:'visto',m:m};});};}
   }
   h+='<div class="mesa">'+dibujarTablero(g,marcados)+historial(g)+'</div>';
-  h+='<div class="panel" id="panel">'+panelAccion(g,yo,me,miTurno)+'</div>';
+  h+='<div class="col-der">'+finH+'<div class="panel" id="panel">'+panelAccion(g,yo,me,miTurno)+'</div>';
   if(me)h+=tabs(g,yo,me);else if(g.fase!=='fin')h+=espectador(g);
-  app.innerHTML=h;
+  h+='</div></div>';
+  app.innerHTML=h;tickReloj();
   var sv=document.getElementById('tablero');if(tap&&sv)sv.addEventListener('click',function(ev){tocarTablero(ev,marcados,tap);});
   conectar(g,yo,me);
   if(ui.faseVista!==g.fase){ui.faseVista=g.fase;if(g.fase==='mercado'){var pn=document.getElementById('panel');if(pn)pn.scrollIntoView();}else if(['tirar','mover','barras','ubicar','espiar','descarte'].indexOf(g.fase)>=0)window.scrollTo(0,0);}
@@ -372,7 +398,7 @@ function abanico(cartas,w,ancho){
   return '<div class="abanico" style="height:'+(h+maxY+10).toFixed(0)+'px">'+s+'</div>';
 }
 function mano(g,yo,me){
-  var ancho=Math.min(window.innerWidth,520)-48,rs=[],bs=[];
+  var ancho=(window.innerWidth>=1000?440:Math.min(window.innerWidth,520))-48,rs=[],bs=[];
   P.REC.forEach(function(r){for(var i=0;i<me.mano[r];i++)rs.push({html:K.recurso(r),cls:me.multas[r]?'trabada':''});});
   me.benef.forEach(function(b){bs.push({peso:2,html:K.beneficio(P.BENEF[b].n),data:'data-verb="'+b+'"',label:'Ver '+P.BENEF[b].n});});
   me.nuevos.forEach(function(b){bs.push({peso:2,html:K.beneficio(P.BENEF[b].n)+'<i class="nuevo">Nuevo</i>',data:'data-verb="'+b+'" data-nuevo="1"',label:'Ver '+P.BENEF[b].n+', recién comprado'});});
@@ -411,13 +437,13 @@ function espectador(g){
 }
 function tabs(g,yo,me){
   var ver=ui.verDT!=null?g.jug[ui.verDT]:me;
-  var s='<div class="panel" style="padding-top:0">'+mano(g,yo,me)+'<div class="pz-sel" role="group" aria-label="Ver la Pizarra de">'+g.jug.map(function(q){return '<button data-verdt="'+q.id+'" aria-pressed="'+(q.id===ver.id)+'">'+cono(q.dt,16)+'<span>'+(q.id===yo?'Tu Pizarra':esc(q.nombre))+'</span></button>';}).join('')+'</div>'+pizarra(g,yo,me,ver)+'</div>';
-  s+='<div class="tabs" role="group" aria-label="Secciones">'+[['canjes','Canjes'],['mercados','Mercados'],['isla','La isla'],['reg','Registro']].map(function(t){return '<button data-tab="'+t[0]+'" aria-pressed="'+(ui.tab===t[0])+'">'+t[1]+'</button>';}).join('')+'</div><div class="panel">';
+  var s='<div class="panel p-pz" style="padding-top:0">'+mano(g,yo,me)+'<div class="pz-sel" role="group" aria-label="Ver la Pizarra de">'+g.jug.map(function(q){return '<button data-verdt="'+q.id+'" aria-pressed="'+(q.id===ver.id)+'">'+cono(q.dt,16)+'<span>'+(q.id===yo?'Tu Pizarra':esc(q.nombre))+'</span></button>';}).join('')+'</div>'+pizarra(g,yo,me,ver)+'</div>';
+  s+='<div class="p-tabs"><div class="tabs" role="group" aria-label="Secciones">'+[['canjes','Canjes'],['mercados','Mercados'],['isla','La isla'],['reg','Registro']].map(function(t){return '<button data-tab="'+t[0]+'" aria-pressed="'+(ui.tab===t[0])+'">'+t[1]+'</button>';}).join('')+'</div><div class="panel">';
   if(ui.tab==='canjes')s+=tabCanjes(g,yo,me);
   if(ui.tab==='mercados')s+=tabMercados(g,me);
   if(ui.tab==='isla')s+=tabIsla(g);
   if(ui.tab==='reg')s+=tabRegistro(g,yo);
-  return s+'<button class="bt chico" id="animTog" style="margin-top:8px">Animaciones: '+(ui.sinAnim?'apagadas':'prendidas')+'</button><button class="bt chico" id="salir">Salir (el partido queda guardado)</button></div>';
+  return s+'<button class="bt chico" id="animTog" style="margin-top:8px">Animaciones: '+(ui.sinAnim?'apagadas':'prendidas')+'</button><button class="bt chico" id="salir">Salir (el partido queda guardado)</button></div></div>';
 }
 function tabCanjes(g,yo,me){
   var mio=yo===g.turno&&(g.fase==='canje'||g.fase==='mercado')&&!g.oferta,s='';
@@ -589,8 +615,8 @@ function pantallaLobby(){
   var dts=l.dts||[0,1,2,3,4];
   var s='<div class="ini"><h1 style="font-size:30px">Sala<small>'+esc(c)+'</small></h1>';
   s+='<div class="aviso"><b>Pasales el link a tus amigos</b>Entran, ponen su nombre y listo. Si no, el código es <b style="display:inline;font-size:inherit">'+esc(c)+'</b>.</div><a class="bt fuerte" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent('¿Jugamos a PEXA? Entrá acá: '+link)+'">Mandar por WhatsApp</a><button class="bt chico" id="copiarLink">Copiar el link</button>';
-  if(host){s+='<div class="sel" role="group" aria-label="Cuántos DTs">'+[2,3,4,5].map(function(n){return '<button class="chip" data-ln="'+n+'" aria-pressed="'+(l.n===n)+'">'+n+' DTs</button>';}).join('')+'</div><div class="sel" role="group" aria-label="Duración"><button class="chip" data-lm="completo" aria-pressed="'+(l.modo==='completo')+'">Completo: 4 Jugadores</button><button class="chip" data-lm="rapido" aria-pressed="'+(l.modo==='rapido')+'">Rápido: 3 Jugadores</button></div>';}
-  else s+='<p class="nota" style="margin:0">'+l.n+' DTs · partido '+(l.modo==='rapido'?'rápido (3 Jugadores)':'completo (4 Jugadores)')+'.</p>';
+  if(host){s+='<div class="sel" role="group" aria-label="Cuántos DTs">'+[2,3,4,5].map(function(n){return '<button class="chip" data-ln="'+n+'" aria-pressed="'+(l.n===n)+'">'+n+' DTs</button>';}).join('')+'</div><div class="sel" role="group" aria-label="Duración"><button class="chip" data-lm="completo" aria-pressed="'+(l.modo==='completo')+'">Completo: 4 Jugadores</button><button class="chip" data-lm="rapido" aria-pressed="'+(l.modo==='rapido')+'">Rápido: 3 Jugadores</button></div>'+selectorLimite(l.limite||0,'data-ll');}
+  else s+='<p class="nota" style="margin:0">'+l.n+' DTs · partido '+(l.modo==='rapido'?'rápido (3 Jugadores)':'completo (4 Jugadores)')+' · '+(l.limite?'reloj de '+l.limite+' s por turno':'sin límite de tiempo')+'.</p>';
   for(var i=0;i<l.n;i++){var a=l.a[i],dq=dts[i];if(!a)listos=false;
     s+='<div class="asiento"><div class="dt-cara"><span class="dt-tog chico">'+K.retrato(dq)+'</span><button class="dt-mas" data-verficha="'+dq+'" aria-label="Conocer a '+P.DTS[dq].nombre+'">+</button></div><div class="as-n"><b>'+P.DTS[dq].nombre+'</b><br>'+(a?(a.bot?'La máquina':esc(a.nom||P.DTS[dq].nombre)+(a.id===id?' (vos)':'')+(a.id===l.host?' · armó la sala':'')):'<em>Esperando a alguien…</em>')+'</div>'+(host&&(!a||a.bot)?'<button class="bt chico" data-lb="'+i+'">'+(a?'Dejar lugar':'Máquina')+'</button>':'')+'</div>';}
   var miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
@@ -603,15 +629,19 @@ function pantallaLobby(){
   document.getElementById('copiarLink').onclick=function(){try{navigator.clipboard.writeText(link).then(function(){mostrarAviso('Link copiado.');},function(){mostrarAviso(link);});}catch(e){mostrarAviso(link);}};
   document.getElementById('dejarLobby').onclick=function(){if(!host)lob(function(x){x.a=x.a.map(function(q){return q&&q.id===id?null:q;});});dejarSala(true);pantallaInicio();};
   app.querySelectorAll('[data-ln]').forEach(function(x){x.onclick=function(){var n=+x.dataset.ln;lob(function(y){for(var k=n;k<5;k++)if(y.a[k]&&!y.a[k].bot)return;for(var k2=n;k2<5;k2++)y.a[k2]=null;y.n=n;});};});
+  app.querySelectorAll('[data-ll]').forEach(function(x){x.onclick=function(){lob(function(y){y.limite=+x.dataset.ll;});};});
   app.querySelectorAll('[data-lm]').forEach(function(x){x.onclick=function(){lob(function(y){y.modo=x.dataset.lm;});};});
   app.querySelectorAll('[data-verficha]').forEach(function(x){x.onclick=function(){ui.modal={tipo:'dt',dt:+x.dataset.verficha};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-lpick]').forEach(function(x){x.onclick=function(){var v=+x.dataset.lpick;lob(function(y){var dd=y.dts||[0,1,2,3,4],me=-1;y.a.forEach(function(q,ix){if(q&&q.id===id&&ix<y.n)me=ix;});if(me<0)return;var o=dd.indexOf(v);if(o<y.n&&y.a[o]&&!y.a[o].bot&&o!==me)return;var t=dd[me];dd[me]=v;dd[o]=t;y.dts=dd;});};});
   app.querySelectorAll('[data-lb]').forEach(function(x){x.onclick=function(){var k=+x.dataset.lb;lob(function(y){if(y.a[k]&&!y.a[k].bot)return;y.a[k]=y.a[k]?null:{bot:true};});};});
   var ar=document.getElementById('arrancar');if(ar)ar.onclick=function(){
     var d=[];for(var i2=0;i2<l.n;i2++){var q=l.a[i2],dq2=dts[i2];d.push({dt:dq2,nombre:q.bot?P.DTS[dq2].nombre:(q.nom||P.DTS[dq2].nombre),bot:!!q.bot,cid:q.id||null});}
-    var txt=JSON.stringify(P.nuevaPartida({dts:d,modo:l.modo,semilla:Math.floor(Math.random()*1e9),t0:Date.now(),host:l.host}));
+    var txt=JSON.stringify(P.nuevaPartida({dts:d,modo:l.modo,limite:l.limite||0,semilla:Math.floor(Math.random()*1e9),t0:Date.now(),host:l.host}));
     sala.red.transaccion('partida',function(cur){if(cur)return;return txt;},function(ok){if(ok)lob(function(y){y.empezo=true;});});};
 }
+// En la compu: al cambiar el tamaño de la ventana se reacomoda, y la barra espaciadora tira los dados
+var tamT=null;window.addEventListener('resize',function(){clearTimeout(tamT);tamT=setTimeout(function(){if(sala.g&&!ui.modal)pintar();},250);});
+document.addEventListener('keydown',function(ev){if(ev.code!=='Space'||ev.repeat)return;var t=ev.target;if(t&&/INPUT|TEXTAREA|BUTTON|SELECT/.test(t.tagName))return;var b=document.getElementById('tirar');if(b&&!document.querySelector('.modal')){ev.preventDefault();b.click();}});
 pintar();
 (function(){var c=new URLSearchParams(location.search).get('sala');if(c&&window.PEXA_RED&&PEXA_RED.disponible()&&!sala.g){var n=miNombre();if(n)entrarSala(c.toUpperCase(),n);}})();
 window.PEXA_SALA=sala;window.PEXA_UI=ui;window.PEXA_PINTAR=pintar;
