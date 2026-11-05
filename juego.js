@@ -100,7 +100,7 @@ function evento(g,e){g.nEvento=(g.nEvento||0)+1;e.n=g.nEvento;g.evento=e;g.evs=g
 // cfg: {dts:[{dt:0-4, nombre, bot}], modo:'completo'|'rapido', semilla}
 function nuevaPartida(cfg){
   var n=cfg.dts.length;
-  var g={v:1,limite:cfg.limite||0,rel:null,t0:cfg.t0||0,host:cfg.host||null,seed:(cfg.semilla||1)*7919+13,n:n,modo:cfg.modo||'completo',meta:cfg.modo==='rapido'?3:4,num:[],rec:[],porNum:[[],[],[],[],[],[],[]],banco:{},tokens:{V:6,E:6},bolsa:{},
+  var g={v:1,reg:cfg.reglas||null,limite:cfg.limite||0,rel:null,t0:cfg.t0||0,host:cfg.host||null,seed:(cfg.semilla||1)*7919+13,n:n,modo:cfg.modo||'completo',meta:cfg.modo==='rapido'?3:4,num:[],rec:[],porNum:[[],[],[],[],[],[],[]],banco:{},tokens:{V:6,E:6},bolsa:{},
     mazoB:[],descB:[],mercados:[],jug:[],barras:[],turno:0,primero:0,nTurnos:0,ganador:null,log:[],fase:'ubicar',faltaUbicar:[],dados:null,mv:null,descartes:{},oferta:null,barraPend:[],barraPaso:0,tiradas:[],nTirada:0,volverMover:false,mercadoAbierto:null,ultimaVista:null};
   var pre=PREDIOS_OK[Math.floor(az(g)*PREDIOS_OK.length)];
   g.rec[0]=null;for(var i=0;i<5;i++){g.rec[1+i]=INNER[i];g.rec[6+i]=pre[i];g.rec[11+i]=null;}
@@ -122,7 +122,15 @@ function nuevaPartida(cfg){
 }
 function ocupado(g,k,excepto){for(var j=0;j<g.jug.length;j++)if(g.jug[j].pos===k&&j!==excepto)return true;return g.barras.indexOf(k)>=0;}
 function contratados(p){return p.eq.filter(Boolean).length;}
-function hab(p,pos){return p.eq[pos]?p.eq[pos].club:null;}
+function hab(p,pos){return p.noHab===pos?null:(p.eq[pos]?p.eq[pos].club:null);}
+// Reglas en prueba (apagadas en el juego real): precio de un Jugador según el criterio
+function tokenDe(g,c){var k=g.reg&&g.reg.precioTk;if(!k)return null;var ic=INNER.indexOf(c.club);
+  if(k==='club')return c.club==='gol'||c.club==='suerte'?'V':(c.club==='picardia'?(c.pos%2?'V':'E'):'E');
+  if(k==='pos')return c.pos>=2?'V':'E';
+  if(k==='cruzado')return (ic+c.pos)%2?'V':'E';
+  return 'cualquiera';}
+function puedeFichar(g,p,c){var t=tokenDe(g,c);if(!t)return p.V>=1&&p.E>=1;if(t==='cualquiera')return p.V+p.E>=1;return p[t]>=1;}
+function maxMultas(g,p){var r=g.reg;if(!r)return 5;if(r.multasMax)return r.multasMax;if(r.defLimite3&&hab(p,1))return 3;return 5;}
 function usable(p,r){return p.multas[r]===0||p.amnistia;}
 // Para entrar al Palco: las Multas se pueden pagar en el acto, siempre que después quede 1 Recurso de cada tipo.
 // Devuelve cómo se pagan ([multa, con qué]) o null si no alcanza. El Arquero paga cualquier Multa con su Recurso, una vez saldadas las de ese tipo.
@@ -176,6 +184,7 @@ function tirarDados(g){
   var p=g.jug[g.turno],d=[dado(g),dado(g)];g.dados=d;g.nTirada++;g.tiradas.push({d:d,j:g.turno});if(g.tiradas.length>5)g.tiradas.shift();
   var es=st(p);es.tiros++;es.dados+=d[0]+d[1];if(d[0]===1)es.unos++;if(d[1]===1)es.unos++;g.caras=g.caras||[0,0,0,0,0,0,0];g.caras[d[0]]++;g.caras[d[1]]++;
   anotar(g,p.nombre+' tira '+d[0]+' (azul) y '+d[1]+' (blanco).');
+  g.ultTiro={n:g.nTirada,j:g.turno,d:d,cob:[],mul:[],sinB:[]};
   cobrar(g,d);
   if(d[0]===1||d[1]===1)g.jug.forEach(function(q){var t=suma(q.mano);if(t>9)g.descartes[q.id]=Math.floor(t/2);});
   if(Object.keys(g.descartes).length){g.fase='descarte';return;}
@@ -187,18 +196,18 @@ function cobrar(g,d){
   d.forEach(function(x){g.porNum[x].forEach(function(a){var r=g.rec[a];if(!r)return;
     g.jug.forEach(function(p){if(p.pos<0||!NODOS[p.pos].areas||NODOS[p.pos].areas.indexOf(a)<0)return;pide[r].push([p,hab(p,3)===r?2:1]);});});});
   REC.forEach(function(r){var tot=0;pide[r].forEach(function(x){tot+=x[1];});if(!tot)return;
-    if(tot>g.banco[r]){anotar(g,'El Banco no alcanza: nadie cobra '+NOMBRE_REC[r]+' en esta tirada.');return;}
+    if(tot>g.banco[r]){anotar(g,'El Banco no alcanza: nadie cobra '+NOMBRE_REC[r]+' en esta tirada.');if(g.ultTiro)g.ultTiro.sinB.push(r);return;}
     var porJ={};pide[r].forEach(function(x){x[0].mano[r]+=x[1];g.banco[r]-=x[1];porJ[x[0].id]=(porJ[x[0].id]||0)+x[1];st(x[0]).cobro+=x[1];});
-    Object.keys(porJ).forEach(function(id){anotar(g,g.jug[id].nombre+' cobra '+porJ[id]+' de '+NOMBRE_REC[r]+'.');});});
+    Object.keys(porJ).forEach(function(id){anotar(g,g.jug[id].nombre+' cobra '+porJ[id]+' de '+NOMBRE_REC[r]+'.');if(g.ultTiro)g.ultTiro.cob.push({j:+id,r:r,n:porJ[id]});});});
   d.forEach(function(x){g.porNum[x].forEach(function(a){if(g.rec[a])return;
     g.jug.forEach(function(p){if(p.pos<0||NODOS[p.pos].areas.indexOf(a)<0)return;sacarMulta(g,p);});});});
 }
 function sacarMulta(g,p){
-  if(suma(p.multas)>=5)return;
+  if(suma(p.multas)>=maxMultas(g,p))return;
   var tot=suma(g.bolsa);if(!tot)return;
   var x=az(g)*tot,r=REC[4];for(var i=0;i<5;i++){x-=g.bolsa[REC[i]];if(x<0){r=REC[i];break;}}
-  if(hab(p,1)===r){st(p).frenadas++;anotar(g,p.nombre+' saca '+MULTA[r]+', pero su Defensor la frena.');return;}
-  g.bolsa[r]--;p.multas[r]++;st(p).multas++;anotar(g,p.nombre+' se lleva una Multa de '+MULTA[r]+'.');
+  if(hab(p,1)===r){st(p).frenadas++;anotar(g,p.nombre+' saca '+MULTA[r]+', pero su Defensor la frena.');if(g.ultTiro)g.ultTiro.mul.push({j:p.id,r:r,fr:1});return;}
+  g.bolsa[r]--;p.multas[r]++;st(p).multas++;anotar(g,p.nombre+' se lleva una Multa de '+MULTA[r]+'.');if(g.ultTiro)g.ultTiro.mul.push({j:p.id,r:r});
 }
 function descartar(g,j,mapa){
   var c=g.descartes[j];if(!c)falla('No tenés que devolver nada.');
@@ -249,6 +258,14 @@ function despuesDeMover(g){
 }
 function iniciarBarras(g,volver){
   if(!g.barras.length){terminarBarras(g,volver);return;}
+  if(g.reg&&g.reg.barrasAuto){
+    // Prueba: avanzan solos en sentido horario por la Circunvalación. Saltean un cono, pero nunca a otro Barrabrava.
+    g.barras.forEach(function(k,ib){var ruta=PALCO.indexOf(k)>=0?PALCO:ANILLO,pos=ruta.indexOf(k);if(pos<0)return;var s1=ruta[(pos+1)%ruta.length];
+      if(g.barras.indexOf(s1)>=0)return;
+      if(g.jug.some(function(q){return q.pos===s1;})){var s2=ruta[(pos+2)%ruta.length];if(g.barras.indexOf(s2)>=0||g.jug.some(function(q){return q.pos===s2;}))return;s1=s2;}
+      g.barras[ib]=s1;});
+    terminarBarras(g,volver);return;
+  }
   if(g.n===2){
     g.barras=g.barras.map(function(k){var ruta=PALCO.indexOf(k)>=0?PALCO:ANILLO,pos=ruta.indexOf(k),sig=ruta[(pos+1)%ruta.length];
       if(g.jug.some(function(q){return q.pos===sig;}))sig=ruta[(pos+2)%ruta.length];
@@ -325,8 +342,9 @@ function contratar(g,j,ix2){
   var p=g.jug[j],m=g.mercadoAbierto,c=g.mercados[m][ix2];if(!c)falla('Esa carta no está.');
   if(p.eq[c.pos])falla('Ya tenés esa posición: podés cambiarlo.');
   if(contratados(p)>=g.meta)falla('Tu equipo ya está completo.');
-  if(p.V<1||p.E<1)falla('Se paga con 1 Token de Victoria y 1 de Efectivo.');
-  g.mercados[m].splice(ix2,1);p.eq[c.pos]=c;p.V--;p.E--;g.tokens.V++;g.tokens.E++;p.contrato=true;
+  if(!puedeFichar(g,p,c))falla('Se paga con 1 Token de Victoria y 1 de Efectivo.');
+  var tkj=tokenDe(g,c);if(tkj==='cualquiera')tkj=p.V>=p.E?'V':'E';
+  g.mercados[m].splice(ix2,1);p.eq[c.pos]=c;if(tkj){p[tkj]--;g.tokens[tkj]++;}else{p.V--;p.E--;g.tokens.V++;g.tokens.E++;}p.contrato=true;
   anotar(g,'¡'+p.nombre+' contrata a '+textoCarta(c)+'!');evento(g,{t:'jugador',j:j,c:c,cambio:false});cerrarMercado(g,j);
 }
 function cambiarJugador(g,j,ix2,tk){
@@ -399,7 +417,7 @@ function puedeUsarB(g,j,b){
 function usarBeneficio(g,j,b,a){
   a=a||{};var p=g.jug[j];
   if(!puedeUsarB(g,j,b))falla('Ese Beneficio no se puede usar ahora.');
-  var q=null,tok=function(t){return t==='V'||t==='E';};
+  var q=null,tok=function(t){return t==='V'||t==='E';},ef=null;
   switch(b){
     case 'tactica':g.mv.pasos=[g.dados[0],g.dados[1]];break;
     case 'ganador':g.mv.quieto=true;break;
@@ -407,34 +425,35 @@ function usarBeneficio(g,j,b,a){
     case 'libre':g.mv.libre=true;break;
     case 'volador':var bv=pasosBase(g);g.mv.pasos=bv>1?[bv+1,bv-1]:[bv+1];break;
     case 'jet':g.mv.jet=true;break;
-    case 'extra':if(g.banco[a.r]<=0)falla('El Banco no tiene de ese.');g.banco[a.r]--;p.mano[a.r]++;break;
+    case 'extra':if(g.banco[a.r]<=0)falla('El Banco no tiene de ese.');g.banco[a.r]--;p.mano[a.r]++;ef={gana:[a.r]};break;
     case 'uno':if(p.mano[a.da]<1||!usable(p,a.da))falla('No podés dar ese Recurso.');
       p.mano[a.da]--;g.banco[a.da]++;
       if(g.banco[a.r]<1||g.banco[a.r2]<(a.r===a.r2?2:1)){p.mano[a.da]++;g.banco[a.da]--;falla('El Banco no tiene de esos.');}
-      g.banco[a.r]--;p.mano[a.r]++;g.banco[a.r2]--;p.mano[a.r2]++;p.amnistia=false;break;
-    case 'asistencia':g.jug.forEach(function(o){if(o===p||!suma(o.mano))return;var l=[];REC.forEach(function(k){for(var i=0;i<o.mano[k];i++)l.push(k);});var r=l[Math.floor(az(g)*l.length)];o.mano[r]--;p.mano[r]++;st(p).robo++;st(o).robado++;golpe(g,p.nombre+' te robó 1 de '+NOMBRE_REC[r]+' con Asistencia Forzosa.',o.id);});break;
+      g.banco[a.r]--;p.mano[a.r]++;g.banco[a.r2]--;p.mano[a.r2]++;p.amnistia=false;ef={da:a.da,gana:[a.r,a.r2]};break;
+    case 'asistencia':ef={rob:[]};g.jug.forEach(function(o){if(o===p||!suma(o.mano))return;var l=[];REC.forEach(function(k){for(var i=0;i<o.mano[k];i++)l.push(k);});var r=l[Math.floor(az(g)*l.length)];o.mano[r]--;p.mano[r]++;st(p).robo++;st(o).robado++;ef.rob.push({q:o.id,r:r});golpe(g,p.nombre+' te robó 1 de '+NOMBRE_REC[r]+' con Asistencia Forzosa.',o.id);});break;
     case 'descuento':var x=dado(g),cob=0;anotar(g,p.nombre+' juega el Alargue: sale '+x+'.');
       g.porNum[x].forEach(function(ar){var r=g.rec[ar];if(r&&NODOS[p.pos].areas&&NODOS[p.pos].areas.indexOf(ar)>=0){var c=Math.min(2*(hab(p,3)===r?2:1),g.banco[r]);g.banco[r]-=c;p.mano[r]+=c;cob+=c;}});
-      anotar(g,cob?p.nombre+' levanta '+cob+' Recursos.':p.nombre+' no toca ese número: no cobra nada.');break;
+      anotar(g,cob?p.nombre+' levanta '+cob+' Recursos.':p.nombre+' no toca ese número: no cobra nada.');ef={dado:x,cob:cob};break;
     case 'barrida':q=otro(g,j,a.dt);if(REC.indexOf(a.r)<0)falla('Nombrá un Recurso.');var cb=q.mano[a.r];q.mano[a.r]=0;p.mano[a.r]+=cb;
-      anotar(g,p.nombre+' le barre '+cb+' de '+NOMBRE_REC[a.r]+' a '+q.nombre+'.');st(p).robo+=cb;st(q).robado+=cb;golpe(g,p.nombre+' te barrió '+cb+' de '+NOMBRE_REC[a.r]+' con Barrida.',q.id);break;
+      anotar(g,p.nombre+' le barre '+cb+' de '+NOMBRE_REC[a.r]+' a '+q.nombre+'.');st(p).robo+=cb;st(q).robado+=cb;golpe(g,p.nombre+' te barrió '+cb+' de '+NOMBRE_REC[a.r]+' con Barrida.',q.id);ef={q:q.id,r:a.r,n:cb};break;
     case 'penal':case 'dudoso':var t=b==='penal'?'V':'E';if(g.tokens[t]<=0)falla('El Banco no tiene ese Token.');var z=dado(g);
-      if(z>=4){g.tokens[t]--;p[t]++;anotar(g,'¡'+p.nombre+' sacó '+z+': penal adentro!');}else anotar(g,p.nombre+' sacó '+z+': lo atajaron.');break;
+      if(z>=4){g.tokens[t]--;p[t]++;anotar(g,'¡'+p.nombre+' sacó '+z+': penal adentro!');}else anotar(g,p.nombre+' sacó '+z+': lo atajaron.');ef={dado:z,ok:z>=4,tk:t};break;
     case 'amnistia':p.amnistia=true;break;
-    case 'exento':REC.forEach(function(k){g.bolsa[k]+=p.multas[k];p.multas[k]=0;});break;
-    case 'adentro':q=otro(g,j,a.dt);REC.forEach(function(k){while(p.multas[k]>0&&suma(q.multas)<5){p.multas[k]--;q.multas[k]++;st(p).enchufo++;}});golpe(g,p.nombre+' te pasó sus Multas con La Tenés Adentro.',q.id);break;
-    case 'mano':case 'petro':var t2=b==='mano'?'V':'E';if(g.tokens[t2]<=0)falla('El Banco no tiene ese Token.');g.tokens[t2]--;p[t2]++;break;
-    case 'valor':if(!tok(a.tk)||p[a.tk]<1)falla('No tenés ese Token.');var ot=a.tk==='V'?'E':'V';if(g.tokens[ot]<=0)falla('El Banco no tiene del otro tipo.');p[a.tk]--;g.tokens[a.tk]++;g.tokens[ot]--;p[ot]++;break;
-    case 'intervalores':q=otro(g,j,a.dt);if(!tok(a.tk)||p[a.tk]<1)falla('No tenés ese Token.');var ot2=a.tk==='V'?'E':'V';if(q[ot2]<1)falla('Ese DT no tiene del otro tipo.');p[a.tk]--;q[a.tk]++;q[ot2]--;p[ot2]++;golpe(g,p.nombre+' te cambió un Token con Intercambio de Valores.',q.id);break;
+    case 'exento':var nx=suma(p.multas);REC.forEach(function(k){g.bolsa[k]+=p.multas[k];p.multas[k]=0;});ef={n:nx};break;
+    case 'adentro':q=otro(g,j,a.dt);ef={q:q.id,mul:[]};REC.forEach(function(k){while(p.multas[k]>0&&suma(q.multas)<5){p.multas[k]--;q.multas[k]++;st(p).enchufo++;ef.mul.push(k);}});golpe(g,p.nombre+' te pasó sus Multas con La Tenés Adentro.',q.id);break;
+    case 'mano':case 'petro':var t2=b==='mano'?'V':'E';if(g.tokens[t2]<=0)falla('El Banco no tiene ese Token.');g.tokens[t2]--;p[t2]++;ef={tk:t2};break;
+    case 'valor':if(!tok(a.tk)||p[a.tk]<1)falla('No tenés ese Token.');var ot=a.tk==='V'?'E':'V';if(g.tokens[ot]<=0)falla('El Banco no tiene del otro tipo.');p[a.tk]--;g.tokens[a.tk]++;g.tokens[ot]--;p[ot]++;ef={da:a.tk,tk:ot};break;
+    case 'intervalores':q=otro(g,j,a.dt);if(!tok(a.tk)||p[a.tk]<1)falla('No tenés ese Token.');var ot2=a.tk==='V'?'E':'V';if(q[ot2]<1)falla('Ese DT no tiene del otro tipo.');p[a.tk]--;q[a.tk]++;q[ot2]--;p[ot2]++;golpe(g,p.nombre+' te cambió un Token con Intercambio de Valores.',q.id);ef={q:q.id,da:a.tk,tk:ot2};break;
     case 'espionaje':if(!g.mercados[a.m]||!g.mercados[a.m].length)falla('Ese Mercado está vacío.');st(p).espio++;verCartas(g,j,a.m);g.ultimaVista={j:j,m:a.m};break;
-    case 'figuritas':q=otro(g,j,a.dt);if(!p.eq[a.pos]||!q.eq[a.pos])falla('Los dos tienen que tener esa posición.');var tc=p.eq[a.pos];p.eq[a.pos]=q.eq[a.pos];q.eq[a.pos]=tc;golpe(g,p.nombre+' te cambió a tu '+POS[a.pos]+' con Cambio de Figuritas.',q.id);break;
-    case 'dame':q=otro(g,j,a.dt);var lb=q.benef.concat(q.nuevos);if(!lb.length)falla('Ese DT no tiene Beneficios sin usar.');var rb=lb[Math.floor(az(g)*lb.length)];var ib=q.benef.indexOf(rb);if(ib>=0)q.benef.splice(ib,1);else q.nuevos.splice(q.nuevos.indexOf(rb),1);p.nuevos.push(rb);anotar(g,'Le sacaste '+BENEF[rb].n+'.',j);st(p).robo++;st(q).robado++;golpe(g,p.nombre+' te robó '+BENEF[rb].n+' con Dame un Beneficio.',q.id);break;
-    case 'roja':q=otro(g,j,a.dt);q.roja=true;st(q).rojas++;golpe(g,p.nombre+' te sacó Tarjeta Roja: en tu próximo turno no movés.',q.id);break;
+    case 'figuritas':q=otro(g,j,a.dt);if(!p.eq[a.pos]||!q.eq[a.pos])falla('Los dos tienen que tener esa posición.');var tc=p.eq[a.pos];p.eq[a.pos]=q.eq[a.pos];q.eq[a.pos]=tc;golpe(g,p.nombre+' te cambió a tu '+POS[a.pos]+' con Cambio de Figuritas.',q.id);ef={q:q.id,c1:tc,c2:p.eq[a.pos]};break;
+    case 'dame':q=otro(g,j,a.dt);var lb=q.benef.concat(q.nuevos);if(!lb.length)falla('Ese DT no tiene Beneficios sin usar.');var rb=lb[Math.floor(az(g)*lb.length)];var ib=q.benef.indexOf(rb);if(ib>=0)q.benef.splice(ib,1);else q.nuevos.splice(q.nuevos.indexOf(rb),1);p.nuevos.push(rb);anotar(g,'Le sacaste '+BENEF[rb].n+'.',j);st(p).robo++;st(q).robado++;golpe(g,p.nombre+' te robó '+BENEF[rb].n+' con Dame un Beneficio.',q.id);ef={q:q.id,rb:rb};break;
+    case 'roja':q=otro(g,j,a.dt);q.roja=true;st(q).rojas++;golpe(g,p.nombre+' te sacó Tarjeta Roja: en tu próximo turno no movés.',q.id);ef={q:q.id};break;
     case 'gas':if(!a.nodos||a.nodos.length!==g.barras.length)falla('Elegí un lugar para cada Barrabrava.');var viejos=g.barras;g.barras=[];
       for(var i2=0;i2<a.nodos.length;i2++){if(!NODOS[a.nodos[i2]]||ocupado(g,a.nodos[i2])){g.barras=viejos;falla('Tienen que ser intersecciones libres y distintas.');}g.barras.push(a.nodos[i2]);}break;
     case 'arreglo':usaYAnota(g,p,b);g.mv.arreglo=true;iniciarBarras(g,true);return;
   }
   usaYAnota(g,p,b);
+  if(ef){ef.t='efecto';ef.b=b;ef.j=j;evento(g,ef);}
 }
 function usaYAnota(g,p,b){p.benef.splice(p.benef.indexOf(b),1);p.usados.push(b);p.usoB=true;st(p).uso++;evento(g,{t:'usa',j:p.id,b:b});anotar(g,p.nombre+' usa '+BENEF[b].n+'.');}
 
@@ -601,7 +620,7 @@ function puntaje(g,p,k){
   if(k===CENTRO)return 1e6;
   var s=valorNodo(g,p,k),f=faltanPos(g,p);
   if(contratados(p)>=g.meta){var m=99;PALCO.forEach(function(a){m=Math.min(m,DIST[k][a]);});s+=m===0?8:(m<=5?10-m:0);}
-  if(p.V>=1&&p.E>=1&&f.length){var mejor=0;for(var i=0;i<5;i++){if(!g.mercados[i].length)continue;var c=p.conoce[i],sirve=c?c.c.some(function(x){return f.indexOf(x.pos)>=0;}):true;if(!sirve)continue;var d=DIST[k][MERCADOS[i]];mejor=Math.max(mejor,d===0?40:14/(1+d));}s+=mejor;}
+  if((g.reg&&g.reg.precioTk?p.V+p.E>=1:p.V>=1&&p.E>=1)&&f.length){var mejor=0;for(var i=0;i<5;i++){if(!g.mercados[i].length)continue;var c=p.conoce[i],sirve=c?c.c.some(function(x){return f.indexOf(x.pos)>=0&&puedeFichar(g,p,x);}):true;if(!sirve)continue;var d=DIST[k][MERCADOS[i]];mejor=Math.max(mejor,d===0?40:14/(1+d));}s+=mejor;}
   var bo=boleDe(g,k);if(bo){var sb=sobrante(g,p),df=deficit(g,p),t=0;REC.forEach(function(r){if(r!==bo)t+=df[r];});s+=Math.min(sb[bo],t)*1.2;}
   return s+az(g)*.05;
 }
@@ -692,7 +711,7 @@ function botAccion(g,j){
   }
   if(g.fase==='espiar'){var ce=mercadosCercanos(p.pos).filter(function(m2){return g.mercados[m2].length;}),no=ce.filter(function(m2){return !p.conoce[m2];});return {t:'espiar',m:(no.length?no:ce)[0]};}
   if(g.fase==='barras'){var pend=g.barraPend.filter(function(i2){return opcionesBarra(g,i2).length;}),i3=pend[0],op=opcionesBarra(g,i3),li=g.jug[lider(g,j)],bb=op[0],bd=99;op.forEach(function(v){var d=DIST[v][li.pos===CENTRO?0:li.pos];if(d<bd){bd=d;bb=v;}});return {t:'barra',i:i3,k:bb};}
-  if(g.fase==='mercado'){var f=faltanPos(g,p),cs=g.mercados[g.mercadoAbierto],pref=[1.5,1,2,3],bi=-1,bp=-1;cs.forEach(function(x,i2){if(f.indexOf(x.pos)>=0&&pref[x.pos]>bp&&p.V>=1&&p.E>=1){bp=pref[x.pos];bi=i2;}});return bi>=0?{t:'contratar',i:bi}:{t:'cerrar'};}
+  if(g.fase==='mercado'){var f=faltanPos(g,p),cs=g.mercados[g.mercadoAbierto],pref=[1.5,1,2,3],bi=-1,bp=-1;cs.forEach(function(x,i2){if(f.indexOf(x.pos)>=0&&pref[x.pos]>bp&&puedeFichar(g,p,x)){bp=pref[x.pos];bi=i2;}});return bi>=0?{t:'contratar',i:bi}:{t:'cerrar'};}
   if(g.fase==='canje'){
     for(var i3b=0;i3b<5;i3b++){var r3=REC[i3b];if(p.multas[r3]>0&&p.mano[r3]>0)return {t:'pagar',r:r3};}
     var f2=g.meta-contratados(p);
@@ -705,7 +724,7 @@ function botAccion(g,j){
     for(var q=0;q<orden.length;q++){var dest=orden[q];for(var w=0;w<5;w++){var da=REC[w];if(da===dest)continue;if(s4[da]>=tasaBanco(g,p,da))return {t:'banco',da:da,toma:dest};}}
     var tr=botPropone(g,j,p);if(tr)return tr;
     if(g.mazoB.length&&puedePagar(p,PRECIO.B)&&p.benef.length+p.nuevos.length<3&&((s4.suerte>=1&&s4.fans>=1)||(s4.suerte+s4.fans>=1&&d4.suerte+d4.fans===0)||suma(p.mano)>=8))return {t:'beneficio'};
-    if(mercadoDe(p.pos)>=0&&!p.miro&&!p.contrato&&p.V>=1&&p.E>=1&&faltanPos(g,p).length&&g.mercados[mercadoDe(p.pos)].length)return {t:'abrir'};
+    if(mercadoDe(p.pos)>=0&&!p.miro&&!p.contrato&&(g.reg&&g.reg.precioTk?p.V+p.E>=1:p.V>=1&&p.E>=1)&&faltanPos(g,p).length&&g.mercados[mercadoDe(p.pos)].length)return {t:'abrir'};
     return {t:'fin'};
   }
   return null;

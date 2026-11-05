@@ -837,6 +837,524 @@
   };
   Object.keys(DT_FIG).forEach(function(id){var d=DT_FIG[id];C['dt_'+id]={nombre:'DT',c1:d.c1,c2:CREMA,fondo:'#efe7d4'};SHORT['dt_'+id]=id==='abuelo'?'#9a958c':INK;BANDA['dt_'+id]=CREMA;});
   function retratoDT(dt){return '<svg x="9" y="5" width="22" height="24" viewBox="45 18 110 120">'+figura('dt_'+dt.id,Object.assign({},DT_FIG[dt.id].o,{gag:null,globo:null,palitos:false}))+'</svg>';}
+  // ---------- Tablero ----------
+  function P(r,deg){var a=deg*Math.PI/180;return [r*Math.cos(a),r*Math.sin(a)];}
+  function pts(list){return list.map(function(p){return n1(p[0])+','+n1(p[1]);}).join(' ');}
+  function cen(list){var x=0,y=0;list.forEach(function(p){x+=p[0];y+=p[1];});return [x/list.length,y/list.length];}
+  function shrink(list,f,c){c=c||cen(list);return list.map(function(p){return [c[0]+(p[0]-c[0])*f,c[1]+(p[1]-c[1])*f];});}
+  var TH=[],A=[],B=[],Cm=[],Cp=[],Dm=[],Dp=[],E=[],F=[];
+  // El Palco con una punta arriba: los estadios arrancan arriba a la derecha y siguen en sentido horario
+  for(var i=0;i<5;i++){var t=-54+72*i;TH.push(t);A.push(P(50,t+36));B.push(P(105,t+36));Cm.push(P(135,t-14));Cp.push(P(135,t+14));Dm.push(P(200,t-15.3));Dp.push(P(200,t+15.3));E.push(P(231,t));F.push(P(215,t+36));}
+  function prev(i){return (i+4)%5;}
+  var hexIn=[],pent=[],hexOut=[];
+  for(var i=0;i<5;i++){var j2=(i+1)%5;hexIn.push([A[prev(i)],A[i],B[i],Cp[i],Cm[i],B[prev(i)]]);pent.push([Cm[i],Cp[i],Dp[i],E[i],Dm[i]]);hexOut.push([B[i],Cp[i],Dp[i],F[i],Dm[j2],Cm[j2]]);}
+  // Estadios fijos, en el orden de las caras del Palco. Los predios van al azar (este es un armado de ejemplo, sin vecinos del mismo color).
+  var INNER=['gol','suerte','picardia','fans','sponsors'], OUTER=['picardia','fans','sponsors','gol','suerte'];
+  var NUMERO={gol:2,suerte:3,picardia:4,fans:5,sponsors:6}, ZNUM=[5,6,2,3,4];
+  var ESTADIO={gol:'La Canasta',suerte:'La Fortuna',picardia:'La Astucia',fans:'La Pasión',sponsors:'La Serena'};
+  var FORMA_TXT={gol:'porque cuando te hacen muchos goles, te llenaron la canasta: atrás del arco, una canasta llena de pelotas',suerte:'con una herradura en la tribuna y tréboles de cuatro hojas escondidos entre la gente',picardia:'con la tribuna a rayas y un zorro que guiña: el más astuto del barrio',fans:'con trapos, bombo, bengalas y papelitos: la tribuna que nunca deja de cantar',sponsors:'lleva el nombre del sponsor: la entrada es una cabaña con su ventanita y los carteles dicen La Serena'};
+  var PREDIO={gol:'Bajo Nono',suerte:'La Serena',picardia:'Banadi',fans:'La Milla',sponsors:'La Canterita'};
+  var PREDIO_L={gol:['Bajo Nono'],suerte:['Restaurante','La Serena'],picardia:['Banadi'],fans:['La Milla'],sponsors:['La Canterita']};
+  var ZONA=[['Estacionamiento','La Canterita'],['Rotisería','El Chulengo'],['Cementerio','de Rodillas'],['Diario','La Pipeta'],['Oficina','del Sapo']];
+  var ZONA_TXT=['cobran una fortuna y te mandan al lado del pantano','el que lo maneja es un delincuente y te vende gato por liebre. Aparte sale carísimo y la comida siempre está seca','donde descansan las rodillas del plantel','el diario de Pipes, usa el micrófono para defenestrar a los jugadores que le sacan la valla invicta','el Sapo te cobra la inscripción por adelantado y te cambia el horario a último momento'];
+  var PASTO='#a9d18e', PASTO2='#93c27a', AGUA='#8fc3df', RJ='#c8312b';
+
+  function G(x,y,ang){return '<g transform="translate('+n1(x)+' '+n1(y)+') rotate('+n1(ang||0)+')">';}
+  function arbol(x,y,r,tono){
+    var v=tono||0;
+    return '<ellipse cx="'+n1(x+r*.35)+'" cy="'+n1(y+r*.4)+'" rx="'+n1(r)+'" ry="'+n1(r*.8)+'" fill="#000" opacity=".14"/><circle cx="'+n1(x)+'" cy="'+n1(y)+'" r="'+n1(r)+'" fill="'+(['#4e8a3a','#3f7a35','#5b9a42'][v%3])+'" stroke="#2f5a26" stroke-width=".7"/>'+
+      '<circle cx="'+n1(x-r*.3)+'" cy="'+n1(y-r*.3)+'" r="'+n1(r*.5)+'" fill="#78b45a" opacity=".85"/>';
+  }
+  function auto(x,y,ang,color){return '<g transform="translate('+n1(x)+' '+n1(y)+') rotate('+n1(ang)+')"><rect x="-4.2" y="-2.3" width="8.4" height="4.6" rx="1.4" fill="'+color+'" stroke="'+INK+'" stroke-width=".5"/><rect x="-1" y="-1.8" width="3" height="3.6" rx=".6" fill="#cfe3ee"/></g>';}
+  function techo(x,y,w,h,ang,color){return '<g transform="translate('+n1(x)+' '+n1(y)+') rotate('+n1(ang)+')"><rect x="'+n1(-w/2+1.2)+'" y="'+n1(-h/2+1.6)+'" width="'+w+'" height="'+h+'" fill="#000" opacity=".18"/><rect x="'+n1(-w/2)+'" y="'+n1(-h/2)+'" width="'+w+'" height="'+h+'" fill="'+color+'" stroke="'+INK+'" stroke-width=".6"/><path d="M'+n1(-w/2)+' 0H'+n1(w/2)+'" stroke="#000" stroke-width=".6" opacity=".25"/><rect x="'+n1(-w/2)+'" y="'+n1(-h/2)+'" width="'+w+'" height="'+n1(h/2)+'" fill="#fff" opacity=".15"/></g>';}
+  // v12: detalles chicos para los predios
+  function sombrilla(x,y,r,c1,c2){var s='<circle cx="'+n1(x+1)+'" cy="'+n1(y+1.4)+'" r="'+r+'" fill="#000" opacity=".18"/>';for(var q=0;q<8;q++){var a0=q*45*Math.PI/180,a1=(q+1)*45*Math.PI/180;s+='<path d="M'+n1(x)+' '+n1(y)+'L'+n1(x+r*Math.cos(a0))+' '+n1(y+r*Math.sin(a0))+'L'+n1(x+r*Math.cos(a1))+' '+n1(y+r*Math.sin(a1))+'Z" fill="'+(q%2?c2:c1)+'" stroke="'+INK+'" stroke-width=".3"/>';}return s+'<circle cx="'+n1(x)+'" cy="'+n1(y)+'" r=".7" fill="'+INK+'"/>';}
+  function personita(x,y,c){return '<circle cx="'+n1(x)+'" cy="'+n1(y)+'" r="1.6" fill="'+c+'" stroke="'+INK+'" stroke-width=".3"/><circle cx="'+n1(x)+'" cy="'+n1(y-.2)+'" r=".85" fill="#e8c39e" stroke="'+INK+'" stroke-width=".2"/>';}
+  function gente(rd,n,x0,y0,w,h){var s='',cs=['#e05a4f','#3f6aa6','#f2c94c','#fff','#4d7a3a','#d4692a'];for(var q=0;q<n;q++)s+=personita(x0+rd()*w,y0+rd()*h,cs[Math.floor(rd()*6)]);return s;}
+  function mesita(x,y){var s='';[[0,-3.2],[3.2,0],[0,3.2],[-3.2,0]].forEach(function(p){s+='<rect x="'+n1(x+p[0]-1)+'" y="'+n1(y+p[1]-1)+'" width="2" height="2" rx=".4" fill="#a37c52" stroke="'+INK+'" stroke-width=".25"/>';});return s+'<circle cx="'+n1(x)+'" cy="'+n1(y)+'" r="2.3" fill="#fbf8f1" stroke="'+INK+'" stroke-width=".4"/>';}
+  function bici(x,y,c){return '<g transform="translate('+n1(x)+' '+n1(y)+')" fill="none" stroke="'+INK+'" stroke-width=".4"><circle cx="-2.6" r="1.8"/><circle cx="2.6" r="1.8"/><path d="M-2.6 0L-.6-2.6H2L2.6 0M-.6-2.6L0 0" stroke="'+c+'" stroke-width=".7"/></g>';}
+  function banderines(x0,y0,x1,y1,n){var s='<path d="M'+n1(x0)+' '+n1(y0)+'Q'+n1((x0+x1)/2)+' '+n1((y0+y1)/2+3)+' '+n1(x1)+' '+n1(y1)+'" fill="none" stroke="'+INK+'" stroke-width=".3"/>',cs=['#e05a4f','#f2c94c','#3f6aa6','#fff','#4d7a3a'];
+    for(var q=1;q<n;q++){var t=q/n,x=x0+(x1-x0)*t,y=y0+(y1-y0)*t+3*4*t*(1-t)*.5;s+='<path d="M'+n1(x-1.1)+' '+n1(y)+'h2.2l-1.1 2.2z" fill="'+cs[q%5]+'" stroke="'+INK+'" stroke-width=".2"/>';}return s;}
+  function cartelito(x,y,w,txt,fondo,tinta){return '<path d="M'+n1(x)+' '+n1(y+2.6)+'v5" stroke="'+INK+'" stroke-width=".8"/><rect x="'+n1(x-w/2)+'" y="'+n1(y-2.6)+'" width="'+w+'" height="5.2" rx=".8" fill="'+fondo+'" stroke="'+INK+'" stroke-width=".5"/><text x="'+n1(x)+'" y="'+n1(y+1.3)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="3.4" fill="'+tinta+'">'+txt+'</text>';}
+  function canchita(x,y,ang,w,h,tierra){
+    var s='<g transform="translate('+n1(x)+' '+n1(y)+') rotate('+n1(ang)+')"><rect x="'+(-w/2)+'" y="'+(-h/2)+'" width="'+w+'" height="'+h+'" fill="#5ea85a"/>';
+    for(var k=0;k<6;k+=2){s+='<rect x="'+n1(-w/2+k*w/6)+'" y="'+(-h/2)+'" width="'+n1(w/6)+'" height="'+h+'" fill="#56a052"/>';}
+    s+='<g fill="none" stroke="#fff" stroke-width=".8"><rect x="'+n1(-w/2+1.5)+'" y="'+n1(-h/2+1.5)+'" width="'+(w-3)+'" height="'+(h-3)+'"/><path d="M0 '+n1(-h/2+1.5)+'V'+n1(h/2-1.5)+'"/><circle r="'+n1(h/6)+'"/><rect x="'+n1(-w/2+1.5)+'" y="'+n1(-h/4)+'" width="'+n1(w/7)+'" height="'+n1(h/2)+'"/><rect x="'+n1(w/2-1.5-w/7)+'" y="'+n1(-h/4)+'" width="'+n1(w/7)+'" height="'+n1(h/2)+'"/></g>';
+    s+='<rect x="'+n1(-w/2-1.4)+'" y="-2.5" width="1.4" height="5" fill="#fff"/><rect x="'+n1(w/2)+'" y="-2.5" width="1.4" height="5" fill="#fff"/></g>';
+    return s;
+  }
+  function rotP(x,y,dx,dy,ang){var a=ang*Math.PI/180;return [x+dx*Math.cos(a)-dy*Math.sin(a),y+dx*Math.sin(a)+dy*Math.cos(a)];}
+  function rotulo(x,y,arr,fs,sub){
+    var s='', y0=y-(arr.length-1)*fs*.52-(sub?fs*.4:0);
+    arr.forEach(function(t,i){s+='<text x="'+n1(x)+'" y="'+n1(y0+i*fs*1.04+fs*.36)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="'+fs+'" fill="'+INK+'" paint-order="stroke" stroke="#fbf8f1" stroke-width="3" stroke-linejoin="round">'+t+'</text>';});
+    if(sub) s+='<text x="'+n1(x)+'" y="'+n1(y0+(arr.length-1)*fs*1.04+fs*1.3)+'" text-anchor="middle" font-family="Atkinson Hyperlegible, sans-serif" font-style="italic" font-weight="700" font-size="'+n1(fs*.66)+'" fill="#4d463c" paint-order="stroke" stroke="#fbf8f1" stroke-width="2.4" stroke-linejoin="round">'+sub+'</text>';
+    return s;
+  }
+
+  // Estadios: una cancha de verdad, con uno de sus laterales contra el Palco (del otro lado de la Peatonal).
+  // Coordenadas locales: el Palco queda abajo (y positiva) y el río arriba, así todo se lee mirando desde el centro.
+  function local(list,c,ang){var a=-ang*Math.PI/180,co=Math.cos(a),si=Math.sin(a);return list.map(function(p){var x=p[0]-c[0],y=p[1]-c[1];return [x*co-y*si,x*si+y*co];});}
+  function poly(list,attr){return '<polygon points="'+pts(list)+'" '+attr+'/>';}
+  var DETALLE={
+    gol:function(){ // la canasta llena de pelotas
+      var s='<path d="M14.5-17.5H28.5L26.5-8H16.5Z" fill="#c99a5b" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"/><path d="M15.5-14H27.5M16-11H27M18.5-17.5L19-8M21.5-17.5V-8M24.5-17.5L24-8" stroke="#9a7040" stroke-width=".5"/>';
+      return s+pelota(17.6,-19.4,2.5)+pelota(21.5,-20.6,2.5)+pelota(25.3,-19.3,2.5)+pelota(19.6,-22.6,2.2)+pelota(23.6,-22.8,2.2);
+    },
+    suerte:function(){ // herradura dorada
+      var s='<path d="M16.5-20V-14.5a4.5 4.5 0 0 0 9 0V-20" fill="none" stroke="'+INK+'" stroke-width="3.6" stroke-linecap="round"/><path d="M16.5-20V-14.5a4.5 4.5 0 0 0 9 0V-20" fill="none" stroke="#e2bd57" stroke-width="2.2" stroke-linecap="round"/>';
+      [[16.5,-17.5],[16.8,-13.5],[25.5,-17.5],[25.2,-13.5],[21,-10.1]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r=".45" fill="'+INK+'"/>';});
+      return s;
+    },
+    picardia:function(){ // el zorro que guiña
+      var s='<path d="M14.5-21L17.5-14.5L21-8L24.5-14.5L27.5-21L23.2-16.8H18.8Z" fill="#d97a2b" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"/>';
+      s+='<path d="M18-13.2L21-8L24-13.2Q21-11.6 18-13.2Z" fill="#fbf3dc"/><circle cx="21" cy="-8.7" r=".9" fill="'+INK+'"/>';
+      s+='<circle cx="18.9" cy="-14.6" r=".8" fill="'+INK+'"/><path d="M22.3-14.6q.9-.9 1.8 0" fill="none" stroke="'+INK+'" stroke-width=".6" stroke-linecap="round"/>';
+      return s;
+    },
+    fans:function(){ // el bombo
+      var s='<rect x="15.5" y="-18.5" width="11" height="8" fill="#d4692a" stroke="'+INK+'" stroke-width=".7"/><path d="M15.5-18.5l2.75 8 2.75-8 2.75 8 2.75-8" fill="none" stroke="'+CREMA+'" stroke-width=".6"/>';
+      s+='<ellipse cx="21" cy="-18.5" rx="5.5" ry="1.6" fill="#f3ead6" stroke="'+INK+'" stroke-width=".6"/><path d="M27-22.5L23.5-19.5M14.5-23L18-19.8" stroke="#8a5a32" stroke-width=".8" stroke-linecap="round"/><circle cx="27.3" cy="-22.8" r="1" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".4"/><circle cx="14.2" cy="-23.3" r="1" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".4"/>';
+      return s;
+    },
+    sponsors:function(){ // la entrada con forma de cabaña, con su ventanita, y la tetera
+      var s='<g transform="translate(20 -8.5) scale(.5)"><path d="M-11 0L0-17L11 0Z" fill="#b07a48"/><rect x="-3.4" y="-9.5" width="6.8" height="4.4" fill="#f2d27a" stroke="'+INK+'" stroke-width=".9"/>'+
+        '<path d="M-19 0L0-29L19 0Q17-2 15 0T11 0L0-17L-11 0Q-13-2-15 0T-19 0Z" fill="#23402e" stroke="'+INK+'" stroke-width="1.2" stroke-linejoin="round"/></g>';
+      s+='<g transform="translate(28 -10) scale(.42)"><ellipse cx="0" cy="-1" rx="7" ry="6" fill="#2f7a4a" stroke="'+INK+'" stroke-width="1.4"/><path d="M-6 0Q-12-1-13-6" fill="none" stroke="#2f7a4a" stroke-width="2.4"/><circle cx="0" cy="-8" r="1.6" fill="'+DORADO+'"/></g>';
+      return s;
+    }
+  };
+  function estadio(i){
+    var k=INNER[i], c=C[k], hx=hexIn[i], ce=cen(hx), ang=TH[i]+90, hl=local(hx,ce,ang), fg=k==='picardia'?INK:CREMA, rd=azar(40+i);
+    var bowl=shrink(hl,.9,[0,0]), id=U('bw'), s=G(ce[0],ce[1],ang);
+    s+=poly(hl,'fill="'+PASTO2+'"')+poly(shrink(hl,.95,[0,0]),'fill="'+PASTO+'"');
+    // la tribuna, en los colores del club
+    s+=poly(bowl,'fill="#000" opacity=".2" transform="translate(1.2 1.6)"')+poly(bowl,'fill="'+c.c1+'" stroke="'+INK+'" stroke-width="1.4" stroke-linejoin="round"');
+    s+='<defs><clipPath id="'+id+'"><polygon points="'+pts(bowl)+'"/></clipPath></defs><g clip-path="url(#'+id+')">';
+    if(k==='picardia') for(var a=0;a<360;a+=14) s+=poly([[0,0],P(90,a),P(90,a+7)],'fill="'+INK+'" opacity=".8"');
+    [.8,.7,.6].forEach(function(f){s+=poly(shrink(hl,f,[0,0]),'fill="none" stroke="'+(k==='picardia'?'#f6e8bb':c.fondo)+'" stroke-width="1" stroke-dasharray="1.4 1" opacity=".55"');});
+    // la gente
+    for(var q=0;q<150;q++){var px=-60+rd()*120, py=-46+rd()*84; s+='<circle cx="'+n1(px)+'" cy="'+n1(py)+'" r=".85" fill="'+['#fff',INK,'#f2c94c','#e05a4f',fg][Math.floor(rd()*5)]+'"/>';}
+    if(k==='suerte') [[-40,6],[38,12],[-34,-20],[36,-24],[-12,-6]].forEach(function(p){s+=trebol(p[0],p[1],.11,'#e2bd57');});
+    if(k==='fans'){
+      [[-41,8],[-41,20],[41,8],[41,20],[-16,-7],[10,-7]].forEach(function(p,q){s+='<rect x="'+(p[0]-2.6)+'" y="'+(p[1]-3)+'" width="5.2" height="6" fill="'+(q%2?CREMA:'#d4692a')+'" stroke="'+INK+'" stroke-width=".4"/><path d="M'+(p[0]-2.6)+' '+p[1]+'h5.2" stroke="'+(q%2?'#d4692a':CREMA)+'" stroke-width="1.2"/>';});
+      [[-44,-6],[44,-10],[-30,-26],[30,-28]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4.6" fill="#ff7a4a" opacity=".35"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="1.4" fill="#ffd25a"/>';});
+      for(var q=0;q<40;q++) s+='<rect x="'+n1(-50+rd()*100)+'" y="'+n1(-40+rd()*42)+'" width="1.2" height=".8" fill="#fff" transform="rotate('+Math.floor(rd()*90)+')"/>';
+    }
+    s+='</g>'+poly(shrink(hl,.86,[0,0]),'fill="none" stroke="'+fg+'" stroke-width=".5" opacity=".45"');
+    if(k==='sponsors') for(var q=0;q<6;q++){var a2=bowl[q],b2=bowl[(q+1)%6];for(var t=.1;t<.95;t+=.16)s+='<circle cx="'+n1(a2[0]+(b2[0]-a2[0])*t)+'" cy="'+n1(a2[1]+(b2[1]-a2[1])*t)+'" r=".9" fill="#ffe27a" stroke="'+INK+'" stroke-width=".25"/>';}
+    // la cancha: el lateral de abajo da a la Peatonal, enfrente del Palco
+    s+='<rect x="-31" y="1" width="62" height="38" fill="#4f9a4c"/>'+canchita(0,20,0,54,30);
+    s+='<rect x="-26" y="1.4" width="52" height="2.6" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".3"/><text x="0" y="3.35" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="1.9" letter-spacing=".3" fill="#1f3a2b">LA SERENA · LA SERENA · LA SERENA</text>';
+    [-29.6,27.4].forEach(function(x){s+='<rect x="'+x+'" y="8" width="2.2" height="24" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".3"/><text transform="translate('+(x+1.6)+' 20) rotate(-90)" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="1.6" fill="#1f3a2b">LA SERENA</text>';});
+    [[-37,-1],[37,-1],[-26,-31],[26,-31]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.2" fill="#fff8c8" stroke="'+INK+'" stroke-width=".7"/><circle cx="'+p[0]+'" cy="'+p[1]+'" r="1" fill="#fff"/>';});
+    // la tribuna de enfrente: escudo, marcador con el ícono del Recurso y un detalle propio
+    s+='<rect x="-29.5" y="-22" width="17" height="18.5" rx="2" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".6"/><svg x="-28.5" y="-21.3" width="15" height="16.5" viewBox="0 0 100 110">'+escudoClub(k)+'</svg>';
+    s+='<path d="M-6-7V-3M6-7V-3" stroke="'+INK+'" stroke-width="1.2"/><rect x="-10" y="-21" width="20" height="14.5" rx="1.4" fill="#1d1b19" stroke="'+INK+'" stroke-width=".8"/><rect x="-8.6" y="-19.6" width="17.2" height="11.7" rx=".8" fill="none" stroke="'+c.c1+'" stroke-width=".6"/>';
+    // v18: en vez de repetir el escudo, el marcador muestra el nombre de la cancha y un resultado
+    s+='<text x="0" y="-15.6" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="2.5" fill="#ffd66b">'+({gol:'CANASTA',suerte:'FORTUNA',picardia:'ASTUCIA',fans:'PASIÓN',sponsors:'LA SERENA'})[k]+'</text><text x="0" y="-10" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="5.6" fill="#6ff07a">'+({gol:'9-0',suerte:'1-0',picardia:'1-0',fans:'2-2',sponsors:'3-1'})[k]+'</text>';
+    s+=DETALLE[k]();
+    // el número va en el círculo central de la cancha, pero se dibuja arriba del filtro (en dibujarTablero) para que tenga el mismo blanco que los demás
+    // el nombre, en el techo de la tribuna
+    s+='<rect x="-28" y="-36.6" width="56" height="11.4" rx="2.2" fill="'+c.c1+'" stroke="'+INK+'" stroke-width="1"/><rect x="-26.6" y="-35.2" width="53.2" height="8.6" rx="1.4" fill="none" stroke="'+fg+'" stroke-width=".4" opacity=".7"/>';
+    s+='<text x="0" y="-32" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="2.6" letter-spacing=".6" fill="'+fg+'">ESTADIO</text><text x="0" y="-27.1" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="5.2" fill="'+fg+'">'+ESTADIO[k].toUpperCase()+'</text>';
+    return s+'</g>';
+  }
+
+  // El Palco: cinco caras, cada una es la tribuna de un estadio. En el centro, el lugar del campeón
+  function palco(){
+    var W=[];for(var i=0;i<5;i++) W.push(P(33,TH[i]+36));
+    var s='<polygon points="'+pts(shrink(W,1.5,[0,0]))+'" fill="#000" opacity=".18" transform="translate(2 3)"/>';
+    for(var i=0;i<5;i++){
+      var a=W[prev(i)], b=W[i], k=INNER[i];
+      var a3=[a[0]*1.5,a[1]*1.5], b3=[b[0]*1.5,b[1]*1.5], fg=k==='picardia'?INK:CREMA;
+      s+='<polygon points="'+pts([a,b,b3,a3])+'" fill="'+C[k].c1+'" stroke="'+INK+'" stroke-width="1"/>';
+      [1.12,1.24,1.36].forEach(function(f){var p1=[(a[0]+(b[0]-a[0])*.12)*f,(a[1]+(b[1]-a[1])*.12)*f], p2=[(a[0]+(b[0]-a[0])*.88)*f,(a[1]+(b[1]-a[1])*.88)*f];
+        s+='<path d="M'+n1(p1[0])+' '+n1(p1[1])+'L'+n1(p2[0])+' '+n1(p2[1])+'" stroke="'+fg+'" stroke-width="2.2" stroke-dasharray="2.4 1.2" opacity=".75"/>';});
+    }
+    s+='<polygon points="'+pts(W)+'" fill="#9fd0e6" stroke="'+INK+'" stroke-width="1.2"/>';
+    var R=shrink(W,.78,[0,0]);
+    for(var i=0;i<5;i++) s+='<polygon points="'+pts([[0,0],R[prev(i)],R[i]])+'" fill="'+C[INNER[i]].c1+'" stroke="'+INK+'" stroke-width=".6"/>';
+    // cinco pasillos, de cada esquina de la Peatonal al centro: por ahí se entra a ganar
+    for(var i=0;i<5;i++){var p1=P(12,TH[i]+36), p2=P(44,TH[i]+36), d='M'+n1(p1[0])+' '+n1(p1[1])+'L'+n1(p2[0])+' '+n1(p2[1]);
+      s+='<path d="'+d+'" stroke="#a9825c" stroke-width="7.4"/><path d="'+d+'" stroke="#e8c98f" stroke-width="6"/><path d="'+d+'" stroke="'+DORADO+'" stroke-width="1" stroke-dasharray="1.6 1.6"/>';}
+    s+='<circle r="12.6" fill="#000" opacity=".2" transform="translate(1 1.4)"/><circle r="12.6" fill="#f6e7b0" stroke="'+DORADO+'" stroke-width="2.6"/><circle r="12.6" fill="none" stroke="'+INK+'" stroke-width=".7"/><circle r="9" fill="none" stroke="'+DORADO+'" stroke-width=".7" stroke-dasharray="1.2 1"/>';
+    // v14: el trofeo, para que no se confunda con el Token de Victoria
+    s+='<g stroke="#8a6a25" stroke-linejoin="round"><path d="M-5.2-5.6H-8C-8-2-6.4-.4-4.2 0M5.2-5.6H8C8-2 6.4-.4 4.2 0" fill="none" stroke-width="1.2"/><path d="M-5.4-7.4H5.4V-3C5.4 .6 2.8 2.6 1.2 3.2V5.2H3.6V7.6H-3.6V5.2H-1.2V3.2C-2.8 2.6-5.4 .6-5.4-3Z" fill="#e2bd57" stroke-width=".7"/><path d="M-3.2-6V-2.6" fill="none" stroke="#fff6d8" stroke-width="1.1" stroke-linecap="round"/></g>';
+    return s;
+  }
+
+  // Senderos: los bordes de todas las áreas, por donde caminan los conos (antes: avenida, peatonal, rambla y secundarias)
+  var SEC=[],AVE=[],RAM=[],PEA=[];
+  for(var i=0;i<5;i++){var j=(i+1)%5;
+    PEA.push([A[i],A[j]]);
+    AVE.push([Cm[i],Cp[i]],[Cp[i],B[i]],[B[i],Cm[j]]);
+    RAM.push([Dm[i],E[i]],[E[i],Dp[i]],[Dp[i],F[i]],[F[i],Dm[j]]);
+    SEC.push([A[i],B[i]],[Cm[i],Dm[i]],[Cp[i],Dp[i]]);
+  }
+  function linea(sg,off){var a=sg[0],b=sg[1],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.sqrt(dx*dx+dy*dy),nx=-dy/l*(off||0),ny=dx/l*(off||0);
+    return 'M'+n1(a[0]+nx)+' '+n1(a[1]+ny)+'L'+n1(b[0]+nx)+' '+n1(b[1]+ny);}
+  function enCalle(sg,t,off){var a=sg[0],b=sg[1],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.sqrt(dx*dx+dy*dy);
+    return [a[0]+dx*t-dy/l*(off||0),a[1]+dy*t+dx/l*(off||0),Math.atan2(dy,dx)*180/Math.PI];}
+  function calles(rd){
+    // v11: senderos blancos con los detalles en grises, iguales en todo el tablero: cordón, línea punteada al medio, tapas de alcantarilla y rejillas
+    var all=[].concat(SEC,AVE,RAM,PEA), d=all.map(function(sg){return linea(sg);}).join(''), dl=all.map(function(sg){return linea(sg,2.7)+linea(sg,-2.7);}).join(''), h='';
+    h+='<path d="'+d+'" stroke="#000" stroke-width="10.4" stroke-linecap="round" fill="none" opacity=".18" transform="translate(.8 1.2)"/><path d="'+d+'" stroke="'+INK+'" stroke-width="9.6" stroke-linecap="round" fill="none"/><path d="'+d+'" stroke="#9b9b9b" stroke-width="8.2" stroke-linecap="round" fill="none"/><path d="'+d+'" stroke="#fbfbf9" stroke-width="6.6" stroke-linecap="round" fill="none"/>';
+    h+='<path d="'+dl+'" stroke="#d6d6d6" stroke-width=".35" fill="none"/><path d="'+d+'" stroke="#bdbdbd" stroke-width=".5" stroke-dasharray="2.4 2.2" fill="none"/>';
+    all.forEach(function(sg,ix){var p=enCalle(sg,.3+rd()*.4,(ix%2?1.6:-1.6));
+      h+=ix%3?'<circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="1.1" fill="#ececec" stroke="#a5a5a5" stroke-width=".3"/><path d="M'+n1(p[0]-.7)+' '+n1(p[1])+'h1.4" stroke="#b5b5b5" stroke-width=".25"/>':'<g transform="translate('+n1(p[0])+' '+n1(p[1])+') rotate('+n1(p[2])+')"><rect x="-1.2" y="-.7" width="2.4" height="1.4" fill="#e3e3e3" stroke="#9f9f9f" stroke-width=".25"/><path d="M-.6-.7v1.4M0-.7v1.4M.6-.7v1.4" stroke="#9f9f9f" stroke-width=".2"/></g>';});
+    return h;
+  }
+
+  function estrella(x,y,r){var d='';for(var q=0;q<10;q++){var a=(-90+q*36)*Math.PI/180,rr=q%2?r*.45:r;d+=(q?'L':'M')+n1(x+rr*Math.cos(a))+' '+n1(y+rr*Math.sin(a));}return d+'Z';}
+  // Números del tablero, todos con el mismo dibujo. Hexágonos: el disco en el color de su Recurso. Zonas de mala fama: disco negro con el número blanco.
+  // v12: más grandes y con más contraste: aro blanco y borde negro alrededor del disco, y el número en el mismo blanco en todo el tablero
+  var NB='#fbf8f1';
+  function numDisco(x,y,fill,n){
+    return '<circle cx="'+n1(x+1)+'" cy="'+n1(y+1.5)+'" r="17.6" fill="#000" opacity=".3"/><circle cx="'+n1(x)+'" cy="'+n1(y)+'" r="17.6" fill="'+NB+'" stroke="'+INK+'" stroke-width="1.4"/><circle cx="'+n1(x)+'" cy="'+n1(y)+'" r="14.6" fill="'+fill+'" stroke="'+INK+'" stroke-width="1.4"/>'+
+      '<text x="'+n1(x)+'" y="'+n1(y+8.3)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="23.5" fill="'+NB+'" stroke="'+INK+'" stroke-width="2.4" paint-order="stroke" stroke-linejoin="round">'+n+'</text>';
+  }
+  function numHex(k,x,y){return numDisco(x,y,C[k].c1,NUMERO[k]);}
+  function numZona(n,x,y){return numDisco(x,y,'#111',n);}
+  // Texto que se lee mirando desde el centro del tablero: la parte de arriba de las letras apunta hacia afuera
+  function rotCentro(x,y,an){var a=an*Math.PI/180; if(Math.sin(a)*x-Math.cos(a)*y<0) an+=180; return an;}
+  // Boletería de cada club (v9): va afuera del predio, sobre el río, en la punta que da a la Rambla. Acá, los colores y el frente de cada club.
+  // (techo, pared y frente se usan en boleteriaDib)
+  var BOLE={
+    gol:{techo:'#3f6aa6',pared:CREMA,frente:function(){return '<rect x="-20" y="-1.2" width="40" height="3" fill="#3f6aa6"/>';},punta:function(){return pelota(0,-16.6,2.2);}},
+    suerte:{techo:'#4d7a3a',pared:'#efe2b8',frente:function(){return '<rect x="-20" y="6.4" width="40" height="2.6" fill="#4d7a3a"/>'+trebol(-16.5,3.4,.07,'#4d7a3a')+trebol(16.5,3.4,.07,'#4d7a3a');},punta:function(){return '<path d="M-2.4-14.2V-17a2.4 2.4 0 0 1 4.8 0v2.8" fill="none" stroke="'+INK+'" stroke-width="1.6" stroke-linecap="round"/><path d="M-2.4-14.2V-17a2.4 2.4 0 0 1 4.8 0v2.8" fill="none" stroke="#e2bd57" stroke-width=".9" stroke-linecap="round"/>';}},
+    picardia:{techo:INK,pared:'#d9a61c',frente:function(){var s='';for(var x=-17;x<20;x+=7)s+='<rect x="'+x+'" y="-4" width="3.5" height="13" fill="'+INK+'"/>';return s;},punta:function(){return '<path d="M-3.4-18.4L-2-15.6L0-14.4L2-15.6L3.4-18.4L1.4-17H-1.4Z" fill="#d97a2b" stroke="'+INK+'" stroke-width=".4" stroke-linejoin="round"/>';}},
+    fans:{techo:'#d4692a',pared:CREMA,frente:function(){var s='<path d="M-20-3.4Q0 .4 20-3.4" fill="none" stroke="'+INK+'" stroke-width=".35"/>';for(var q=0;q<7;q++){var x=-18+q*6;s+='<path d="M'+(x-1.6)+' '+n1(-3.2+Math.sin((q+.5)/7*Math.PI)*1.9)+'h3.2l-1.6 3z" fill="'+(q%2?'#d4692a':CREMA)+'" stroke="'+INK+'" stroke-width=".3"/>';}return s;},punta:function(){return '<rect x="-2.6" y="-18.4" width="5.2" height="3.8" fill="#d4692a" stroke="'+INK+'" stroke-width=".4"/><path d="M-2.6-18.4l1.3 3.8 1.3-3.8 1.3 3.8 1.3-3.8" fill="none" stroke="'+CREMA+'" stroke-width=".35"/>';}},
+    sponsors:{techo:'#b23f3c',pared:'#d9b25a',frente:function(){var s='';for(var x=-18;x<=18;x+=4)s+='<circle cx="'+x+'" cy="-2.6" r=".7" fill="#ffe27a" stroke="'+INK+'" stroke-width=".2"/>';return s;},punta:function(){return '<g transform="translate(0 -14.6) scale(.2)"><path d="M-11 0L0-17L11 0Z" fill="#b07a48"/><rect x="-3.4" y="-9.5" width="6.8" height="4.4" fill="#f2d27a"/><path d="M-19 0L0-29L19 0Q17-2 15 0T11 0L0-17L-11 0Q-13-2-15 0T-19 0Z" fill="#23402e" stroke="'+INK+'" stroke-width="1.6" stroke-linejoin="round"/></g>';}}
+  };
+
+  // Piezas de afuera (v9): cada zona de mala fama viene con su Mercado de Pases y cada predio con su Boletería,
+  // las dos con su pedazo de río hasta el borde redondo. Se cortan por la esquina de la Rambla, derecho hacia el agua,
+  // y encastran con una pestaña de rompecabezas: las zonas llevan la pestaña y los predios el hueco.
+  var RO=299, RS=271, RB=266, RK=262;
+  var OUTL=[]; for(var i=0;i<5;i++) OUTL.push(Dm[i],E[i],Dp[i],F[i]);
+  function uv(u,v,a){var r=a*Math.PI/180;return [u*Math.cos(r)-v*Math.sin(r),u*Math.sin(r)+v*Math.cos(r)];}
+  // la pestaña sobre el corte del ángulo a, de adentro hacia afuera; sg = hacia qué lado sale
+  function pestana(a,sg){var l=[[RK-2.3,0],[RK-2.3,2.5]];for(var f=245.3;f>=-65.3;f-=12)l.push([RK+5.5*Math.cos(f*Math.PI/180),7.5+5.5*Math.sin(f*Math.PI/180)]);
+    l.push([RK+2.3,2.5],[RK+2.3,0]);return l.map(function(p){return uv(p[0],p[1]*sg,a);});}
+  function corte(p,a,sg){return [p].concat(pestana(a,sg),[P(RO,a)]);}
+  function arco(a0,a1){var l=[],st=a1>a0?3:-3;for(var a=a0+st;st>0?a<a1-.5:a>a1+.5;a+=st)l.push(P(RO,a));return l;}
+  function piezaZona(i){var pg=pent[i],a1=TH[i]+15.3,a0=TH[i]-15.3;return [pg[0],pg[1]].concat(corte(pg[2],a1,1),arco(a1,a0),corte(pg[4],a0,-1).reverse());}
+  function piezaPredio(i){var ho=hexOut[i],a1=TH[i]+15.3,a2=TH[i]+56.7;return corte(ho[2],a1,1).concat(arco(a1,a2),corte(ho[4],a2,-1).reverse(),[ho[5],ho[0],ho[1]]);}
+  // Boletería (v10): del otro lado de la Rambla, sobre el río, frente a la punta de su predio. Un mostrador largo con tres ventanillas,
+  // una enfrente de cada vértice de la punta y con su pasarela hasta la esquina: así se ve que la Boletería abarca las tres. Atrás, la casilla con el mazo de su Recurso.
+  var RH=266;
+  function sector(r0,r1,a0,a1){return 'M'+pts([P(r1,a0)])+'A'+r1+' '+r1+' 0 0 1 '+pts([P(r1,a1)])+'L'+pts([P(r0,a1)])+'A'+r0+' '+r0+' 0 0 0 '+pts([P(r0,a0)])+'Z';}
+  function boleteria(i,k){
+    var b=BOLE[k], cl=C[k], a1=TH[i]+15.3, aF=TH[i]+36, a2=TH[i]+56.7, s='';
+    var vent=[[a1+4.2,Dp[i]],[aF,F[i]],[a2-4.2,Dm[(i+1)%5]]];
+    // las pasarelas, de cada ventanilla a su esquina
+    vent.forEach(function(v){var w=P(234,v[0]),d='M'+pts([w])+'L'+pts([v[1]]);s+='<path d="'+d+'" stroke="'+INK+'" stroke-width="8.4" stroke-linecap="round"/><path d="'+d+'" stroke="#c9a77a" stroke-width="6.6" stroke-linecap="round"/><path d="'+d+'" stroke="#a9875c" stroke-width="6.6" stroke-dasharray=".5 2.2"/>';});
+    // la casilla del mazo
+    var c=P(RH,aF); s+=G(c[0],c[1],aF+90)+boleteriaDib(k)+'</g>';
+    // el mostrador, en arco, con las tres ventanillas mirando a la isla
+    s+='<path d="'+sector(229,243,a1+1.6,a2-1.6)+'" fill="#000" opacity=".22" transform="translate(1 1.5)"/><path d="'+sector(229,243,a1+1.6,a2-1.6)+'" fill="'+b.pared+'" stroke="'+INK+'" stroke-width="1" stroke-linejoin="round"/><path d="'+sector(239.5,243,a1+1.6,a2-1.6)+'" fill="'+cl.c1+'" stroke="'+INK+'" stroke-width=".6"/>';
+    vent.forEach(function(v){var w=P(234.6,v[0]);s+=G(w[0],w[1],v[0]+90)+'<path d="M-5 5.4V-.6a5 4.6 0 0 1 10 0V5.4Z" fill="#9fd0e6" stroke="'+INK+'" stroke-width=".7"/><path d="M0-5.2V5.4" stroke="'+INK+'" stroke-width=".4"/><rect x="-6" y="4.4" width="12" height="2" fill="#a37c52" stroke="'+INK+'" stroke-width=".4"/></g>';});
+    return s;
+  }
+  // v12: el canje, escrito sobre el mostrador para que se lea aunque el mazo tape la casilla. Va arriba del filtro, en crema y negro.
+  function canjeMostrador(i,k){
+    var a1=TH[i]+15.3, a2=TH[i]+56.7, id=U('cj'), r=243.6, p0=P(r,a1+2.2), p1=P(r,a2-2.2);
+    var s='<path d="'+sector(240,247.2,a1+1.6,a2-1.6)+'" fill="#fbf8f1" stroke="'+INK+'" stroke-width=".8"/><path d="'+sector(240,240.9,a1+1.6,a2-1.6)+'" fill="'+C[k].c1+'"/><path d="'+sector(246.3,247.2,a1+1.6,a2-1.6)+'" fill="'+C[k].c1+'"/>';
+    s+='<path id="'+id+'" d="M'+pts([p0])+'A'+r+' '+r+' 0 0 1 '+pts([p1])+'" fill="none"/>';
+    return s+'<text font-family="Courier Prime, monospace" font-weight="700" font-size="4.1" fill="'+INK+'" dy="1.4"><textPath href="#'+id+'" startOffset="50%" text-anchor="middle">das 1 de <tspan font-family="Bowlby One SC, sans-serif" font-weight="400" font-size="3.9">'+C[k].rec.toUpperCase()+'</tspan> y te llevás 1 a elección</textPath></text>';
+  }
+  // la casilla del mazo, dibujada con el centro en (0, 0): el techo hacia el río y el mostrador hacia la isla
+  function boleteriaDib(k){
+    var b=BOLE[k], cl=C[k], s='';
+    s+='<path d="M-37.5-22H37.5V24H-37.5Z" fill="#000" opacity=".22" transform="translate(1.2 1.8)"/><rect x="-37.5" y="-23" width="75" height="46" rx="2" fill="'+cl.c1+'" stroke="'+INK+'" stroke-width="1"/>';
+    s+='<rect x="-33" y="-21.5" width="66" height="43" rx="1.6" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><rect x="-31.5" y="-20.5" width="63" height="41" rx="2" fill="none" stroke="'+cl.c1+'" stroke-width=".9" stroke-dasharray="2.4 1.6"/>';
+    s+=bdg(k,0,-9,.13)+'<text y="8.4" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.6" fill="'+INK+'">MAZO DE '+cl.rec.toUpperCase()+'</text>';
+    s+='<path d="M-41-21.5L-34.5-31H34.5L41-21.5Z" fill="'+b.techo+'" stroke="'+INK+'" stroke-width=".9" stroke-linejoin="round"/><path d="M-41-21.5L-34.5-31H34.5L41-21.5Z" fill="#000" opacity=".3"/>';
+    s+='<rect x="-24" y="-29.6" width="48" height="6.6" rx="1" fill="'+INK+'"/><text y="-24.8" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.2" letter-spacing=".4" fill="#f2c94c">BOLETERÍA</text>';
+    return s;
+  }
+  // Mercado de Pases (v12): una cartelera de cine, a todo color y sin el filtro de su zona. Marco rojo con lamparitas de colores,
+  // la pantalla donde van los 4 Jugadores boca abajo y, del lado de la Rambla, la marquesina con el nombre.
+  var FOCOS=['#ffe27a','#ff8a5a','#8fd3ff','#b4f08a','#ff9fd2'];
+  function foco(x,y,q,r){return '<circle cx="'+n1(x)+'" cy="'+n1(y)+'" r="'+(r||1)+'" fill="'+FOCOS[q%5]+'" stroke="'+INK+'" stroke-width=".25"/><circle cx="'+n1(x-.3)+'" cy="'+n1(y-.3)+'" r=".35" fill="#fff" opacity=".8"/>';}
+  function casilla(ang){
+    var c=P(RS,ang), s=G(c[0],c[1],ang+90), q=0;
+    s+='<rect x="-6" y="30" width="12" height="12" fill="#c9a77a" stroke="'+INK+'" stroke-width=".6"/><path d="M-6 33h12M-6 36h12M-6 39h12" stroke="#a9875c" stroke-width=".5"/>';
+    s+='<rect x="-37.5" y="-26" width="75" height="52" rx="3" fill="#000" opacity=".25" transform="translate(1.2 1.8)"/><rect x="-37.5" y="-26" width="75" height="52" rx="3" fill="#b8323a" stroke="'+INK+'" stroke-width="1"/><rect x="-36" y="-24.5" width="72" height="49" rx="2.2" fill="none" stroke="#f2c94c" stroke-width=".8"/>';
+    for(var x=-34;x<=34.1;x+=4.25) s+=foco(x,-24.6,q++);
+    for(var y=-20;y<=20.1;y+=4) s+=foco(-35.6,y,q++)+foco(35.6,y,q+2);
+    // arriba, el cartelito de la función
+    s+='<rect x="-17" y="-26.6" width="34" height="5" rx="1" fill="'+INK+'" stroke="#f2c94c" stroke-width=".5"/><text y="-22.9" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="3" letter-spacing=".5" fill="#f2c94c">★ HOY EN CARTEL ★</text>';
+    // la pantalla: acá van los 4 Jugadores boca abajo
+    s+='<rect x="-32" y="-20" width="64" height="40" rx="1.6" fill="#fdf3d2" stroke="'+INK+'" stroke-width=".7"/><rect x="-30.5" y="-18.5" width="61" height="37" rx="1.2" fill="none" stroke="#b8323a" stroke-width=".8" stroke-dasharray="2.4 1.6"/>';
+    [-1,1].forEach(function(sg){var x=sg*27.6;s+='<rect x="'+n1(x-2.4)+'" y="-17" width="4.8" height="34" fill="'+INK+'"/>';for(var y=-15.5;y<16;y+=4)s+='<rect x="'+n1(x-1.2)+'" y="'+n1(y)+'" width="2.4" height="1.8" rx=".4" fill="#fdf3d2"/>';});
+    s+='<path d="M-22 -16L-6 12H-22Z" fill="#ffe27a" opacity=".35"/><path d="M22 -16L6 12H22Z" fill="#8fd3ff" opacity=".35"/>';
+    s+='<text y="-4" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="7" fill="#b8323a" stroke="#fdf3d2" stroke-width=".6" paint-order="stroke">JUGADORES</text><text y="6" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="4.2" fill="'+PILUSO+'">4 boca abajo</text>';
+    s+=['#e05a4f','#3f6aa6','#4d7a3a','#d9a61c'].map(function(cl,i){return '<rect x="'+(-11+i*5.6)+'" y="10" width="4.2" height="6" rx=".6" fill="'+cl+'" stroke="'+INK+'" stroke-width=".3"/>';}).join('');
+    // la marquesina, del lado de la Rambla
+    s+='<path d="M-36 20.4H36L33 32.4H-33Z" fill="#000" opacity=".25" transform="translate(.8 1.2)"/><path d="M-36 20.4H36L33 32.4H-33Z" fill="#f2c94c" stroke="'+INK+'" stroke-width=".9" stroke-linejoin="round"/>';
+    for(var x=-33;x<=33.1;x+=3.3) s+=foco(x,21.9,q++,.75);
+    s+='<rect x="-29" y="23.6" width="58" height="7.4" rx="1" fill="'+INK+'"/><text y="29.1" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.7" letter-spacing=".3" fill="#ffe27a">MERCADO DE PASES</text>';
+    return s+'</g>';
+  }
+
+  // ---- Predios (hexágonos de afuera). Coordenadas locales: arriba (y negativa) mira al río ----
+  function laSerena(){
+    var s='';
+    s+='<rect x="-40" y="12" width="80" height="9" fill="#ddd5c4" stroke="#c9bfa9" stroke-width=".6"/>';
+    s+='<rect x="-26" y="-2" width="62" height="12" fill="#c9a77a" stroke="'+INK+'" stroke-width=".6"/>';
+    for(var x=-24;x<36;x+=3) s+='<path d="M'+x+' -2v12" stroke="#a9875c" stroke-width=".5"/>';
+    // la cabaña: techo alpino con las puntas onduladas y la ventanita
+    s+='<g transform="translate(-4 -1) scale(1.05)"><path d="M-19 0L0-29L19 0Z" fill="#000" opacity=".18" transform="translate(2 1.5)"/>'+
+      '<path d="M-11 0L0-17L11 0Z" fill="#b07a48"/><path d="M-6-8v8M0-17V0M6-8v8" stroke="#8a5a32" stroke-width=".6"/>'+
+      '<rect x="-3.4" y="-9.5" width="6.8" height="4.4" fill="#f2d27a" stroke="'+INK+'" stroke-width=".7"/>'+
+      '<path d="M-19 0L0-29L19 0Q17-2 15 0T11 0L0-17L-11 0Q-13-2-15 0T-19 0Z" fill="#23402e" stroke="'+INK+'" stroke-width="1" stroke-linejoin="round"/></g>';
+    // la pérgola dorada con luces
+    s+='<path d="M18 4V-14M36 4V-14M16-14H38" stroke="'+DORADO+'" stroke-width="2" stroke-linecap="round"/><path d="M18-13Q27-6 36-13" fill="none" stroke="'+INK+'" stroke-width=".4"/>';
+    [[21,-10.6],[24,-9.2],[27,-8.7],[30,-9.2],[33,-10.6]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="1.3" fill="#ffe27a" stroke="'+INK+'" stroke-width=".3"/>';});
+    s+='<circle cx="23" cy="5" r="2.4" fill="#fff" stroke="'+INK+'" stroke-width=".5"/><circle cx="31" cy="5" r="2.4" fill="#fff" stroke="'+INK+'" stroke-width=".5"/>';
+    // el horno de barro
+    s+='<path d="M-38 1A9 9 0 0 1-20 1Z" fill="#b5653a" stroke="'+INK+'" stroke-width=".8"/><path d="M-32 1v-3a3 3 0 0 1 6 0v3Z" fill="#3a2418"/><rect x="-24.5" y="-12" width="2.6" height="5" fill="#8a5a32" stroke="'+INK+'" stroke-width=".5"/>';
+    // la tetera verde gigante, en la vereda
+    s+='<g transform="translate(8 16)"><path d="M-6 0Q-12-1-13-6" fill="none" stroke="'+INK+'" stroke-width="3"/><path d="M-6 0Q-12-1-13-6" fill="none" stroke="#2f7a4a" stroke-width="1.8"/><path d="M6-4q5 0 4 4t-4 3" fill="none" stroke="'+INK+'" stroke-width="2.4"/><path d="M6-4q5 0 4 4t-4 3" fill="none" stroke="#2f7a4a" stroke-width="1.2"/>'+
+      '<ellipse cx="0" cy="-1" rx="7" ry="6" fill="#2f7a4a" stroke="'+INK+'" stroke-width=".9"/><ellipse cx="0" cy="-6.6" rx="3.6" ry="1.4" fill="#25603a" stroke="'+INK+'" stroke-width=".6"/><circle cx="0" cy="-8.6" r="1.2" fill="'+DORADO+'" stroke="'+INK+'" stroke-width=".4"/><path d="M-4-3q2-2 4-2" stroke="#fff" stroke-width=".9" fill="none" opacity=".5"/></g>';
+    s+=arbol(-34,-24,5,0)+arbol(34,-28,4.5,1)+arbol(-38,14,4,2)+arbol(26,-36,3.6,0);
+    // v12: el patio con las mesas y sombrillas, la huerta, la leña, las bicis, la guirnalda y la gente
+    var rd=azar(81);
+    s+='<path d="M28 10Q44 14 50 30Q48 46 30 50Q24 30 28 10Z" fill="#e3d6b8" stroke="#c9bfa9" stroke-width=".5"/>';
+    [[35,18],[44,30],[34,40]].forEach(function(p,q){s+=mesita(p[0],p[1])+sombrilla(p[0]+.5,p[1]-.5,4.6,q%2?'#4d7a3a':'#f2c94c','#fbf8f1');});
+    s+='<rect x="-54" y="24" width="22" height="20" rx="1" fill="#8a5a32" stroke="'+INK+'" stroke-width=".5"/>';
+    for(var y=27;y<43;y+=4)for(var x=-51;x<-33;x+=3.4)s+='<circle cx="'+n1(x)+'" cy="'+y+'" r="1.1" fill="'+(y%8?'#5b9a42':'#e05a4f')+'"/>';
+    s+='<g stroke="#6b4a2a" stroke-width="1.4" stroke-linecap="round">'+[0,1,2,3].map(function(q){return '<path d="M'+(-52+q*.4)+' '+(10+q*1.6)+'h8"/>';}).join('')+'</g>';
+    s+=bici(-24,30,'#3f6aa6')+bici(-16,32,'#e05a4f')+bici(-20,38,'#4d7a3a');
+    s+=banderines(-14,-14,16,-13,8)+banderines(-46,-4,-20,-12,6);
+    s+=cartelito(-44,-12,18,'LA SERENA','#23402e','#f2c94c');
+    s+=gente(rd,7,-20,2,48,8)+gente(rd,4,30,12,16,30)+gente(rd,3,-4,24,20,16);
+    s+=arbol(52,6,3.4,2)+arbol(-52,52,3.4,1)+arbol(52,52,3,0);
+    return s;
+  }
+  function laMilla(){
+    var s='';
+    [[-24,-36,'#d4692a',-6],[-6,-40,'#e9dcc0',4],[12,-37,'#8fb3d9',-4],[28,-30,'#e05a4f',8],[-34,-16,'#f2c94c',-8],[34,-12,'#d4692a',6],[-30,6,'#a5c88f',4],[30,8,'#e9dcc0',-6]].forEach(function(c){s+=techo(c[0],c[1],13,10,c[3],c[2]);});
+    s+='<rect x="-14" y="-14" width="28" height="7" rx="1" fill="#a37c52" stroke="'+INK+'" stroke-width=".6"/>';
+    for(var x=-11;x<=11;x+=5.5){s+='<circle cx="'+x+'" cy="-16.5" r="1.3" fill="'+C.fans.c1+'"/><circle cx="'+x+'" cy="-4.5" r="1.3" fill="'+C.fans.c1+'"/>';}
+    s+='<rect x="-7" y="1" width="16" height="8" rx="1" fill="#3a3530" stroke="'+INK+'" stroke-width=".6"/><g fill="#e05a4f">'+[[-4,3],[0,6],[4,3],[6,7],[-3,7]].map(function(p){return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r=".9"/>';}).join('')+'</g>'+
+      '<rect x="-5" y="3.6" width="7" height="2" rx="1" fill="#a3442c"/><rect x="2" y="5.4" width="6" height="2" rx="1" fill="#a3442c"/>';
+    s+='<g fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".8"><path d="M14 4q-3-3 0-6t0-6"/><path d="M18 2q-3-3 0-6t0-5"/></g>';
+    [[-20,-26],[-1,-27],[18,-21],[22,-2],[-22,-4],[13,13],[-13,16],[3,-47],[-38,-30],[38,-24],[24,22],[-3,20],[30,-44],[-14,-46],[6,-34],[-28,-40]].forEach(function(p){s+=pelota(p[0],p[1],2.4);});
+    // v12: el potrero, el paredón con el mural, la ropa tendida, los banderines de la hinchada y la gente con la camiseta
+    var rd=azar(82);
+    s+='<rect x="-56" y="18" width="28" height="22" rx="2" fill="#c9a56e" stroke="#a5824e" stroke-width=".6"/><g fill="none" stroke="#fff" stroke-width=".5" opacity=".8"><rect x="-54" y="20" width="24" height="18"/><path d="M-42 20v18"/><circle cx="-42" cy="29" r="3"/></g><path d="M-55 26v6M-29 26v6" stroke="#fff" stroke-width="1.2"/>'+pelota(-38,25,1.8);
+    s+='<rect x="30" y="34" width="24" height="6" fill="#e9dcc0" stroke="'+INK+'" stroke-width=".5"/>'+['#d4692a','#fbf8f1','#d4692a','#3a3530'].map(function(c,q){return '<rect x="'+(31+q*5.8)+'" y="35" width="5" height="4" fill="'+c+'"/>';}).join('')+'<text x="42" y="38.5" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="3.1" fill="'+INK+'">LA MILLA</text>';
+    s+='<path d="M30 18H54" stroke="'+INK+'" stroke-width=".3"/>'+[['#d4692a',32],['#fff',37],['#3f6aa6',42],['#d4692a',47],['#f2c94c',51]].map(function(r){return '<rect x="'+r[1]+'" y="18" width="3.4" height="4.4" fill="'+r[0]+'" stroke="'+INK+'" stroke-width=".2"/>';}).join('');
+    s+=banderines(-40,-2,-24,-10,6)+banderines(24,-6,44,0,6)+banderines(-12,24,14,26,8);
+    s+=gente(rd,10,-24,22,50,18)+gente(rd,4,30,24,22,8);
+    s+=arbol(50,10,3.6,0)+arbol(-52,8,3.4,1)+arbol(-50,50,3.2,2)+arbol(50,50,3.2,0);
+    return s;
+  }
+  function laCanterita(){
+    var s='<rect x="-31" y="-46" width="62" height="44" fill="#7fae63" stroke="#5d6670" stroke-width=".9" stroke-dasharray="1.6 1"/>';
+    [[-15,-35],[15,-35],[-15,-13],[15,-13]].forEach(function(p){s+=canchita(p[0],p[1],0,26,16);});
+    [[-30,-45],[0,-45],[30,-45],[-30,-3],[0,-3],[30,-3]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="1.7" fill="#fff8c8" stroke="'+INK+'" stroke-width=".5"/>';});
+    s+=techo(-4,9,28,10,0,C.sponsors.c1)+techo(20,10,10,8,0,'#d9b25a');
+    s+=arbol(-34,8,4,1)+arbol(34,-8,3.6,2);
+    // v12: los carteles de los sponsors en el alambrado, la tribunita, el estacionamiento y la gente
+    var rd=azar(83);
+    ['#e05a4f','#f2c94c','#3f6aa6','#fbf8f1','#4d7a3a','#b23f3c','#f2c94c'].forEach(function(c,q){s+='<rect x="'+(-30+q*8.6)+'" y="-49.6" width="7.4" height="3" rx=".4" fill="'+c+'" stroke="'+INK+'" stroke-width=".3"/>';});
+    s+='<g>'+[0,1,2,3].map(function(q){return '<rect x="'+(-54+q*1.8)+'" y="'+(18+q*3)+'" width="'+(24-q*3.6)+'" height="3" fill="'+(q%2?'#d9b25a':'#b23f3c')+'" stroke="'+INK+'" stroke-width=".3"/>';}).join('')+'</g>'+gente(rd,6,-52,18,18,10);
+    s+='<rect x="28" y="18" width="26" height="26" fill="#a9a59d" stroke="#8b8378" stroke-width=".6"/>';
+    for(var y=24;y<44;y+=9) s+='<path d="M28 '+y+'h26" stroke="#fff" stroke-width=".5" stroke-dasharray="3 3"/>';
+    s+=auto(34,22,0,'#f2f2f2')+auto(46,22,0,'#b23f3c')+auto(34,31,0,'#3f6aa6')+auto(46,40,0,'#f2c94c');
+    s+=cartelito(-44,-6,22,'LA CANTERITA','#b23f3c','#fbf8f1');
+    s+=gente(rd,8,-28,-44,56,40)+gente(rd,4,-20,20,30,8);
+    s+=arbol(-52,50,3.2,1)+arbol(52,52,3,2)+arbol(-50,-8,3.4,0);
+    return s;
+  }
+  function bajoNono(){
+    var s=canchita(-10,-33,0,32,19)+canchita(-10,-10,0,32,19);
+    s+=techo(22,-32,16,12,0,C.suerte.c1)+techo(22,-32,6,12,0,'#efe2b8');
+    s+='<rect x="16" y="-20" width="13" height="9" rx="1.5" fill="#6cc3e6" stroke="#fff" stroke-width="1.2"/>';
+    s+='<path d="M26 4V-6" stroke="'+INK+'" stroke-width=".8"/><rect x="26" y="-6" width="9" height="6" fill="'+C.suerte.c1+'" stroke="'+INK+'" stroke-width=".4"/>'+trebol(30.5,-3,.09,DORADO);
+    s+=arbol(-34,4,4,0)+arbol(32,-44,3.6,1)+arbol(8,4,3.6,2)+arbol(-36,-44,3.4,1);
+    // v12: las reposeras y sombrillas de la pileta, la parrilla con humo, los arcos de práctica y la gente
+    var rd=azar(84);
+    s+='<rect x="38" y="-22" width="4" height="8" rx="1" fill="#fbf8f1" stroke="'+INK+'" stroke-width=".3"/><rect x="38" y="-12" width="4" height="8" rx="1" fill="#fbf8f1" stroke="'+INK+'" stroke-width=".3"/>'+sombrilla(44,-16,4.4,'#3f6aa6','#fbf8f1');
+    s+='<rect x="34" y="16" width="16" height="7" rx="1" fill="#55504a" stroke="'+INK+'" stroke-width=".5"/><path d="M36 19.5h12" stroke="#e05a4f" stroke-width="1.2" opacity=".8"/><g fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".8"><path d="M38 15q-3-3 0-6t0-6"/><path d="M45 15q-3-3 0-5t0-5"/></g>';
+    s+=mesita(34,32)+mesita(46,32)+mesita(40,42);
+    s+='<g fill="none" stroke="#fff" stroke-width=".9"><path d="M-52 22h10v-5M-52 22v-5"/><path d="M-52 40h10v-5M-52 40v-5"/></g><path d="M-52 17h10M-52 35h10" stroke="#fff" stroke-width=".9"/>'+pelota(-44,26,1.6)+pelota(-40,31,1.6)+pelota(-48,30,1.6);
+    s+=cartelito(-44,6,20,'BAJO NONO','#3f6aa6','#fbf8f1');
+    s+=gente(rd,6,-26,-46,32,46)+gente(rd,5,30,26,20,18)+gente(rd,3,-50,24,10,12);
+    s+=arbol(52,6,3.4,1)+arbol(-52,52,3.2,0)+arbol(52,52,3,2);
+    return s;
+  }
+  // El Sapo, el organizador de los torneos de La Escuelita: gorra, silbato y el sobre de la inscripción (dibujado en 200 × 180)
+  function sapo(){var V='#6fae4a', V2='#4f8a34';
+    return '<ellipse cx="96" cy="172" rx="52" ry="6" fill="#000" opacity=".14"/>'+
+      '<path d="M50 168C40 120 56 84 96 82C136 84 152 120 142 168Z" fill="'+V+'" stroke="'+INK+'" stroke-width="3"/><ellipse cx="96" cy="140" rx="30" ry="26" fill="#cfe3a0"/>'+
+      '<path d="M66 102Q96 92 126 102L120 112Q96 104 72 112Z" fill="#fff" stroke="'+INK+'" stroke-width="2"/><path d="M96 104v18" stroke="'+INK+'" stroke-width="1.6"/><g transform="translate(96 126)"><rect x="-9" y="-4" width="18" height="9" rx="4" fill="#c7ccd1" stroke="'+INK+'" stroke-width="2"/><circle cx="-3" cy=".5" r="2" fill="'+INK+'"/></g>'+
+      '<ellipse cx="96" cy="70" rx="46" ry="30" fill="'+V+'" stroke="'+INK+'" stroke-width="3"/>'+
+      [-1,1].map(function(sg){var x=96+sg*26;return '<circle cx="'+x+'" cy="46" r="16" fill="'+V+'" stroke="'+INK+'" stroke-width="3"/><circle cx="'+x+'" cy="46" r="10" fill="#fff" stroke="'+INK+'" stroke-width="2"/><rect x="'+(x-7+sg*2)+'" y="43.5" width="14" height="5" rx="2.5" fill="'+INK+'"/><path d="M'+(x-13)+' 38q13-8 26 0" fill="none" stroke="'+V2+'" stroke-width="3" stroke-linecap="round"/>';}).join('')+
+      '<path d="M64 80Q96 100 128 80" fill="none" stroke="'+INK+'" stroke-width="3.4" stroke-linecap="round"/><path d="M118 84q8 0 10-6" fill="none" stroke="'+INK+'" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="68" cy="72" rx="7" ry="4" fill="#e8574a" opacity=".3"/><ellipse cx="124" cy="72" rx="7" ry="4" fill="#e8574a" opacity=".3"/>'+
+      '<path d="M60 28Q96 6 132 28L136 36H56Z" fill="'+INK+'"/><path d="M128 32h28q4 0 2 4H130Z" fill="'+INK+'"/><text x="96" y="31" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="7" fill="#f2c94c">ORGANIZACIÓN</text>'+
+      '<g transform="translate(160 118) rotate(-14)"><rect x="-22" y="-14" width="44" height="28" rx="3" fill="#e9dcc0" stroke="'+INK+'" stroke-width="2.6"/><path d="M-22-14L0 3 22-14" fill="none" stroke="'+INK+'" stroke-width="2.4" stroke-linejoin="round"/><rect x="-14" y="-26" width="30" height="15" rx="2" fill="#94c48c" stroke="'+INK+'" stroke-width="1.8"/><text x="1" y="-14.5" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="11" fill="#2f5a26">$</text></g>'+
+      '<circle cx="142" cy="128" r="9" fill="'+V+'" stroke="'+INK+'" stroke-width="2.4"/><path d="M132 132q-8 6-6 16" fill="none" stroke="'+INK+'" stroke-width="10" stroke-linecap="round"/><path d="M132 132q-8 6-6 16" fill="none" stroke="'+V+'" stroke-width="6.4" stroke-linecap="round"/>';
+  }
+  // el Sapo en el tablero: centrado en (x, y), s = mm por unidad del dibujo
+  function sapito(x,y,s){return '<g transform="translate('+n1(x)+' '+n1(y)+') scale('+s+') translate(-100 -95)">'+sapo()+'</g>';}
+  // canchita de fútbol 5, de sintético y con el alambrado
+  function canchita5(x,y,w,h){
+    var s='<g transform="translate('+n1(x)+' '+n1(y)+')"><rect x="'+(-w/2-1.4)+'" y="'+(-h/2-1.4)+'" width="'+(w+2.8)+'" height="'+(h+2.8)+'" rx="1" fill="#2f6e3c" stroke="#9aa3ab" stroke-width="1" stroke-dasharray="1.2 .8"/>';
+    s+='<rect x="'+(-w/2)+'" y="'+(-h/2)+'" width="'+w+'" height="'+h+'" fill="#3f9a52"/><g fill="none" stroke="#fff" stroke-width=".6"><rect x="'+(-w/2+1)+'" y="'+(-h/2+1)+'" width="'+(w-2)+'" height="'+(h-2)+'"/><path d="M0 '+(-h/2+1)+'V'+(h/2-1)+'"/><circle r="'+n1(h/6)+'"/>';
+    s+='<path d="M'+(-w/2+1)+' '+n1(-h/5)+'a'+n1(h/5)+' '+n1(h/5)+' 0 0 1 0 '+n1(2*h/5)+'M'+(w/2-1)+' '+n1(-h/5)+'a'+n1(h/5)+' '+n1(h/5)+' 0 0 0 0 '+n1(2*h/5)+'"/></g>';
+    return s+'<rect x="'+(-w/2-1.2)+'" y="-2" width="1.2" height="4" fill="#fff"/><rect x="'+(w/2)+'" y="-2" width="1.2" height="4" fill="#fff"/></g>';
+  }
+  // Banadi: el predio de las canchitas donde La Escuelita jugaba los torneos del Sapo
+  function banadi(rd){
+    var s='';
+    s+=canchita5(-12.5,-32,22,14)+canchita5(12.5,-32,22,14)+canchita5(-22,-12,22,14)+canchita5(3,-12,22,14);
+    [[-25,-41],[0,-41],[25,-41],[-35,-21],[15,-21]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="1.5" fill="#fff8c8" stroke="'+INK+'" stroke-width=".4"/>';});
+    s+=pelota(-6,-29,1.9)+pelota(8,-10,1.9);
+    // el Sapo, con su sobre, al costado de la cancha
+    s+=sapito(27,-8,.17);
+    s+=arbol(-36,4,3.8,1)+arbol(36,-38,3.2,0);
+    // v12: el kiosco, las bicis, los bancos de suplentes, el cartel y la gente
+    var rd2=azar(85);
+    s+='<rect x="30" y="18" width="20" height="14" fill="#d9a61c" stroke="'+INK+'" stroke-width=".5"/>';
+    for(var q=0;q<5;q++) s+='<path d="M'+(30+q*4)+' 32h4v2a2 2 0 0 1-4 0z" fill="'+(q%2?'#fbf8f1':INK)+'" stroke="'+INK+'" stroke-width=".3"/>';
+    s+='<rect x="33" y="21" width="14" height="5" fill="'+INK+'"/><text x="40" y="24.9" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="3.2" fill="#f2c94c">KIOSCO</text>';
+    s+=bici(-48,24,'#d9a61c')+bici(-48,30,'#e05a4f')+bici(-48,36,'#3f6aa6')+bici(-40,40,INK);
+    s+='<rect x="-34" y="-3" width="12" height="2.4" fill="#a37c52" stroke="'+INK+'" stroke-width=".3"/><rect x="-9" y="-3" width="12" height="2.4" fill="#a37c52" stroke="'+INK+'" stroke-width=".3"/>';
+    s+=cartelito(-44,-30,16,'BANADI',INK,'#f2c94c');
+    s+=gente(rd2,9,-34,-46,58,6)+gente(rd2,5,26,36,22,12)+gente(rd2,4,-32,-4,24,3);
+    s+=arbol(52,6,3.4,2)+arbol(-52,52,3.2,0)+arbol(52,52,3,1)+arbol(-52,10,3.2,2);
+    return s;
+  }
+
+  // ---- Zonas de mala fama (pentágonos de afuera) ----
+  var ZONAS=[
+    function(){ // Estacionamiento La Canterita
+      var s='<path d="M-24-14Q-30-28-16-36Q0-44 14-36Q28-28 22-16Q8-8-6-12Q-16-8-24-14Z" fill="#6f7f4c" stroke="#55663a" stroke-width="1"/><ellipse cx="-8" cy="-24" rx="8" ry="4" fill="#55663a" opacity=".7"/>';
+      s+='<g stroke="#6b5330" stroke-width=".8" stroke-linecap="round">'+[[-20,-30],[-17,-32],[18,-26],[15,-30],[-22,-18]].map(function(p){return '<path d="M'+p[0]+' '+p[1]+'v-5"/>';}).join('')+'</g>';
+      s+='<g transform="translate(6 -25) rotate(28) scale(1.4)">'+auto(0,0,0,'#f2f2f2')+'</g><ellipse cx="2" cy="-22" rx="7" ry="3.4" fill="#6f7f4c"/><g fill="none" stroke="#cfe0a8" stroke-width=".6"><circle cx="11" cy="-30" r="1.2"/><circle cx="13" cy="-27" r=".8"/></g>';
+      s+='<rect x="-26" y="-6" width="44" height="22" fill="#a9a59d" stroke="#8b8378" stroke-width=".8"/>';
+      for(var x=-24;x<=16;x+=6) s+='<path d="M'+x+' -6v6M'+x+' 10v6" stroke="#fff" stroke-width=".6"/>';
+      s+=auto(-21,-2,90,'#e05a4f')+auto(-9,-2,90,'#3f6aa6')+auto(-3,12,90,'#f2c94c')+auto(9,-2,90,'#4d7a3a')+auto(-15,12,90,'#222');
+      s+='<rect x="22" y="-4" width="7" height="7" fill="#e3dccd" stroke="'+INK+'" stroke-width=".6"/><path d="M22 6h-6" stroke="#e05a4f" stroke-width="1.4"/><rect x="20" y="-13" width="16" height="7" rx="1" fill="#fff" stroke="#e05a4f" stroke-width=".8"/><text x="28" y="-8" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.6" fill="#e05a4f">$$$$</text>';
+      return s;
+    },
+    function(){ // Rotisería El Chulengo
+      var s=techo(0,-18,44,18,0,'#c9b28f')+'<rect x="-19" y="-25" width="38" height="11" rx="1" fill="#fff" stroke="#c0392b" stroke-width=".8"/><text y="-20.4" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="3.2" letter-spacing=".4" fill="#c0392b">ROTISERÍA</text><text y="-16" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.4" fill="#c0392b">EL CHULENGO</text>';
+      for(var q=0;q<9;q++) s+='<rect x="'+(-22+q*4.9)+'" y="-9" width="4.9" height="4.6" fill="'+(q%2?'#f2c94c':'#e05a4f')+'"/>';
+      // el chulengo: medio tambor acostado, con la tapa abierta y patas de hierro
+      s+='<path d="M-10 11l-3 7M10 11l3 7M-13 18h4M9 18h4" stroke="#9aa3ab" stroke-width="1.3" stroke-linecap="round"/>';
+      s+='<path d="M-14 4A14 7 0 0 1 14 4Z" fill="#55504a" stroke="'+INK+'" stroke-width=".7" transform="rotate(-18 -14 4) translate(0 -1)"/>';
+      s+='<path d="M-14 4h28v2a8 8 0 0 1-8 7h-12a8 8 0 0 1-8-7z" fill="#3a3530" stroke="'+INK+'" stroke-width=".7"/><path d="M-11 9.5h22" stroke="#e05a4f" stroke-width="1.2" opacity=".7"/><path d="M-14 4h28" stroke="#9aa3ab" stroke-width=".8"/>';
+      [-8,0,8].forEach(function(x){s+='<ellipse cx="'+x+'" cy="3.4" rx="3.2" ry="2.3" fill="#c0702e" stroke="'+INK+'" stroke-width=".5"/><path d="M'+(x-1.5)+' 2.4q1.5-1 3 0" stroke="#e8a060" stroke-width=".6" fill="none"/>';});
+      s+='<g fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" opacity=".8"><path d="M4 0q-3-3 0-6t0-6"/><path d="M-6 0q-3-3 0-5t0-5"/></g>';
+      [[-24,12],[24,12]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4.4" fill="#f2c94c" stroke="'+INK+'" stroke-width=".6"/><path d="M'+p[0]+' '+(p[1]-4.4)+'V'+(p[1]+4.4)+'M'+(p[0]-4.4)+' '+p[1]+'H'+(p[0]+4.4)+'" stroke="#e05a4f" stroke-width="1.2"/>';});
+      return s;
+    },
+    function(){ // Cementerio de Rodillas
+      var s='<rect x="-25" y="-30" width="50" height="40" fill="#b8c6a0" stroke="#8b8378" stroke-width="1.6"/><path d="M0-22V10" stroke="#e5ddcc" stroke-width="3"/>';
+      for(var gx=-22;gx<=18;gx+=6.5){ if(Math.abs(gx+1.5)<4) continue; for(var gy=-25;gy<=2;gy+=7) s+='<path d="M'+gx+' '+(gy+5)+'v-3a1.8 1.8 0 0 1 3.6 0v3z" fill="#e9e5dc" stroke="#7a7368" stroke-width=".5"/>';}
+      s+='<path d="M-7-17v-7a7 7 0 0 1 14 0v7z" fill="#e9e5dc" stroke="#5e5446" stroke-width=".8"/><text y="-20.5" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="3.4" fill="#5e5446">RIP</text><text y="-17.6" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="3" fill="#5e5446">LCA</text>';
+      s+='<g stroke="#8a6a45" stroke-width="1.4" stroke-linecap="round"><path d="M-6 18L6 4M6 18L-6 4"/></g><g stroke="#5e5446" stroke-width="2.2" stroke-linecap="round"><path d="M-7 4.5h3M4 4.5h3"/></g>';
+      [[-29,-30],[29,-30],[-29,10],[29,10]].forEach(function(p){s+='<ellipse cx="'+p[0]+'" cy="'+p[1]+'" rx="2.4" ry="4.4" fill="#2f5a26"/>';});
+      return s;
+    },
+    function(){ // Diario La Pipeta
+      var s=techo(0,-14,46,28,0,'#b5aa98')+'<rect x="-19" y="-19" width="38" height="11" fill="#1f3f8a" stroke="'+INK+'" stroke-width=".7"/><text y="-11.6" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="6.2" fill="#f2c94c">LA PIPETA</text>';
+      s+='<path d="M16-30l-4 12M16-30l4 12M16-30V-18M13-24h6" stroke="#5d6670" stroke-width=".9"/><circle cx="16" cy="-31" r="1.6" fill="#e05a4f"/><g fill="none" stroke="#5d6670" stroke-width=".7"><path d="M20-34q3 3 0 6"/><path d="M22.5-36q5 5 0 10"/></g>';
+      s+=auto(-14,10,0,'#f2f2f2')+auto(-2,10,0,'#f2f2f2')+'<rect x="10" y="6" width="10" height="7" fill="#e9e4da" stroke="'+INK+'" stroke-width=".5"/><path d="M11 8h8M11 10h6" stroke="#9a958c" stroke-width=".6"/>';
+      return s;
+    },
+    function(){ // Oficina del Sapo
+      var s=techo(-12,-18,24,18,0,'#5f9a45')+'<rect x="-22" y="-12" width="20" height="6" rx="1" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".6"/><text x="-12" y="-7.6" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.1" fill="#3d6b2a">EL SAPO</text>';
+      // el Sapo en persona, en la puerta, con el sobre de la inscripción
+      s+='<ellipse cx="16" cy="-4" rx="14" ry="10" fill="#7fb9c9" stroke="#5f8fa0" stroke-width=".8"/>'+sapito(14,-11,.18);
+      s+='<rect x="-20" y="2" width="28" height="7" rx="1" fill="#fff" stroke="'+INK+'" stroke-width=".5"/><text x="-6" y="6.8" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="3.3" fill="'+INK+'">INSCRIPCIÓN $$$</text>';
+      s+=arbol(24,8,3.6,1)+arbol(-26,-30,3.4,2);
+      return s;
+    }
+  ];
+
+  // v11: cada pieza en la escala de su color. El dibujo se arma completo (pexa-arte) y cada pieza lo muestra pasado por el filtro de su color:
+  // los oscuros van al tono más oscuro, el color del Recurso queda igual y los claros van a un tinte casi blanco. Zonas de mala fama: grises.
+  function hexRGB(h){return [parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)];}
+  function tono(id,col){
+    var c=hexRGB(col), lc=(.3*c[0]+.59*c[1]+.11*c[2])/255, dk=c.map(function(v){return v*.2;}), lt=c.map(function(v){return v+(255-v)*.9;}), tab=[[],[],[]];
+    for(var q=0;q<=16;q++){var t=q/16;for(var ch=0;ch<3;ch++){var v=t<lc?dk[ch]+(c[ch]-dk[ch])*t/lc:c[ch]+(lt[ch]-c[ch])*(t-lc)/(1-lc);tab[ch].push((v/255).toFixed(3));}}
+    return '<filter id="'+id+'" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="'+tab[0].join(' ')+'"/><feFuncG type="table" tableValues="'+tab[1].join(' ')+'"/><feFuncB type="table" tableValues="'+tab[2].join(' ')+'"/></feComponentTransfer></filter>';
+  }
+  var GRIS='#3d3b38';
+  function dibujarTablero(){
+    var h='', a='', fo='', rd=azar(7);
+    var ola=U('ola');
+    // v12: el río y la costa de la Rambla van con su color de siempre, por debajo de las piezas filtradas
+    fo+='<pattern id="'+ola+'" width="26" height="14" patternUnits="userSpaceOnUse"><path d="M2 9q4-5 8 0t8 0" fill="none" stroke="#fff" stroke-width="1" opacity=".35"/></pattern>';
+    fo+='<circle r="'+RO+'" fill="'+AGUA+'"/><circle r="'+RO+'" fill="url(#'+ola+')"/>';
+    fo+='<polygon points="'+pts(shrink(OUTL,1.085,[0,0]))+'" fill="#e8dcbc" stroke="#d2c29a" stroke-width="2" stroke-linejoin="round"/>';
+    a+='<polygon points="'+pts(shrink(OUTL,1.03,[0,0]))+'" fill="'+PASTO+'"/>';
+    // sobre el agua, las Boleterías (de los predios). Los Mercados de Pases van arriba del filtro, a todo color
+    for(var i=0;i<5;i++) a+=boleteria(i,OUTER[i]);
+    // zonas de mala fama: oscuras como las fichas de Multa
+    for(var i=0;i<5;i++){
+      var pg=pent[i], c=cen(pg);
+      a+='<polygon points="'+pts(pg)+'" fill="'+INK+'"/><polygon points="'+pts(shrink(pg,.9))+'" fill="#3d3731" stroke="#9a948c" stroke-width="2.2" stroke-dasharray="6 3.5" stroke-linejoin="round"/>';
+      a+=G(c[0],c[1],TH[i]+90)+'<g transform="translate(0 -13) scale(.72)">'+ZONAS[i]()+'</g></g>';
+    }
+    // estadios
+    for(var i=0;i<5;i++) a+=estadio(i);
+    // predios: todo el fondo en el color de su Recurso, igual que la tribuna de su estadio
+    var PRE={gol:bajoNono,fans:laMilla,sponsors:laCanterita,suerte:laSerena,picardia:banadi}, ILP='translate(0 -17) scale(.74)';
+    for(var i=0;i<5;i++){
+      var ho=hexOut[i], co=cen(ho), ko=OUTER[i], R=TH[i]+126, cl=C[ko].c1;
+      a+='<polygon points="'+pts(ho)+'" fill="'+cl+'"/><polygon points="'+pts(ho)+'" fill="#000" opacity=".22"/><polygon points="'+pts(shrink(ho,.9))+'" fill="'+cl+'" stroke="'+INK+'" stroke-width="1.6" stroke-linejoin="round"/><polygon points="'+pts(shrink(ho,.9))+'" fill="none" stroke="'+CREMA+'" stroke-width="1" stroke-linejoin="round" stroke-dasharray="3 2" opacity=".8"/>';
+      a+=G(co[0],co[1],R)+'<g transform="'+ILP+'">'+PRE[ko](rd)+'</g></g>';
+      if(ko==='fans') a+=G(co[0],co[1],R)+'<g transform="'+ILP+'"><g fill="none" stroke="#fff" stroke-width="1.1" stroke-dasharray="2.4 2" stroke-linecap="round" opacity=".95"><path d="M-62-14Q-46-46-20-26"/><path d="M-64 2Q-42-24-22-4"/><path d="M-60-30Q-30-64-1-27"/></g></g></g>';
+    }
+    // El Palco
+    a+='<polygon points="'+pts(A)+'" fill="#e3dccd"/>'+palco();
+    var arteId=U('arte');
+    h+='<defs><g id="'+arteId+'">'+a+'</g>';
+    for(var i=0;i<5;i++) h+=tono('te'+i,C[INNER[i]].c1)+tono('tp'+i,C[OUTER[i]].c1);
+    h+=tono('tz',GRIS);
+    var piezas=[];
+    for(var i=0;i<5;i++) piezas.push([hexIn[i],'te'+i],[piezaPredio(i),'tp'+i],[piezaZona(i),'tz']);
+    piezas.push([A,null]);
+    piezas.forEach(function(p,q){h+='<clipPath id="cpz'+q+'"><polygon points="'+pts(p[0])+'"/></clipPath>';});
+    h+='</defs><rect x="-320" y="-320" width="640" height="640" fill="#d8c8a2"/>'+fo;
+    piezas.forEach(function(p,q){h+='<g clip-path="url(#cpz'+q+')"'+(p[1]?' filter="url(#'+p[1]+')"':'')+'><use href="#'+arteId+'"/></g>';});
+    for(var i=0;i<5;i++) h+=casilla(TH[i])+canjeMostrador(i,OUTER[i]);
+    // los cortes de todas las piezas: crema por debajo y negro arriba. Sobre la isla, el corte va por el medio del sendero
+    var cortes=piezas.map(function(p){return pts(p[0]);});
+    h+='<g fill="none" stroke-linejoin="round">'+cortes.map(function(p){return '<polygon points="'+p+'" stroke="#fbf8f1" stroke-width="3.6"/>';}).join('')+cortes.map(function(p){return '<polygon points="'+p+'" stroke="'+INK+'" stroke-width="1.6"/>';}).join('')+'</g>';
+    h+=calles(rd);
+    // el 1 del Palco, una vez en cada tribuna, mirando a su cancha
+    for(var i=0;i<5;i++){var m=P(29.6,TH[i]);
+      h+=G(m[0],m[1],TH[i]+90)+'<circle r="7.6" fill="#000" opacity=".25" transform="translate(.7 1)"/><circle r="7.6" fill="'+NB+'" stroke="'+INK+'" stroke-width="1"/><circle r="6.2" fill="'+C[INNER[i]].c1+'" stroke="'+INK+'" stroke-width=".8"/><text y="4.4" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="12.5" fill="'+NB+'" stroke="'+INK+'" stroke-width="1.4" paint-order="stroke" stroke-linejoin="round">1</text>'+
+        // v14: desde el Palco se ve todo: unos largavistas en cada tribuna
+        '<g transform="translate(14 .3) rotate(14)"><circle r="6.3" fill="#fbf8f1" stroke="'+INK+'" stroke-width=".8"/><path d="M-.8-1.6H.8V1H-.8Z" fill="#8a6a25"/><rect x="-4.5" y="-2.8" width="3.9" height="6.4" rx="1.3" fill="'+INK+'"/><rect x=".6" y="-2.8" width="3.9" height="6.4" rx="1.3" fill="'+INK+'"/><ellipse cx="-2.55" cy="-2.8" rx="1.95" ry=".95" fill="#9fd0e6" stroke="'+INK+'" stroke-width=".5"/><ellipse cx="2.55" cy="-2.8" rx="1.95" ry=".95" fill="#9fd0e6" stroke="'+INK+'" stroke-width=".5"/></g></g>';}
+    // los números de los estadios, en el círculo central de cada cancha
+    for(var i=0;i<5;i++){var ce=cen(hexIn[i]); h+=G(ce[0],ce[1],TH[i]+90)+numHex(INNER[i],0,20)+'</g>';}
+    // esquinas: del tamaño de la base del cono (18 mm, con 1 mm de juego), blancas con detalles grises. Las cinco de arranque, con aro dorado
+    [].concat(A,B,Cm,Cp,Dm,Dp,E,F).forEach(function(p,ix){var arr=ix>=5&&ix<10;
+      h+='<circle cx="'+n1(p[0]+.9)+'" cy="'+n1(p[1]+1.3)+'" r="9.5" fill="#000" opacity=".2"/><circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="9.5" fill="#fdfdfb" stroke="'+(arr?'#b8862b':INK)+'" stroke-width="'+(arr?2.6:1.3)+'"/>'+
+        '<circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="7.4" fill="none" stroke="#c4c4c4" stroke-width=".5" stroke-dasharray="1.2 1.2"/><circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="5.2" fill="none" stroke="#b5b5b5" stroke-width=".8"/>'+(arr?'<path d="'+estrella(p[0],p[1],3.4)+'" fill="#e2bd57" stroke="#8a6a25" stroke-width=".5"/>':'');});
+    // números, en el eje de cada pieza; nombres en un cartel del tinte de su pieza
+    for(var i=0;i<5;i++){
+      var co=cen(hexOut[i]), ko=OUTER[i];
+      var pl=PREDIO_L[ko], cart=pl.length>1?'<text y="27.2" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="2.9" letter-spacing=".3" fill="'+INK+'">'+pl[0].toUpperCase()+'</text><text y="32.1" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4" fill="'+INK+'">'+pl[1].toUpperCase()+'</text>':'<text y="30.9" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.8" fill="'+INK+'">'+pl[0].toUpperCase()+'</text>';
+      h+=G(co[0],co[1],TH[i]+126)+'<rect x="-24" y="23" width="48" height="11" rx="2" fill="'+C[ko].fondo+'" stroke="'+INK+'" stroke-width="1"/>'+cart+numHex(ko,0,4)+'</g>';
+      var cz=cen(pent[i]), zl=ZONA[i];
+      h+=G(cz[0],cz[1],TH[i]+90)+'<rect x="-24" y="22.6" width="48" height="11" rx="2" fill="#111" stroke="#9a948c" stroke-width="1"/>'+
+        '<text y="26.8" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="2.9" letter-spacing=".3" fill="#fbf8f1">'+zl[0].toUpperCase()+'</text><text y="31.7" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4" fill="#fbf8f1">'+zl[1].toUpperCase()+'</text>'+numZona(ZNUM[i],0,3.5)+'</g>';
+    }
+    // rosa de los vientos y cartel, en la mesa
+    h+='<g transform="translate(-288 288)"><circle r="17" fill="#fbf8f1" stroke="'+INK+'" stroke-width="1"/><path d="M0-14l4 14-4 14-4-14z" fill="'+INK+'"/><path d="M0-14l4 14h-8z" fill="#e05a4f"/><text y="-19" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="8" fill="'+INK+'">N</text></g>';
+    h+='<g transform="translate(250 300)"><rect x="-62" y="-13" width="124" height="26" rx="4" fill="#fbf8f1" stroke="'+INK+'" stroke-width="1.4"/><text y="5.5" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="14" letter-spacing="1" fill="'+INK+'">ISLA PEXA</text></g>';
+    return '<g id="isla-pexa">'+h+'</g>';
+  }
 
   function cartaRecurso(k){
     var c=C[k], tc=k==='picardia'?INK:CREMA, zz=U('zz');
@@ -863,6 +1381,8 @@
     retrato:function(dt){return guardo('t'+dt,function(){var id=DTIDS[dt];return '<svg viewBox="45 18 110 120" aria-hidden="true">'+figura('dt_'+id,Object.assign({},DT_FIG[id].o,{gag:null,globo:null,palitos:false}))+'</svg>';});},
     dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return '<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>';});},
     badge:function(k){return guardo('g'+k,function(){return badge(k);});},
+    tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero()+'</svg>';},
+    escuelita:function(k){return guardo('x'+k,function(){return '<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>';});},
     escudo:function(k){return guardo('c'+k,function(){return escudoClub(k);});},
     logo:function(m){return guardo('l'+m,function(){return m==='solo'?'<svg viewBox="'+VB_SOLO+'" aria-hidden="true">'+logoSolo()+'</svg>':'<svg viewBox="-142 -142 284 284" aria-hidden="true">'+logoPexa(m)+'</svg>';});},
     tokenV:function(){return '<svg viewBox="0 0 100 100" aria-hidden="true">'+tokV(50,50,50)+'</svg>';},
