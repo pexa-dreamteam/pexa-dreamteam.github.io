@@ -422,7 +422,7 @@
           else s+='<path d="M'+(x-er-1)+' '+(ey-1)+'Q'+x+' '+(ey-er*1.15)+' '+(x+er+1)+' '+(ey-1)+'" fill="none" stroke="'+INK+'" stroke-width="3.2" stroke-linecap="round"/>';
         }
         var alto2=o.cejaAlta||0, xi=x-sg*(er+3), xo=x+sg*(er+3);
-        s+='<path d="M'+n1(xi)+' '+n1(ey-er-4-alto2+(o.cejaEnojo||0))+'Q'+x+' '+n1(ey-er-10-alto2)+' '+n1(xo)+' '+n1(ey-er-5-alto2-(o.cejaEnojo||0)*.4)+'" fill="none" stroke="'+(o.extra==='disfraz'?INK:pelo)+'" stroke-width="'+(o.ceja||3.5)+'" stroke-linecap="round"/>';
+        s+='<path class="an-ceja" d="M'+n1(xi)+' '+n1(ey-er-4-alto2+(o.cejaEnojo||0))+'Q'+x+' '+n1(ey-er-10-alto2)+' '+n1(xo)+' '+n1(ey-er-5-alto2-(o.cejaEnojo||0)*.4)+'" fill="none" stroke="'+(o.extra==='disfraz'?INK:pelo)+'" stroke-width="'+(o.ceja||3.5)+'" stroke-linecap="round"/>';
       });
       // nariz
       var ns=o.nariz||1.2;
@@ -491,7 +491,9 @@
       if(o.gag==='ciego') s+='<text x="'+(cx+w+16)+'" y="'+(cy-10)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="24" fill="'+INK+'">?</text><text x="'+(cx-w-14)+'" y="'+(cy+2)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="17" fill="'+INK+'" transform="rotate(-14 '+(cx-w-14)+' '+cy+')">?</text>';
       if(o.gag==='muralla') s+=pelota(cx-w*.45,top-12,9)+'<path d="M'+(cx-w*.45-14)+' '+(top-20)+'l-6-5M'+(cx-w*.45-16)+' '+(top-8)+'l-8 0M'+(cx-w*.45+12)+' '+(top-24)+'l4-7" stroke="'+INK+'" stroke-width="2.2" stroke-linecap="round"/>';
     }
-    f+=s;
+    // Las clases an-* no cambian el dibujo: las usa la versión digital para animar gestos. La lengua está oculta.
+    if(!sil&&!o.barbijo) s+='<g class="an-len" opacity="0"><path d="M'+(cx-8)+' '+(my+2)+'q0 17 8 17q8 0 8-17z" fill="#e8574a" stroke="'+INK+'" stroke-width="2.2" stroke-linejoin="round"/><path d="M'+cx+' '+(my+5)+'v8" stroke="#a8322a" stroke-width="1.8" stroke-linecap="round"/></g>';
+    f+='<g class="an-cab" style="transform-origin:'+cx+'px '+bot+'px">'+s+'</g>';
 
     // ---- brazos y poses ----
     var L0=[cx-sw+6,T+10], R0=[cx+sw-6,T+10], dL=[cx-sw-6,W-4], dR=[cx+sw+6,W-4];
@@ -577,19 +579,20 @@
           '<path d="M-17-4H17V6Q0 11-17 6Z" fill="#1d1d24" stroke="'+INK+'" stroke-width="2"/><path d="M-12 1h24" stroke="#e04f9a" stroke-width="2.2" stroke-dasharray="4 2"/></g>'; break;
     }
     var mangas='';
-    ar.forEach(function(a){ f+=brazo(a[0],aw,piel[0]); });
+    function grupoBrazo(a,ia,x){return '<g class="an-br'+ia+'" style="transform-origin:'+n1(a[0][0][0])+'px '+n1(a[0][0][1])+'px">'+x+'</g>';}
+    ar.forEach(function(a,ia){ f+=grupoBrazo(a,ia,brazo(a[0],aw,piel[0])); });
     f+=pre;
     [L0,R0].forEach(function(p,i){mangas+='<ellipse cx="'+n1(p[0]+(i?2:-2))+'" cy="'+(p[1]-1)+'" rx="'+(aw*.5+6)+'" ry="'+(aw*.4+6)+'" fill="'+(o.remera==='mitad'&&i?PILUSO:(o.manga||c.c1))+'" stroke="'+INK+'" stroke-width="2.4"/>';});
     f+=mangas;
     if(o.extra==='cinta') f+='<g transform="rotate(-12 '+(L0[0]-6)+' '+(L0[1]+12)+')"><rect x="'+(L0[0]-14)+'" y="'+(L0[1]+7)+'" width="17" height="10" rx="2" fill="#2f6fcf" stroke="'+INK+'" stroke-width="1.8"/><text x="'+(L0[0]-5.5)+'" y="'+(L0[1]+15.5)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="8.5" fill="#fff">C</text></g>';
-    ar.forEach(function(a){var p=a[0][a[0].length-1]; f+=mano(p[0],p[1],a[1]==='guante'?hr:Math.max(7,aw*.55+4.5),piel,a[1]||'puño',a[2]);});
+    ar.forEach(function(a,ia){var p=a[0][a[0].length-1]; f+=grupoBrazo(a,ia,mano(p[0],p[1],a[1]==='guante'?hr:Math.max(7,aw*.55+4.5),piel,a[1]||'puño',a[2]));});
     tent.forEach(function(t,i){ f+=mano(t[0],t[1],8.5,piel,'guante',t[2]); if(i===3) f+=pelota(t[0]+4,t[1]-16,10); });
     f+=post;
 
     var out=fondo(k,o);
     if(o.palitos) f+='<g transform="translate('+(cx-48)+' '+(T+20)+') rotate(-18)"><path d="M-16 8L24 -13M-16 13L24 -6" stroke="'+INK+'" stroke-width="4.2" stroke-linecap="round"/><path d="M-16 8L24 -13M-16 13L24 -6" stroke="#b8793a" stroke-width="2.2" stroke-linecap="round"/><g transform="translate(14 -12)"><rect x="-11" y="-9" width="22" height="18" rx="6" fill="#1f2a24" stroke="'+INK+'" stroke-width="2"/><ellipse rx="9" ry="6.5" fill="#fbf8f1"/><ellipse rx="4.4" ry="3.4" fill="#ee7f4a"/></g></g>';
     if(o.globo){var t=Z(o.globo[1],o.globo[2]); out+=globo(6,6,o.globo[3]||100,o.globo[0],t[0],t[1]);}
-    out+='<g transform="translate(100 '+(212+(o.dy||0))+') scale('+e.toFixed(3)+') translate(-100 -212)">'+f+'</g>';
+    out+='<g class="fig"><g transform="translate(100 '+(212+(o.dy||0))+') scale('+e.toFixed(3)+') translate(-100 -212)">'+f+'</g></g>';
     if(sil) out+='<rect x="38" y="194" width="124" height="20" rx="4" fill="'+INK+'" opacity=".85"/><text x="100" y="208.5" text-anchor="middle" font-family="Courier Prime, monospace" font-weight="700" font-size="12" letter-spacing="1" fill="'+CREMA+'">PRÓXIMAMENTE</text>';
     return out;
   }
@@ -804,7 +807,8 @@
     ['Rivales','Cambio de Figuritas',1,'Elegí un DT que tenga un Jugador de una posición que vos también tenés: se cambian esos dos Jugadores.','teo'],
     ['Rivales','Dame un Beneficio',1,'Robale al azar 1 Beneficio sin usar a otro DT.',null,'dame'],
     ['Rivales','Tarjeta Roja',1,'Elegí un DT: en su próximo turno no mueve su cono.','gaspi'],
-    ['Barras','Gas Pimienta',1,'Reubicá a todos los Barrabravas en intersecciones libres de tu elección. No se usa con 2 DTs.',null,'gas'],
+    ['Barras','Gas Pimienta',1,'Reubicá a todos los Barrabravas en intersecciones libres de la Circunvalación o de la Peatonal. No se usa con 2 DTs.',null,'gas'],
+
     ['Barras','Sospechoso Arreglo',1,'Este turno movés los Barrabravas antes que tu cono.',null,'arreglo']
   ];
   function lineas(txt,max){var L=[],cur='';txt.split(' ').forEach(function(p){if(cur&&(cur+' '+p).length>max){L.push(cur);cur=p;}else cur=cur?cur+' '+p:p;});L.push(cur);return L;}
@@ -814,7 +818,7 @@
     s+='<defs><pattern id="'+zz+'" width="44" height="22" patternUnits="userSpaceOnUse"><path d="M-2 18L10 6L22 18L34 6L46 18" fill="none" stroke="'+CREMA+'" stroke-width="5" opacity=".14"/></pattern><clipPath id="'+cl+'"><rect x="22" y="62" width="366" height="330" rx="14"/></clipPath></defs>';
     s+='<rect x="3" y="3" width="404" height="624" rx="24" fill="'+ROJO+'" stroke="'+INK+'" stroke-width="5"/><rect x="3" y="3" width="404" height="624" rx="24" fill="url(#'+zz+')"/>';
     s+='<text x="26" y="46" font-family="Bowlby One SC, sans-serif" font-size="26" letter-spacing="1" fill="'+CREMA+'">BENEFICIO</text><text x="384" y="44" text-anchor="end" font-family="Courier Prime, monospace" font-weight="700" font-size="16" letter-spacing="2" fill="'+CREMA+'">'+cat.toUpperCase()+'</text>';
-    var inner=q?figura('escuelita',Object.assign({zoom:.84,dy:-32},q[1])):fondo('escuelita',{w:i+3,h:i+5})+'<g transform="translate(0 4)">'+ILUS[b[5]]()+'</g>';
+    var inner=q?figura('escuelita',Object.assign({zoom:.84,dy:-32},q[1])):fondo('escuelita',{w:i+3,h:i+5})+'<g class="fig g-dibujo" style="transform-origin:100px 90px"><g transform="translate(0 4)">'+ILUS[b[5]]()+'</g></g>';
     s+='<g clip-path="url(#'+cl+')"><svg x="22" y="62" width="366" height="330" viewBox="0 0 200 180" preserveAspectRatio="xMidYMid slice">'+inner+'</svg></g>';
     s+='<rect x="22" y="62" width="366" height="330" rx="14" fill="none" stroke="'+INK+'" stroke-width="5"/>';
     if(q) s+='<g transform="translate('+(368-q[0].length*8.5)+' 98) rotate(6)"><rect x="'+(-q[0].length*8.5-12)+'" y="-17" width="'+(q[0].length*17+24)+'" height="34" rx="4" fill="'+CREMA+'" opacity=".95" stroke="'+INK+'" stroke-width="3"/><text x="0" y="9" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="21" fill="'+ROJO+'">'+q[0].toUpperCase()+'</text></g>';
@@ -1373,16 +1377,22 @@
   var ORD=['gol','suerte','picardia','fans','sponsors'];
   var porNombre={};BENEF.forEach(function(b,i){porNombre[b[1]]=i;});
   var DTIDS=['abuelo','mister','dona','loco','profe'];
+  // El gesto de cada personaje (la versión digital lo anima con CSS)
+  var G_J={gol:['cejas','pisoton','si','salto'],suerte:['no','salto','lengua','no'],picardia:['si','saludo','pisoton','salto'],fans:['saludo','si','cejas','lengua'],sponsors:['si','cejas','saludo','lengua']};
+  var G_DT=['no','cejas','pisoton','salto','si'];
+  var G_E={capitano:'si',teo:'cejas',fer:'no',piolo:'salto',pancho:'saludo',juambo:'saludo',gaspi:'pisoton',m:'cejas',muchi:'salto',mark:'salto',sora:'lengua',tai:'cejas',golzalez:'cejas',cocho:'pisoton'};
+  function conGesto(svg,g){return svg.replace('class="fig"','class="fig g-'+g+'"');}
   window.PEXA_CARTAS={
-    jugador:function(club,pos){return guardo('j'+club+pos,function(){return carta(club,pos,ORD.indexOf(club)*4+pos+1);});},
-    beneficio:function(nombre){return guardo('b'+nombre,function(){var i=porNombre[nombre];return cartaBen(BENEF[i],i);});},
+    jugador:function(club,pos){return guardo('j'+club+pos,function(){return conGesto(carta(club,pos,ORD.indexOf(club)*4+pos+1),G_J[club][pos]);});},
+    beneficio:function(nombre){return guardo('b'+nombre,function(){var i=porNombre[nombre],b=BENEF[i],sv=cartaBen(b,i);return b[4]?conGesto(sv,G_E[b[4]]||'si'):sv;});},
     recurso:function(k){return guardo('r'+k,function(){return cartaRecurso(k);});},
     dorso:function(t){return guardo('d'+t,function(){return dorso(t);});},
-    retrato:function(dt){return guardo('t'+dt,function(){var id=DTIDS[dt];return '<svg viewBox="45 18 110 120" aria-hidden="true">'+figura('dt_'+id,Object.assign({},DT_FIG[id].o,{gag:null,globo:null,palitos:false}))+'</svg>';});},
-    dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return '<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>';});},
+    retrato:function(dt){return guardo('t'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="45 18 110 120" aria-hidden="true">'+figura('dt_'+id,Object.assign({},DT_FIG[id].o,{gag:null,globo:null,palitos:false}))+'</svg>',G_DT[dt]);});},
+    dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>',G_DT[dt]);});},
     badge:function(k){return guardo('g'+k,function(){return badge(k);});},
     tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero()+'</svg>';},
-    escuelita:function(k){return guardo('x'+k,function(){return '<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>';});},
+    escuelita:function(k){return guardo('x'+k,function(){return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>',G_E[k]||'salto');});},
+
     escudo:function(k){return guardo('c'+k,function(){return escudoClub(k);});},
     logo:function(m){return guardo('l'+m,function(){return m==='solo'?'<svg viewBox="'+VB_SOLO+'" aria-hidden="true">'+logoSolo()+'</svg>':'<svg viewBox="-142 -142 284 284" aria-hidden="true">'+logoPexa(m)+'</svg>';});},
     tokenV:function(){return '<svg viewBox="0 0 100 100" aria-hidden="true">'+tokV(50,50,50)+'</svg>';},

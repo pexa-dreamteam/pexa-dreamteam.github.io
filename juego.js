@@ -42,7 +42,7 @@ var BENEF={
   figuritas:{n:'Cambio de Figuritas',t:'Elegí un DT que tenga un Jugador de una posición que vos también tenés: se cambian esos dos Jugadores.',p:['dt','pos']},
   dame:{n:'Dame un Beneficio',t:'Robale al azar 1 Beneficio sin usar a otro DT.',p:['dt']},
   roja:{n:'Tarjeta Roja',t:'Elegí un DT: en su próximo turno no mueve su cono.',p:['dt']},
-  gas:{n:'Gas Pimienta',t:'Reubicá a todos los Barrabravas en intersecciones libres de tu elección.',p:['nodos']},
+  gas:{n:'Gas Pimienta',t:'Reubicá a todos los Barrabravas en intersecciones libres de la Circunvalación o de la Peatonal del Palco.',p:['nodos']},
   arreglo:{n:'Sospechoso Arreglo',t:'Este turno movés los Barrabravas antes que tu cono.',g:'mov'}
 };
 
@@ -100,8 +100,8 @@ function evento(g,e){g.nEvento=(g.nEvento||0)+1;e.n=g.nEvento;g.evento=e;g.evs=g
 // cfg: {dts:[{dt:0-4, nombre, bot}], modo:'completo'|'rapido', semilla}
 function nuevaPartida(cfg){
   var n=cfg.dts.length;
-  var g={v:1,reg:cfg.reglas||null,limite:cfg.limite||0,rel:null,t0:cfg.t0||0,host:cfg.host||null,seed:(cfg.semilla||1)*7919+13,n:n,modo:cfg.modo||'completo',meta:cfg.modo==='rapido'?3:4,num:[],rec:[],porNum:[[],[],[],[],[],[],[]],banco:{},tokens:{V:6,E:6},bolsa:{},
-    mazoB:[],descB:[],mercados:[],jug:[],barras:[],turno:0,primero:0,nTurnos:0,ganador:null,log:[],fase:'ubicar',faltaUbicar:[],dados:null,mv:null,descartes:{},oferta:null,barraPend:[],barraPaso:0,tiradas:[],nTirada:0,volverMover:false,mercadoAbierto:null,ultimaVista:null};
+  var g={v:1,reg:cfg.reglas||null,limite:cfg.limite||0,rel:null,t0:cfg.t0||0,host:cfg.host||null,seed:(cfg.semilla||1)*7919+13,n:n,modo:cfg.modo||'completo',meta:4,num:[],rec:[],porNum:[[],[],[],[],[],[],[]],banco:{},tokens:{V:6,E:6},bolsa:{},
+    mazoB:[],descB:[],mercados:[],jug:[],barras:[],turno:0,primero:0,nTurnos:0,ganador:null,log:[],fase:'ubicar',faltaUbicar:[],dados:null,mv:null,descartes:{},oferta:null,barraPaso:0,tiradas:[],nTirada:0,mercadoAbierto:null,ultimaVista:null};
   var pre=PREDIOS_OK[Math.floor(az(g)*PREDIOS_OK.length)];
   g.rec[0]=null;for(var i=0;i<5;i++){g.rec[1+i]=INNER[i];g.rec[6+i]=pre[i];g.rec[11+i]=null;}
   var zonas=mezclar(g,[2,3,4,5,6]);
@@ -123,14 +123,12 @@ function nuevaPartida(cfg){
 function ocupado(g,k,excepto){for(var j=0;j<g.jug.length;j++)if(g.jug[j].pos===k&&j!==excepto)return true;return g.barras.indexOf(k)>=0;}
 function contratados(p){return p.eq.filter(Boolean).length;}
 function hab(p,pos){return p.noHab===pos?null:(p.eq[pos]?p.eq[pos].club:null);}
-// Reglas en prueba (apagadas en el juego real): precio de un Jugador según el criterio
-function tokenDe(g,c){var k=g.reg&&g.reg.precioTk;if(!k)return null;var ic=INNER.indexOf(c.club);
-  if(k==='club')return c.club==='gol'||c.club==='suerte'?'V':(c.club==='picardia'?(c.pos%2?'V':'E'):'E');
-  if(k==='pos')return c.pos>=2?'V':'E';
-  if(k==='cruzado')return (ic+c.pos)%2?'V':'E';
-  return 'cualquiera';}
-function puedeFichar(g,p,c){var t=tokenDe(g,c);if(!t)return p.V>=1&&p.E>=1;if(t==='cualquiera')return p.V+p.E>=1;return p[t]>=1;}
-function maxMultas(g,p){var r=g.reg;if(!r)return 5;if(r.multasMax)return r.multasMax;if(r.defLimite3&&hab(p,1))return 3;return 5;}
+// Partido rápido: cada Jugador cuesta 1 Token, el de Victoria para Arquero y Defensor, el de Efectivo para Volante y Delantero
+function tokenDe(g,c){return g.modo==='rapido'&&g.meta===4?(c.pos<2?'V':'E'):null;}
+function puedeFichar(g,p,c){var t=tokenDe(g,c);return t?p[t]>=1:p.V>=1&&p.E>=1;}
+function puedeContratarAlgo(g,p){return g.modo==='rapido'&&g.meta===4?p.V+p.E>=1:p.V>=1&&p.E>=1;}
+// En prueba, solo para el simulador (g.reg.defLimite): con Defensor, un tope de Multas más bajo
+function maxMultas(g,p){return g.reg&&g.reg.defLimite&&hab(p,1)?g.reg.defLimite:5;}
 function usable(p,r){return p.multas[r]===0||p.amnistia;}
 // Para entrar al Palco: las Multas se pueden pagar en el acto, siempre que después quede 1 Recurso de cada tipo.
 // Devuelve cómo se pagan ([multa, con qué]) o null si no alcanza. El Arquero paga cualquier Multa con su Recurso, una vez saldadas las de ese tipo.
@@ -178,7 +176,7 @@ function barraInicial(g,j,k){
 function empezarTurno(g){
   var p=g.jug[g.turno];g.nTurnos++;
   p.benef=p.benef.concat(p.nuevos);p.nuevos=[];p.usoB=false;p.contrato=false;p.miro=false;p.amnistia=false;p.propuso=0;
-  g.dados=null;g.mv=null;g.volverMover=false;g.fase='tirar';
+  g.dados=null;g.mv=null;g.fase='tirar';
 }
 function tirarDados(g){
   var p=g.jug[g.turno],d=[dado(g),dado(g)];g.dados=d;g.nTirada++;g.tiradas.push({d:d,j:g.turno});if(g.tiradas.length>5)g.tiradas.shift();
@@ -256,31 +254,15 @@ function despuesDeMover(g){
   if(g.mv&&g.mv.arreglo){g.fase='canje';return;}
   iniciarBarras(g,false);
 }
+// Los Barrabravas avanzan solos una intersección en sentido horario, por su recorrido: la Circunvalación o la Peatonal del Palco.
+// Si hay un cono en el camino lo saltan; a otro Barrabrava no lo saltan nunca: se quedan donde están.
+function enRecorrido(k){return ANILLO.indexOf(k)>=0||PALCO.indexOf(k)>=0;}
 function iniciarBarras(g,volver){
-  if(!g.barras.length){terminarBarras(g,volver);return;}
-  if(g.reg&&g.reg.barrasAuto){
-    // Prueba: avanzan solos en sentido horario por la Circunvalación. Saltean un cono, pero nunca a otro Barrabrava.
-    g.barras.forEach(function(k,ib){var ruta=PALCO.indexOf(k)>=0?PALCO:ANILLO,pos=ruta.indexOf(k);if(pos<0)return;var s1=ruta[(pos+1)%ruta.length];
-      if(g.barras.indexOf(s1)>=0)return;
-      if(g.jug.some(function(q){return q.pos===s1;})){var s2=ruta[(pos+2)%ruta.length];if(g.barras.indexOf(s2)>=0||g.jug.some(function(q){return q.pos===s2;}))return;s1=s2;}
-      g.barras[ib]=s1;});
-    terminarBarras(g,volver);return;
-  }
-  if(g.n===2){
-    g.barras=g.barras.map(function(k){var ruta=PALCO.indexOf(k)>=0?PALCO:ANILLO,pos=ruta.indexOf(k),sig=ruta[(pos+1)%ruta.length];
-      if(g.jug.some(function(q){return q.pos===sig;}))sig=ruta[(pos+2)%ruta.length];
-      return g.barras.indexOf(sig)>=0||g.jug.some(function(q){return q.pos===sig;})?k:sig;});
-    terminarBarras(g,volver);return;
-  }
-  g.fase='barras';g.barraPend=g.barras.map(function(b,i){return i;});g.volverMover=volver;seguirBarras(g);
-}
-function opcionesBarra(g,i){var k=g.barras[i];return ADJ[k].filter(function(v){return !ocupado(g,v);});}
-// Los pendientes se mueven en el orden que quiera el DT; se termina cuando ninguno de los que faltan tiene adónde ir
-function seguirBarras(g){if(!g.barraPend.some(function(i){return opcionesBarra(g,i).length;})){g.barraPend=[];terminarBarras(g,g.volverMover);}}
-function moverBarra(g,i,k){
-  if(g.barraPend.indexOf(i)<0)falla('Ese Barrabrava ya se movió.');
-  if(opcionesBarra(g,i).indexOf(k)<0)falla('El Barrabrava se mueve una intersección, a un lugar libre.');
-  g.barras[i]=k;g.barraPend.splice(g.barraPend.indexOf(i),1);seguirBarras(g);
+  g.barras.forEach(function(k,ib){var ruta=PALCO.indexOf(k)>=0?PALCO:ANILLO,pos=ruta.indexOf(k);if(pos<0)return;var s1=ruta[(pos+1)%ruta.length];
+    if(g.barras.indexOf(s1)>=0)return;
+    if(g.jug.some(function(q){return q.pos===s1;})){var s2=ruta[(pos+2)%ruta.length];if(g.barras.indexOf(s2)>=0||g.jug.some(function(q){return q.pos===s2;}))return;s1=s2;}
+    g.barras[ib]=s1;});
+  terminarBarras(g,volver);
 }
 function terminarBarras(g,volver){
   if(volver){g.mv.arreglo=true;g.fase='mover';return;}
@@ -342,8 +324,8 @@ function contratar(g,j,ix2){
   var p=g.jug[j],m=g.mercadoAbierto,c=g.mercados[m][ix2];if(!c)falla('Esa carta no está.');
   if(p.eq[c.pos])falla('Ya tenés esa posición: podés cambiarlo.');
   if(contratados(p)>=g.meta)falla('Tu equipo ya está completo.');
-  if(!puedeFichar(g,p,c))falla('Se paga con 1 Token de Victoria y 1 de Efectivo.');
-  var tkj=tokenDe(g,c);if(tkj==='cualquiera')tkj=p.V>=p.E?'V':'E';
+  if(!puedeFichar(g,p,c)){var tq=tokenDe(g,c);falla(tq?'Este Jugador se paga con 1 Token de '+(tq==='V'?'Victoria':'Efectivo')+'.':'Se paga con 1 Token de Victoria y 1 de Efectivo.');}
+  var tkj=tokenDe(g,c);
   g.mercados[m].splice(ix2,1);p.eq[c.pos]=c;if(tkj){p[tkj]--;g.tokens[tkj]++;}else{p.V--;p.E--;g.tokens.V++;g.tokens.E++;}p.contrato=true;
   anotar(g,'¡'+p.nombre+' contrata a '+textoCarta(c)+'!');evento(g,{t:'jugador',j:j,c:c,cambio:false});cerrarMercado(g,j);
 }
@@ -367,9 +349,9 @@ function validarOferta(g,o){
     if(a&&o.pido[r]>0&&(a.mano[r]<o.pido[r]||!usable(a,r)))falla(a.nombre+' no puede dar '+NOMBRE_REC[r]+'.');});
 }
 function puedeDar(p,o){return REC.every(function(r){return o[r]<=0||(p.mano[r]>=o[r]&&usable(p,r));});}
-// Se saltea a los que no pueden cumplir; si no queda nadie, se cae la oferta
+// Quedan solo los que pueden cumplir; si no queda nadie, se cae la oferta
 function prepAbierta(g){var o=g.oferta;if(!o||o.a>=0)return;
-  while(o.faltan.length&&!puedeDar(g.jug[o.faltan[0]],o.pido))o.faltan.shift();
+  o.faltan=o.faltan.filter(function(q){return puedeDar(g.jug[q],o.pido);});
   if(!o.faltan.length){g.oferta=null;anotar(g,'Nadie toma la oferta de '+g.jug[o.de].nombre+'.');}}
 function proponer(g,j,a,doy,pido){
   if(g.fase!=='canje'&&g.fase!=='mercado')falla('Se negocia en la fase de canjes.');if(g.oferta)falla('Ya hay una oferta en la mesa.');
@@ -381,14 +363,14 @@ function proponer(g,j,a,doy,pido){
 }
 function limpia(o){var r=vacio();REC.forEach(function(k){r[k]=Math.max(0,(o&&o[k])|0);});return r;}
 function textoOferta(o){return REC.filter(function(r){return o[r]>0;}).map(function(r){return o[r]+' '+NOMBRE_REC[r];}).join(' + ');}
-function leToca(o){return o.a<0?o.faltan[0]:o.a;}
+function esperan(o){return o.a<0?o.faltan.slice():[o.a];}
 function responder(g,j,ok){
   var o=g.oferta;if(!o)falla('No hay oferta.');
-  if(leToca(o)!==j&&!(o.de===j&&!ok))falla('Esa oferta no es para vos.');
+  if(esperan(o).indexOf(j)<0&&!(o.de===j&&!ok))falla('Esa oferta no es para vos.');
   if(!ok){
     if(o.de===j){anotar(g,g.jug[j].nombre+' retira la oferta.');g.oferta=o.previa||null;prepAbierta(g);return;}
     anotar(g,g.jug[j].nombre+' dice que no.');
-    if(o.a<0){o.faltan.shift();prepAbierta(g);return;}
+    if(o.a<0){o.faltan.splice(o.faltan.indexOf(j),1);prepAbierta(g);return;}
     g.oferta=o.previa||null;prepAbierta(g);return;
   }
   var t={de:o.de,a:j,doy:o.doy,pido:o.pido};validarOferta(g,t);g.oferta=null;
@@ -398,9 +380,9 @@ function responder(g,j,ok){
   st(d).tratos++;st(a).tratos++;evento(g,{t:'trato',de:d.id,a:a.id,doy:o.doy,pido:o.pido});
 }
 function contraofertar(g,j,doy,pido){
-  var o=g.oferta;if(!o||leToca(o)!==j)falla('No hay oferta para contestar.');
+  var o=g.oferta;if(!o||esperan(o).indexOf(j)<0)falla('No hay oferta para contestar.');
   var nu={de:j,a:o.de,doy:limpia(doy),pido:limpia(pido),contras:(o.contras||0)+1};validarOferta(g,nu);
-  if(o.a<0){o.faltan.shift();nu.previa=o;}else if(o.previa)nu.previa=o.previa;
+  if(o.a<0){o.faltan.splice(o.faltan.indexOf(j),1);nu.previa=o;}else if(o.previa)nu.previa=o.previa;
   g.oferta=nu;
   anotar(g,g.jug[j].nombre+' contraoferta: '+textoOferta(nu.doy)+' por '+textoOferta(nu.pido)+'.');
 }
@@ -449,7 +431,7 @@ function usarBeneficio(g,j,b,a){
     case 'dame':q=otro(g,j,a.dt);var lb=q.benef.concat(q.nuevos);if(!lb.length)falla('Ese DT no tiene Beneficios sin usar.');var rb=lb[Math.floor(az(g)*lb.length)];var ib=q.benef.indexOf(rb);if(ib>=0)q.benef.splice(ib,1);else q.nuevos.splice(q.nuevos.indexOf(rb),1);p.nuevos.push(rb);anotar(g,'Le sacaste '+BENEF[rb].n+'.',j);st(p).robo++;st(q).robado++;golpe(g,p.nombre+' te robó '+BENEF[rb].n+' con Dame un Beneficio.',q.id);ef={q:q.id,rb:rb};break;
     case 'roja':q=otro(g,j,a.dt);q.roja=true;st(q).rojas++;golpe(g,p.nombre+' te sacó Tarjeta Roja: en tu próximo turno no movés.',q.id);ef={q:q.id};break;
     case 'gas':if(!a.nodos||a.nodos.length!==g.barras.length)falla('Elegí un lugar para cada Barrabrava.');var viejos=g.barras;g.barras=[];
-      for(var i2=0;i2<a.nodos.length;i2++){if(!NODOS[a.nodos[i2]]||ocupado(g,a.nodos[i2])){g.barras=viejos;falla('Tienen que ser intersecciones libres y distintas.');}g.barras.push(a.nodos[i2]);}break;
+      for(var i2=0;i2<a.nodos.length;i2++){if(!NODOS[a.nodos[i2]]||!enRecorrido(a.nodos[i2])||ocupado(g,a.nodos[i2])){g.barras=viejos;falla('Tienen que ser intersecciones libres y distintas, en la Circunvalación o en la Peatonal.');}g.barras.push(a.nodos[i2]);}break;
     case 'arreglo':usaYAnota(g,p,b);g.mv.arreglo=true;iniciarBarras(g,true);return;
   }
   usaYAnota(g,p,b);
@@ -463,7 +445,7 @@ function quienDebe(g){
   if(g.fase==='ubicar')return [g.faltaUbicar[0]];
   if(g.fase==='barraIni')return [g.barraPaso===1?(g.primero+1)%2:g.primero];
   if(g.fase==='descarte')return Object.keys(g.descartes).map(Number);
-  if(g.oferta)return [leToca(g.oferta)];
+  if(g.oferta)return esperan(g.oferta);
   return [g.turno];
 }
 
@@ -481,7 +463,7 @@ function reloj(g){
   if(!r||r.clave!==k){var cortado=k&&k.charAt(0)==='t'&&g.relVencio===g.nTurnos;r=g.rel={clave:k,fin:ahora+(cortado?0:ms),pausa:null,oferKey:null,oferFin:0};}
   if(g.oferta){
     if(r.pausa==null)r.pausa=Math.max(0,r.fin-ahora);
-    var ok=JSON.stringify([g.oferta.de,g.oferta.a,g.oferta.doy,g.oferta.pido,leToca(g.oferta)]);
+    var ok=JSON.stringify([g.oferta.de,g.oferta.a,g.oferta.doy,g.oferta.pido,g.oferta.faltan||0]);
     if(r.oferKey!==ok){r.oferKey=ok;r.oferFin=ahora+Math.max(ms,60000);}
   } else {
     if(r.pausa!=null){r.fin=ahora+Math.max(r.pausa,10000);r.pausa=null;}
@@ -506,8 +488,8 @@ function vencer(g){
   var ahora=Date.now(),r=g.rel;
   if(g.oferta){
     if(ahora<r.oferFin-1500)falla('Todavía hay tiempo.');
-    var q=leToca(g.oferta);anotar(g,g.jug[q].nombre+' no contestó a tiempo: la oferta se toma como un no.');
-    accion0(g,q,{t:'responder',ok:false});return;
+    var ofe=g.oferta;esperan(ofe).forEach(function(q){if(g.oferta!==ofe||g.jug[q].bot||esperan(ofe).indexOf(q)<0)return;anotar(g,g.jug[q].nombre+' no contestó a tiempo: la oferta se toma como un no.');accion0(g,q,{t:'responder',ok:false});});return;
+
   }
   if(ahora<r.fin-1500)falla('Todavía hay tiempo.');
   var deben=quienDebe(g);if(!deben.some(function(x){return !g.jug[x].bot;}))falla('Le toca a la máquina.');
@@ -535,7 +517,6 @@ function accion0(g,j,a){
     case 'quedarse':turno(['mover']);quedarse(g,j);break;
     case 'espiar':turno(['espiar']);if(mercadosCercanos(g.jug[j].pos).indexOf(a.m)<0)falla('Desde acá solo se ven los dos Mercados más cercanos.');if(g.mercados[a.m].length){st(g.jug[j]).espio++;verCartas(g,j,a.m);g.ultimaVista={j:j,m:a.m};anotar(g,g.jug[j].nombre+' mira en secreto el Mercado del '+g.num[11+a.m]+'.');}else falla('Ese Mercado está vacío.');despuesDeMover(g);break;
     case 'noEspiar':turno(['espiar']);despuesDeMover(g);break;
-    case 'barra':turno(['barras']);moverBarra(g,a.i,a.k);break;
     case 'pagar':if(!esTurno)falla('No es tu turno.');if(g.oferta)falla('Primero resolvé la oferta.');pagar(g,j,a.r,a.con);break;
     case 'token':turno(['canje','mercado']);comprarToken(g,j,a.tk);break;
     case 'beneficio':turno(['canje','mercado']);comprarBeneficio(g,j);break;
@@ -620,7 +601,7 @@ function puntaje(g,p,k){
   if(k===CENTRO)return 1e6;
   var s=valorNodo(g,p,k),f=faltanPos(g,p);
   if(contratados(p)>=g.meta){var m=99;PALCO.forEach(function(a){m=Math.min(m,DIST[k][a]);});s+=m===0?8:(m<=5?10-m:0);}
-  if((g.reg&&g.reg.precioTk?p.V+p.E>=1:p.V>=1&&p.E>=1)&&f.length){var mejor=0;for(var i=0;i<5;i++){if(!g.mercados[i].length)continue;var c=p.conoce[i],sirve=c?c.c.some(function(x){return f.indexOf(x.pos)>=0&&puedeFichar(g,p,x);}):true;if(!sirve)continue;var d=DIST[k][MERCADOS[i]];mejor=Math.max(mejor,d===0?40:14/(1+d));}s+=mejor;}
+  if(puedeContratarAlgo(g,p)&&f.length){var mejor=0;for(var i=0;i<5;i++){if(!g.mercados[i].length)continue;var c=p.conoce[i],sirve=c?c.c.some(function(x){return f.indexOf(x.pos)>=0&&puedeFichar(g,p,x);}):true;if(!sirve)continue;var d=DIST[k][MERCADOS[i]];mejor=Math.max(mejor,d===0?40:14/(1+d));}s+=mejor;}
   var bo=boleDe(g,k);if(bo){var sb=sobrante(g,p),df=deficit(g,p),t=0;REC.forEach(function(r){if(r!==bo)t+=df[r];});s+=Math.min(sb[bo],t)*1.2;}
   return s+az(g)*.05;
 }
@@ -671,7 +652,7 @@ function botBeneficio(g,j,p,f2){
   if(tiene('descuento')&&suma(p.mano)<8&&Object.keys(tocados(g,p.pos)).length>=2)return {t:'usar',b:'descuento'};
   if(tiene('espionaje')&&f2>0){var ms=[0,1,2,3,4].filter(function(m){return g.mercados[m].length&&!p.conoce[m];}).sort(function(a,b){return DIST[p.pos][MERCADOS[a]]-DIST[p.pos][MERCADOS[b]];});if(ms.length)return {t:'usar',b:'espionaje',m:ms[0]};}
   if(tiene('figuritas')){for(var pz=3;pz>=0;pz--){if(!p.eq[pz])continue;for(var i2=0;i2<g.n;i2++){if(i2===j)continue;var c2=g.jug[i2].eq[pz];if(c2&&c2.club!==p.eq[pz].club&&d[c2.club]>d[p.eq[pz].club])return {t:'usar',b:'figuritas',dt:i2,pos:pz};}}}
-  if(tiene('gas')&&L&&g.barras.length){var libres=NODOS.map(function(n){return n.id;}).filter(function(k){return !ocupado(g,k);}),ce=L.pos===CENTRO?[]:ADJ[L.pos].filter(function(k){return !ocupado(g,k);}),el2=[];ce.concat(libres).forEach(function(k){if(el2.length<g.barras.length&&el2.indexOf(k)<0)el2.push(k);});if(ce.length&&el2.length===g.barras.length)return {t:'usar',b:'gas',nodos:el2};}
+  if(tiene('gas')&&L&&g.barras.length){var libres=NODOS.map(function(n){return n.id;}).filter(function(k){return !ocupado(g,k)&&enRecorrido(k);}),ce=L.pos===CENTRO?[]:ADJ[L.pos].filter(function(k){return !ocupado(g,k)&&enRecorrido(k);}),el2=[];ce.concat(libres).forEach(function(k){if(el2.length<g.barras.length&&el2.indexOf(k)<0)el2.push(k);});if(ce.length&&el2.length===g.barras.length)return {t:'usar',b:'gas',nodos:el2};}
   return null;
 }
 function botResponde(g,j,p){
@@ -710,10 +691,11 @@ function botAccion(g,j){
     var bk=ds[0],bs=-1e9;ds.forEach(function(k){var v=puntaje(g,p,k);if(v>bs){bs=v;bk=k;}});return {t:'mover',k:bk};
   }
   if(g.fase==='espiar'){var ce=mercadosCercanos(p.pos).filter(function(m2){return g.mercados[m2].length;}),no=ce.filter(function(m2){return !p.conoce[m2];});return {t:'espiar',m:(no.length?no:ce)[0]};}
-  if(g.fase==='barras'){var pend=g.barraPend.filter(function(i2){return opcionesBarra(g,i2).length;}),i3=pend[0],op=opcionesBarra(g,i3),li=g.jug[lider(g,j)],bb=op[0],bd=99;op.forEach(function(v){var d=DIST[v][li.pos===CENTRO?0:li.pos];if(d<bd){bd=d;bb=v;}});return {t:'barra',i:i3,k:bb};}
   if(g.fase==='mercado'){var f=faltanPos(g,p),cs=g.mercados[g.mercadoAbierto],pref=[1.5,1,2,3],bi=-1,bp=-1;cs.forEach(function(x,i2){if(f.indexOf(x.pos)>=0&&pref[x.pos]>bp&&puedeFichar(g,p,x)){bp=pref[x.pos];bi=i2;}});return bi>=0?{t:'contratar',i:bi}:{t:'cerrar'};}
   if(g.fase==='canje'){
-    for(var i3b=0;i3b<5;i3b++){var r3=REC[i3b];if(p.multas[r3]>0&&p.mano[r3]>0)return {t:'pagar',r:r3};}
+    // g.reg.pagaTarde (solo simulador): como una persona, paga cuando le sobra o cuando ya tiene el equipo
+    for(var i3b=0;i3b<5;i3b++){var r3=REC[i3b];if(p.multas[r3]>0&&p.mano[r3]>0&&(!(g.reg&&g.reg.pagaTarde)||p.mano[r3]>=3||contratados(p)>=g.meta))return {t:'pagar',r:r3};}
+
     var f2=g.meta-contratados(p);
     if(f2>0&&p.V<1&&g.tokens.V>0&&puedePagar(p,PRECIO.V))return {t:'token',tk:'V'};
     if(f2>0&&p.E<1&&g.tokens.E>0&&puedePagar(p,PRECIO.E))return {t:'token',tk:'E'};
@@ -724,14 +706,14 @@ function botAccion(g,j){
     for(var q=0;q<orden.length;q++){var dest=orden[q];for(var w=0;w<5;w++){var da=REC[w];if(da===dest)continue;if(s4[da]>=tasaBanco(g,p,da))return {t:'banco',da:da,toma:dest};}}
     var tr=botPropone(g,j,p);if(tr)return tr;
     if(g.mazoB.length&&puedePagar(p,PRECIO.B)&&p.benef.length+p.nuevos.length<3&&((s4.suerte>=1&&s4.fans>=1)||(s4.suerte+s4.fans>=1&&d4.suerte+d4.fans===0)||suma(p.mano)>=8))return {t:'beneficio'};
-    if(mercadoDe(p.pos)>=0&&!p.miro&&!p.contrato&&(g.reg&&g.reg.precioTk?p.V+p.E>=1:p.V>=1&&p.E>=1)&&faltanPos(g,p).length&&g.mercados[mercadoDe(p.pos)].length)return {t:'abrir'};
+    if(mercadoDe(p.pos)>=0&&!p.miro&&!p.contrato&&puedeContratarAlgo(g,p)&&faltanPos(g,p).length&&g.mercados[mercadoDe(p.pos)].length)return {t:'abrir'};
     return {t:'fin'};
   }
   return null;
 }
 
 root.PEXA={REC:REC,NOMBRE_REC:NOMBRE_REC,CLUB:CLUB,MULTA:MULTA,PRECIO:PRECIO,INNER:INNER,NUM:NUM,ESTADIO:ESTADIO,PREDIO:PREDIO,ZONA:ZONA,POS:POS,HABILIDAD:HABILIDAD,PLANTEL:PLANTEL,DTS:DTS,BENEF:BENEF,
-  NODOS:NODOS,ADJ:ADJ,PALCO:PALCO,MERCADOS:MERCADOS,CENTRO:CENTRO,BASE:BASE,mercadosCercanos:mercadosCercanos,leToca:leToca,
-  nuevaPartida:function(cfg){var g=nuevaPartida(cfg);reloj(g);return g;},accion:accion,quienDebe:quienDebe,destinos:destinos,opcionesBarra:opcionesBarra,botAccion:botAccion,puedeUsarB:puedeUsarB,
+  NODOS:NODOS,ADJ:ADJ,PALCO:PALCO,MERCADOS:MERCADOS,CENTRO:CENTRO,BASE:BASE,mercadosCercanos:mercadosCercanos,esperan:esperan,ANILLO:ANILLO,enRecorrido:enRecorrido,tokenDe:tokenDe,puedeFichar:puedeFichar,puedeContratarAlgo:puedeContratarAlgo,
+  nuevaPartida:function(cfg){var g=nuevaPartida(cfg);reloj(g);return g;},accion:accion,quienDebe:quienDebe,destinos:destinos,botAccion:botAccion,puedeUsarB:puedeUsarB,
   gana:gana,pagoEntrada:pagoEntrada,menciones:menciones,estadisticas:st,contratados:contratados,usable:usable,suma:suma,tasaBanco:tasaBanco,boleDe:boleDe,mercadoDe:mercadoDe,hab:hab,ocupado:ocupado,nombreNodo:nombreNodo,nombreArea:nombreArea,nombreCarta:nombreCarta,textoCarta:textoCarta,textoOferta:textoOferta,puedePagar:puedePagar,vacio:vacio};
 })(typeof window!=='undefined'?window:this);
