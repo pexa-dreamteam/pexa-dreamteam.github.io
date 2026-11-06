@@ -788,7 +788,7 @@
     ['Movimiento','Contraataque',1,'Después de tirar, mové la suma de los dos dados.','piolo'],
     ['Movimiento','Cancha Libre',1,'Este turno tu cono puede pasar por encima de conos y Barrabravas.','pancho'],
     ['Movimiento','Arquero Volador',1,'Después de tirar, mové una intersección más o una menos de lo que marca el dado blanco.','muchi'],
-    ['Movimiento','Jet Privado',1,'En vez de mover, poné tu cono en cualquier intersección libre o, si ya cumplís todo para ganar, en el centro del Palco.','juambo'],
+    ['Movimiento','Jet Privado',1,'En vez de mover, poné tu cono en cualquier intersección libre o, si ya cumplís todo para ganar, levantá la Copa en el centro del Palco.','juambo'],
     ['Recursos','Recurso Extra',1,'Tomá del Banco 1 Recurso a elección.',null,'extra'],
     ['Recursos','Intercambio 1:2',1,'Devolvé 1 Recurso al Banco y tomá 2 a elección.',null,'unoauno'],
     ['Recursos','Asistencia Forzosa',1,'Robale 1 Recurso al azar a cada DT.',null,'asistencia'],
@@ -1390,7 +1390,9 @@
     retrato:function(dt){return guardo('t'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="45 18 110 120" aria-hidden="true">'+figura('dt_'+id,Object.assign({},DT_FIG[id].o,{gag:null,globo:null,palitos:false}))+'</svg>',G_DT[dt]);});},
     dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>',G_DT[dt]);});},
     badge:function(k){return guardo('g'+k,function(){return badge(k);});},
-    tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero()+'</svg>';},
+    // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada Boletería tiene su mazo de cartas encima
+    tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;var mazos='';for(var i=0;i<5;i++){var aF=TH[i]+36,c=P(RH,aF),cr=cartaRecurso(outer[i]);mazos+=G(c[0],c[1],aF+90)+[2,1,0].map(function(q){return cr.replace('<svg ','<svg x="'+(q-14)+'" y="'+(-21.5-q)+'" width="28" height="43" ');}).join('')+'</g>';}return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero().replace('fill="#d8c8a2"','fill="#8fc3df"')+mazos+'</svg>';},
+    geo:{get RS(){return RS;},get RH(){return RH;}},
     escuelita:function(k){return guardo('x'+k,function(){return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>',G_E[k]||'salto');});},
 
     escudo:function(k){return guardo('c'+k,function(){return escudoClub(k);});},

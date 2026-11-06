@@ -23,7 +23,7 @@ var BENEF={
   contra:{n:'Contraataque',t:'Después de tirar, mové la suma de los dos dados.',g:'mov'},
   libre:{n:'Cancha Libre',t:'Este turno tu cono puede pasar por encima de conos y Barrabravas.',g:'mov'},
   volador:{n:'Arquero Volador',t:'Después de tirar, mové una intersección más o una menos de lo que marca el dado blanco.',g:'mov'},
-  jet:{n:'Jet Privado',t:'En vez de mover, poné tu cono en cualquier intersección libre. También sirve para entrar al centro del Palco si ya cumplís todo para ganar.',g:'mov'},
+  jet:{n:'Jet Privado',t:'En vez de mover, poné tu cono en cualquier intersección libre. También sirve para levantar la Copa en el centro del Palco si ya cumplís todo para ganar.',g:'mov'},
   extra:{n:'Recurso Extra',t:'Tomá del Banco 1 Recurso a elección.',p:['r']},
   uno:{n:'Intercambio 1:2',t:'Devolvé 1 Recurso al Banco y tomá 2 a elección.',p:['da','r','r2']},
   asistencia:{n:'Asistencia Forzosa',t:'Robale 1 Recurso al azar a cada DT.'},
@@ -129,6 +129,8 @@ function puedeFichar(g,p,c){var t=tokenDe(g,c);return t?p[t]>=1:p.V>=1&&p.E>=1;}
 function puedeContratarAlgo(g,p){return g.modo==='rapido'&&g.meta===4?p.V+p.E>=1:p.V>=1&&p.E>=1;}
 // En prueba, solo para el simulador (g.reg.defLimite): con Defensor, un tope de Multas más bajo
 function maxMultas(g,p){return g.reg&&g.reg.defLimite&&hab(p,1)?g.reg.defLimite:5;}
+// También en prueba, solo para el simulador (g.reg.def): otros atributos posibles para el Defensor
+function defPrueba(g){return g.reg&&g.reg.def;}
 function usable(p,r){return p.multas[r]===0||p.amnistia;}
 // Para entrar al Palco: las Multas se pueden pagar en el acto, siempre que después quede 1 Recurso de cada tipo.
 // Devuelve cómo se pagan ([multa, con qué]) o null si no alcanza. El Arquero paga cualquier Multa con su Recurso, una vez saldadas las de ese tipo.
@@ -176,6 +178,7 @@ function barraInicial(g,j,k){
 function empezarTurno(g){
   var p=g.jug[g.turno];g.nTurnos++;
   p.benef=p.benef.concat(p.nuevos);p.nuevos=[];p.usoB=false;p.contrato=false;p.miro=false;p.amnistia=false;p.propuso=0;
+  if(defPrueba(g)==='limpia'&&hab(p,1)){var rl=REC.filter(function(k){return p.multas[k]>0;})[0];if(rl){p.multas[rl]--;g.bolsa[rl]++;}}
   g.dados=null;g.mv=null;g.fase='tirar';
 }
 function tirarDados(g){
@@ -184,7 +187,7 @@ function tirarDados(g){
   anotar(g,p.nombre+' tira '+d[0]+' (azul) y '+d[1]+' (blanco).');
   g.ultTiro={n:g.nTirada,j:g.turno,d:d,cob:[],mul:[],sinB:[]};
   cobrar(g,d);
-  if(d[0]===1||d[1]===1)g.jug.forEach(function(q){var t=suma(q.mano);if(t>9)g.descartes[q.id]=Math.floor(t/2);});
+  if(d[0]===1||d[1]===1)g.jug.forEach(function(q){var t=suma(q.mano);if(t>9&&!(defPrueba(g)==='mano'&&hab(q,1)))g.descartes[q.id]=Math.floor(t/2);});
   if(Object.keys(g.descartes).length){g.fase='descarte';return;}
   iniciarMover(g);
 }
@@ -203,9 +206,11 @@ function cobrar(g,d){
 function sacarMulta(g,p){
   if(suma(p.multas)>=maxMultas(g,p))return;
   var tot=suma(g.bolsa);if(!tot)return;
+  if(defPrueba(g)==='porTirada'&&hab(p,1)&&p.frT!==g.nTirada){p.frT=g.nTirada;st(p).frenadas++;return;}
   var x=az(g)*tot,r=REC[4];for(var i=0;i<5;i++){x-=g.bolsa[REC[i]];if(x<0){r=REC[i];break;}}
-  if(hab(p,1)===r){st(p).frenadas++;anotar(g,p.nombre+' saca '+MULTA[r]+', pero su Defensor la frena.');if(g.ultTiro)g.ultTiro.mul.push({j:p.id,r:r,fr:1});return;}
+  if(hab(p,1)===r){st(p).frenadas++;anotar(g,p.nombre+' saca '+MULTA[r]+', pero su Defensor la frena.');if(g.ultTiro)g.ultTiro.mul.push({j:p.id,r:r,fr:1});if(defPrueba(g)==='corta'&&g.banco[r]>0){g.banco[r]--;p.mano[r]++;}return;}
   g.bolsa[r]--;p.multas[r]++;st(p).multas++;anotar(g,p.nombre+' se lleva una Multa de '+MULTA[r]+'.');if(g.ultTiro)g.ultTiro.mul.push({j:p.id,r:r});
+  if(defPrueba(g)==='rivales')g.jug.forEach(function(q){if(q.id!==p.id&&hab(q,1)===r&&g.banco[r]>0){g.banco[r]--;q.mano[r]++;}});
 }
 function descartar(g,j,mapa){
   var c=g.descartes[j];if(!c)falla('No tenés que devolver nada.');
@@ -218,7 +223,7 @@ function descartar(g,j,mapa){
 // Con dobles se camina la suma de los dos dados
 function pasosBase(g){return g.dados[0]===g.dados[1]?g.dados[0]+g.dados[1]:g.dados[1];}
 function iniciarMover(g){
-  var p=g.jug[g.turno];g.mv={pasos:[pasosBase(g)],libre:false,jet:false,quieto:false,arreglo:false};
+  var p=g.jug[g.turno];g.mv={pasos:[pasosBase(g)],libre:defPrueba(g)==='pasa'&&!!hab(p,1),jet:false,quieto:false,arreglo:false};
   if(p.roja){p.roja=false;anotar(g,p.nombre+' tiene Tarjeta Roja y no mueve.');despuesDeMover(g);return;}
   g.fase='mover';
 }
@@ -239,9 +244,10 @@ function mercadosCercanos(k){var n=NODOS[k];return n&&n.t==='A'?[n.i,(n.i+1)%5]:
 function mover(g,j,k){
   var p=g.jug[j];
   if(destinos(g,j).indexOf(k)<0)falla('A ese lugar no llegás con este número.');
+  if(k===CENTRO&&defPrueba(g)==='ultimo'){var ul=g.jug.filter(function(q){return q.id!==j&&hab(q,1)&&!q.usoUlt;})[0];if(ul){ul.usoUlt=true;st(ul).frenadas++;despuesDeMover(g);return;}}
   if(k!==CENTRO&&p.pos>=0&&!g.mv.jet)st(p).pasos+=DIST[p.pos][k];
   p.pos=k;anotar(g,p.nombre+' va a '+nombreNodo(g,k)+'.');
-  if(k===CENTRO){var pg=pagoEntrada(p,p.mano);pg.forEach(function(x){pagar(g,j,x[0],x[1]);});g.comoGano={jet:!!g.mv.jet,pagos:pg.length};g.t1=Date.now();g.ganador=j;g.fase='fin';anotar(g,'¡'+p.nombre+' entra al Palco con su Dream Team y gana el partido!');return;}
+  if(k===CENTRO){var pg=pagoEntrada(p,p.mano);pg.forEach(function(x){pagar(g,j,x[0],x[1]);});g.comoGano={jet:!!g.mv.jet,pagos:pg.length};g.t1=Date.now();g.ganador=j;g.fase='fin';anotar(g,'¡'+p.nombre+' levanta la Copa con su Dream Team y gana el partido!');return;}
   if(NODOS[k].t==='A'&&mercadosCercanos(k).some(function(m){return g.mercados[m].length;})){g.fase='espiar';return;}
   despuesDeMover(g);
 }
@@ -399,6 +405,8 @@ function puedeUsarB(g,j,b){
 function usarBeneficio(g,j,b,a){
   a=a||{};var p=g.jug[j];
   if(!puedeUsarB(g,j,b))falla('Ese Beneficio no se puede usar ahora.');
+  if(defPrueba(g)==='escudo'&&a.dt!=null&&a.dt!==j&&g.jug[a.dt]&&hab(g.jug[a.dt],1)&&['barrida','dame','roja','adentro','figuritas','intervalores'].indexOf(b)>=0){usaYAnota(g,p,b);return;}
+
   var q=null,tok=function(t){return t==='V'||t==='E';},ef=null;
   switch(b){
     case 'tactica':g.mv.pasos=[g.dados[0],g.dados[1]];break;
