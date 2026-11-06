@@ -14,7 +14,7 @@ var ESTADIO={gol:'La Canasta',suerte:'La Fortuna',picardia:'La Astucia',fans:'La
 var PREDIO={gol:'Bajo Nono',suerte:'Restaurante La Serena',picardia:'Banadi',fans:'La Milla',sponsors:'La Canterita'};
 var ZONA=['Estacionamiento La Canterita','Rotisería El Chulengo','Cementerio de Rodillas','Diario La Pipeta','Oficina del Sapo'];
 var POS=['Arquero','Defensor','Volante','Delantero'];
-var HABILIDAD=['Podés usar su Recurso para pagar cualquier Multa.','La Multa de su Recurso no te cae. Y cuando un rival paga esa Multa, el Recurso con el que paga es para vos, no para el Banco.','En cualquier lugar cambiás 2 de su Recurso por 1 a elección.','Cuando cobrás su Recurso, levantás el doble.'];
+var HABILIDAD=['Podés usar su Recurso para pagar cualquier Multa.','Si un rival paga una Multa de su Recurso, ese pago es tuyo.','En cualquier lugar cambiás 2 de su Recurso por 1 a elección.','Cuando cobrás su Recurso, levantás el doble.'];
 var PLANTEL={gol:['Polaco','Moncho','Nano','Cocho'],suerte:['Caba','Mosca','Tanos','Topo'],picardia:['Pipes','Tomo','Krupo','Chun'],fans:['Tuki','Joaquinho','Baigo','Juane'],sponsors:['Nico','Falso Topo','Guido','Cale']};
 var DTS=[{id:'abuelo',nombre:'El Abuelo',color:'#f4f1ea',tinta:'#2b2620'},{id:'mister',nombre:'El Míster',color:'#26231f',tinta:'#f6efe0'},{id:'dona',nombre:'La Doña',color:'#e77fb3',tinta:'#2b2620'},{id:'loco',nombre:'El Terror del Río',color:'#7b4fa3',tinta:'#f6efe0'},{id:'profe',nombre:'El Gallo',color:'#7cc4e4',tinta:'#2b2620'}];
 var BENEF={
@@ -208,7 +208,6 @@ function sacarMulta(g,p){
   var tot=suma(g.bolsa);if(!tot)return;
   if(defPrueba(g)==='porTirada'&&hab(p,1)&&p.frT!==g.nTirada){p.frT=g.nTirada;st(p).frenadas++;return;}
   var x=az(g)*tot,r=REC[4];for(var i=0;i<5;i++){x-=g.bolsa[REC[i]];if(x<0){r=REC[i];break;}}
-  if(hab(p,1)===r){st(p).frenadas++;anotar(g,p.nombre+' saca '+MULTA[r]+', pero su Defensor la frena.');if(g.ultTiro)g.ultTiro.mul.push({j:p.id,r:r,fr:1});if(defPrueba(g)==='corta'&&g.banco[r]>0){g.banco[r]--;p.mano[r]++;}return;}
   g.bolsa[r]--;p.multas[r]++;st(p).multas++;anotar(g,p.nombre+' se lleva una Multa de '+MULTA[r]+'.');if(g.ultTiro)g.ultTiro.mul.push({j:p.id,r:r});
   if(defPrueba(g)==='rivales')g.jug.forEach(function(q){if(q.id!==p.id&&hab(q,1)===r&&g.banco[r]>0){g.banco[r]--;q.mano[r]++;}});
 }
@@ -571,7 +570,6 @@ function menciones(g){
   mas('Maratonista','Caminó # intersecciones por la isla.',s('pasos'));
   mas('Amigo del Cajero','Cambió # veces con el Banco.',s('banco'));
   mas('Calesita','Devolvió # Recursos por culpa del 1.',s('devolvio'));
-  mas('Seguro de Multas','Su Defensor le frenó # Multas.',s('frenadas'));
   mas('Cobrador de Multas','Su Defensor le hizo cobrar # Multas ajenas.',s('ajenas'));
   mas('Dados cargados','Mejor promedio de dados: # por tirada.',function(p){var e=st(p);return e.tiros>=5?Math.round(e.dados/e.tiros*10)/10:0;});
   var noTrato=g.jug.filter(function(p){return st(p).tratos===0;});if(noTrato.length&&noTrato.length<g.n)l.push({t:'No le compra a nadie',d:'Terminó el partido sin hacer un solo trato.',j:noTrato.map(function(p){return p.id;})});
