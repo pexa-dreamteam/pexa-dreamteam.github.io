@@ -89,7 +89,7 @@
   }
 
   // ---------- Caricaturas: cuerpo entero, cabeza enorme y un chiste por Jugador ----------
-  var PIEL={clara:['#f4d0ae','#dfac86'],palida:['#fbeadc','#ecc8ae'],media:['#e8b68f','#cc9068'],trigueña:['#d6a074','#b47b53'],sil:['#3a332b','#2b2620']};
+  var PIEL={oscura:['#8d5a3a','#6f4329'],clara:['#f4d0ae','#dfac86'],palida:['#fbeadc','#ecc8ae'],media:['#e8b68f','#cc9068'],trigueña:['#d6a074','#b47b53'],sil:['#3a332b','#2b2620']};
   var PELO={negro:'#251a14',oscuro:'#47311f',castano:'#73492a',claro:'#a87a4a',rubio:'#ddb465',colorado:'#b0592c',canas:'#d9d5cc',gris:'#8f8d88'};
   var SHORT={gol:'#24395e',suerte:CREMA,picardia:INK,fans:CREMA,sponsors:'#6e2321'};
   var BANDA={gol:CREMA,suerte:'#efe2b8',picardia:INK,fans:CREMA,sponsors:'#d9b25a'};
@@ -1382,6 +1382,20 @@
   var G_DT=['no','cejas','pisoton','salto','si'];
   var G_E={capitano:'si',teo:'cejas',fer:'no',piolo:'salto',pancho:'saludo',juambo:'saludo',gaspi:'pisoton',m:'cejas',muchi:'salto',mark:'salto',sora:'lengua',tai:'cejas',golzalez:'cejas',cocho:'pisoton'};
   function conGesto(svg,g){return svg.replace('class="fig"','class="fig g-'+g+'"');}
+  // Creá tu DT: cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo
+  var CUS={
+    pelo:{m:[{pelo:'castano',corte:'corto',vol:0},{pelo:'gris',corte:'entradas',vol:4},{pelo:'canas',corte:'pelado',vol:0},{pelo:'negro',corte:'revuelto',vol:4},{pelo:'rubio',corte:'medio',vol:4}],f:[{pelo:'negro',corte:'largo',vol:5},{pelo:'rubio',corte:'largo',vol:5},{pelo:'castano',corte:'ondas',vol:6},{pelo:'colorado',corte:'medio',vol:4},{pelo:'canas',corte:'corto',vol:2,rodete:true}]},
+    ojos:[{ojo:7},{ojos:'felices',ojo:7},{ojo:8,iris:'#4f9a56'},{ojo:8,iris:'#3f7fc4'},{ojo:6,anteojos:'redondos'}],
+    cara:[{w:46,jaw:36,h:52},{w:52,jaw:50,h:46},{w:38,jaw:28,h:58},{w:48,jaw:46,h:50},{w:46,jaw:26,h:52}],
+    piel:['palida','clara','media','trigueña','oscura'],
+    ropa:[{c1:'#26272b',corbata:'#b23f3c',sh:INK},{c1:'#2f6fcf',silbato:true,sh:'#1c3f7a'},{c1:'#b23f3c',sh:'#6e2321'},{c1:'#3f7d46',sh:'#23492a'},{c1:'#8a6a45',delantal:true,sh:INK}],
+    pose:['cruzados','arriba','señala','hombros','biceps']
+  };
+  CUS.ropa.forEach(function(x,i){C['dt_c'+i]={nombre:'DT',c1:x.c1,c2:CREMA,fondo:'#efe7d4'};SHORT['dt_c'+i]=x.sh;BANDA['dt_c'+i]=CREMA;});
+  function figuraCus(r,entero){var g=r.g==='f'?'f':'m',ro=CUS.ropa[r.ropa]||CUS.ropa[0];
+    var o=Object.assign(g==='f'?{cuerpo:'flaco',bot:116,cintura:152,ceja:3,nariz:1.05,boca:10}:{ceja:4.5,nariz:1.25,boca:12},CUS.pelo[g][r.pelo]||CUS.pelo[g][0],CUS.ojos[r.ojos]||CUS.ojos[0],CUS.cara[r.cara]||CUS.cara[0],{piel:CUS.piel[r.piel]||'clara',gesto:'sonrisa',pose:CUS.pose[r.pose]||'cruzados'});
+    if(ro.corbata)o.corbata=ro.corbata;if(ro.silbato)o.silbato=true;if(ro.delantal)o.delantal=true;
+    return figura('dt_c'+(CUS.ropa.indexOf(ro)),o);}
   window.PEXA_CARTAS={
     jugador:function(club,pos){return guardo('j'+club+pos,function(){return conGesto(carta(club,pos,ORD.indexOf(club)*4+pos+1),G_J[club][pos]);});},
     beneficio:function(nombre){return guardo('b'+nombre,function(){var i=porNombre[nombre],b=BENEF[i],sv=cartaBen(b,i);return b[4]?conGesto(sv,G_E[b[4]]||'si'):sv;});},
@@ -1389,6 +1403,7 @@
     dorso:function(t){return guardo('d'+t,function(){return dorso(t);});},
     retrato:function(dt){return guardo('t'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="45 18 110 120" aria-hidden="true">'+figura('dt_'+id,Object.assign({},DT_FIG[id].o,{gag:null,globo:null,palitos:false}))+'</svg>',G_DT[dt]);});},
     dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>',G_DT[dt]);});},
+    dtCustom:function(r,entero){return guardo('cus'+(entero?1:0)+JSON.stringify(r),function(){return conGesto(entero?'<svg viewBox="0 0 200 220" aria-hidden="true">'+figuraCus(r,1)+'</svg>':'<svg viewBox="45 18 110 120" aria-hidden="true">'+figuraCus(r,0)+'</svg>','si');});},
     badge:function(k){return guardo('g'+k,function(){return badge(k);});},
     // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada Boletería tiene su mazo de cartas encima
     tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;var mazos='';for(var i=0;i<5;i++){var aF=TH[i]+36,c=P(RH,aF),cr=cartaRecurso(outer[i]);mazos+=G(c[0],c[1],aF+90)+[2,1,0].map(function(q){return cr.replace('<svg ','<svg x="'+(q-14)+'" y="'+(-21.5-q)+'" width="28" height="43" ');}).join('')+'</g>';}return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero().replace('fill="#d8c8a2"','fill="#8fc3df"')+mazos+'</svg>';},
