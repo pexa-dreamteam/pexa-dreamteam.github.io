@@ -74,12 +74,12 @@
       return marco(d,CREMA,s);
     }
     // Sponsor Juniors: el más rico, con corona, esquinas cortadas, dorado por todos lados y el sponsor bien arriba
-    var d='M20 16H80L93 28V66L50 106L7 66V28Z';
+    var d='M27 16H73L86 28V66L50 106L14 66V28Z';
     var s='<rect width="100" height="110" fill="'+c.c1+'"/>';
     for(var x=4;x<100;x+=6)s+='<path d="M'+x+' 0V110" stroke="'+c.c2+'" stroke-width=".55" opacity=".35"/>';
-    s+='<rect y="16" width="100" height="20" fill="'+c.c2+'"/><path d="M0 36H100" stroke="'+INK+'" stroke-width="1.5"/><text x="50" y="30.4" text-anchor="middle" '+M+' font-size="10.6" letter-spacing=".3" fill="'+INK+'">LA SERENA</text>';
-    s+=tx(50.8,70.8,31,INK,'SJ')+tx(50,70,31,CREMA,'SJ');
-    [20,80].forEach(function(x){s+='<circle cx="'+x+'" cy="50" r="6.6" fill="'+c.c2+'" stroke="'+INK+'" stroke-width="1.3"/><circle cx="'+x+'" cy="50" r="4.7" fill="none" stroke="'+INK+'" stroke-width=".5"/><text x="'+x+'" y="53.2" text-anchor="middle" '+D+' font-size="8.2" fill="'+INK+'">$</text>';});
+    s+='<rect y="16" width="100" height="20" fill="'+c.c2+'"/><path d="M0 36H100" stroke="'+INK+'" stroke-width="1.5"/><text x="50" y="30" text-anchor="middle" '+M+' font-size="10" letter-spacing=".1" fill="'+INK+'">LA SERENA</text>';
+    s+=tx(50.8,70.8,29,INK,'SJ')+tx(50,70,29,CREMA,'SJ');
+    [23,77].forEach(function(x){s+='<circle cx="'+x+'" cy="46" r="5.2" fill="'+c.c2+'" stroke="'+INK+'" stroke-width="1.1"/><circle cx="'+x+'" cy="46" r="3.7" fill="none" stroke="'+INK+'" stroke-width=".45"/><text x="'+x+'" y="48.6" text-anchor="middle" '+D+' font-size="6.6" fill="'+INK+'">$</text>';});
     s+='<text x="50" y="87" text-anchor="middle" '+D+' font-size="8.6" fill="'+c.c2+'">2001</text>';
     var cor='<path d="M36 16L33 5L42 10.5L50 2.5L58 10.5L67 5L64 16Z" fill="'+c.c2+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round"/><circle cx="33" cy="5" r="1.7" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="50" cy="3" r="1.9" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="67" cy="5" r="1.7" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/>';
     return marco(d,c.c2,s,cor);
@@ -502,6 +502,12 @@
     switch(o.pose){
       case 'tantea': ar=[[[L0,[cx-sw-16,T+20],[cx-sw-30,T+6]],'guante',-60],[[R0,[cx+sw+16,T+16],[cx+sw+32,T]],'guante',65]]; break;
       case 'arriba': ar=[[[L0,[cx-w-4,T-4],[cx-w-16,cy-14]],'guante',-15],[[R0,[cx+w+4,T-4],[cx+w+16,cy-14]],'guante',15]]; break;
+      case 'festeja': ar=[[[L0,[cx-w-4,T-4],[cx-w-16,cy-14]],'palma',-15],[[R0,[cx+w+4,T-4],[cx+w+16,cy-14]],'palma',15]]; break;
+      case 'copa': // levantando la Copa: las manos la agarran de la base, arriba de la cabeza
+        ar=[[[L0,[cx-w-12,cy-8],[cx-27,alto+2]],'palma',-20],[[R0,[cx+w+12,cy-8],[cx+27,alto+2]],'palma',20]];
+        var cg=U('cg');
+        pre+='<defs><linearGradient id="'+cg+'" x1="0" x2="1"><stop offset="0" stop-color="#a8761d"/><stop offset=".45" stop-color="#ffe27a"/><stop offset="1" stop-color="#b8862b"/></linearGradient></defs><g transform="translate('+(cx-48)+' '+(alto-126)+') scale(.8)"><path d="M28 16H6c0 32 10 48 30 52M92 16h22c0 32-10 48-30 52" fill="none" stroke="#8a6a25" stroke-width="7"/><path d="M26 8h68c2 44-8 72-34 82C34 80 24 52 26 8Z" fill="url(#'+cg+')" stroke="'+INK+'" stroke-width="3"/><path d="M38 16q-2 34 12 54" fill="none" stroke="#fff" stroke-width="5" opacity=".55" stroke-linecap="round"/><path d="M50 90h20l3 26H47Z" fill="url(#'+cg+')" stroke="'+INK+'" stroke-width="3"/><path d="M34 116h52l7 22H27Z" fill="url(#'+cg+')" stroke="'+INK+'" stroke-width="3"/><rect x="20" y="138" width="80" height="20" rx="3" fill="#22305a" stroke="'+INK+'" stroke-width="3"/><text x="60" y="153" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="13" fill="#ffe27a">PEXA</text><path d="M60 26l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1Z" fill="#fff8d6" stroke="'+INK+'" stroke-width="1.6"/></g>';
+        break;
       case 'asador':
         ar=[[[L0,dL],'guante',0],[[R0,[cx+sw+16,T+20],[cx+sw+22,T+4]],null,0]];
         var hx=cx+sw+22, hy=T+4;
@@ -589,7 +595,7 @@
     tent.forEach(function(t,i){ f+=mano(t[0],t[1],8.5,piel,'guante',t[2]); if(i===3) f+=pelota(t[0]+4,t[1]-16,10); });
     f+=post;
 
-    var out=fondo(k,o);
+    var out=o.sinFondo?'':fondo(k,o);
     if(o.palitos) f+='<g transform="translate('+(cx-48)+' '+(T+20)+') rotate(-18)"><path d="M-16 8L24 -13M-16 13L24 -6" stroke="'+INK+'" stroke-width="4.2" stroke-linecap="round"/><path d="M-16 8L24 -13M-16 13L24 -6" stroke="#b8793a" stroke-width="2.2" stroke-linecap="round"/><g transform="translate(14 -12)"><rect x="-11" y="-9" width="22" height="18" rx="6" fill="#1f2a24" stroke="'+INK+'" stroke-width="2"/><ellipse rx="9" ry="6.5" fill="#fbf8f1"/><ellipse rx="4.4" ry="3.4" fill="#ee7f4a"/></g></g>';
     if(o.globo){var t=Z(o.globo[1],o.globo[2]); out+=globo(6,6,o.globo[3]||100,o.globo[0],t[0],t[1]);}
     out+='<g class="fig"><g transform="translate(100 '+(212+(o.dy||0))+') scale('+e.toFixed(3)+') translate(-100 -212)">'+f+'</g></g>';
@@ -689,7 +695,8 @@
     var zz=U('zz'), s='<svg viewBox="0 0 410 630" role="img" aria-label="Dorso de las cartas '+tipo+'">';
     var alto=34,pz='';pal.zz.forEach(function(col,ix){var y=ix*alto;pz+='<path d="M-30 '+(y-17)+'L-15 '+(y-32)+'L0 '+(y-17)+'L15 '+(y-32)+'L30 '+(y-17)+'L45 '+(y-32)+'L60 '+(y-17)+'L75 '+(y-32)+'L90 '+(y-17)+'V'+(y+alto*2)+'H-30Z" fill="'+col+'"/>';});
     var ultimo=pal.zz.length*alto;pz+='<path d="M-30 '+(ultimo-17)+'L-15 '+(ultimo-32)+'L0 '+(ultimo-17)+'L15 '+(ultimo-32)+'L30 '+(ultimo-17)+'L45 '+(ultimo-32)+'L60 '+(ultimo-17)+'L75 '+(ultimo-32)+'L90 '+(ultimo-17)+'V'+(ultimo+alto)+'H-30Z" fill="'+pal.zz[0]+'"/>';
-    s+='<defs><pattern id="'+zz+'" width="60" height="'+ultimo+'" patternUnits="userSpaceOnUse">'+pz+'</pattern></defs>';
+    // v19: líneas más gruesas: el mismo zigzag, casi al doble
+    s+='<defs><pattern id="'+zz+'" width="60" height="'+ultimo+'" patternUnits="userSpaceOnUse" patternTransform="scale(1.9)">'+pz+'</pattern></defs>';
     s+='<rect x="3" y="3" width="404" height="624" rx="24" fill="'+pal.fd+'" stroke="'+INK+'" stroke-width="5"/><rect x="3" y="3" width="404" height="624" rx="24" fill="url(#'+zz+')"/><rect x="24" y="24" width="362" height="582" rx="14" fill="none" stroke="'+pal.ma+'" stroke-width="4"/>';
     s+='<svg x="33" y="56" width="344" height="344" viewBox="-142 -142 284 284">'+logoPexa('pexa')+'</svg>';
     s+='<text x="205" y="505" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="'+pal.fs+'" letter-spacing="1" fill="#fff" stroke="'+pal.bo+'" stroke-width="10" stroke-linejoin="round" paint-order="stroke">'+tipo.toUpperCase()+'</text>';
@@ -1065,7 +1072,7 @@
     var a1=TH[i]+15.3, a2=TH[i]+56.7, id=U('cj'), r=243.6, p0=P(r,a1+2.2), p1=P(r,a2-2.2);
     var s='<path d="'+sector(240,247.2,a1+1.6,a2-1.6)+'" fill="#fbf8f1" stroke="'+INK+'" stroke-width=".8"/><path d="'+sector(240,240.9,a1+1.6,a2-1.6)+'" fill="'+C[k].c1+'"/><path d="'+sector(246.3,247.2,a1+1.6,a2-1.6)+'" fill="'+C[k].c1+'"/>';
     s+='<path id="'+id+'" d="M'+pts([p0])+'A'+r+' '+r+' 0 0 1 '+pts([p1])+'" fill="none"/>';
-    return s+'<text font-family="Courier Prime, monospace" font-weight="700" font-size="4.1" fill="'+INK+'" dy="1.4"><textPath href="#'+id+'" startOffset="50%" text-anchor="middle">das 1 de <tspan font-family="Bowlby One SC, sans-serif" font-weight="400" font-size="3.9">'+C[k].rec.toUpperCase()+'</tspan> y te llevás 1 a elección</textPath></text>';
+    return s+'<text font-family="Courier Prime, monospace" font-weight="700" font-size="4.1" fill="'+INK+'" dy="1.4"><textPath href="#'+id+'" startOffset="50%" text-anchor="middle">das 2 de <tspan font-family="Bowlby One SC, sans-serif" font-weight="400" font-size="3.9">'+C[k].rec.toUpperCase()+'</tspan> y te llevás 1 a elección</textPath></text>';
   }
   // la casilla del mazo, dibujada con el centro en (0, 0): el techo hacia el río y el mostrador hacia la isla
   function boleteriaDib(k){
@@ -1343,8 +1350,10 @@
     for(var i=0;i<5;i++){var ce=cen(hexIn[i]); h+=G(ce[0],ce[1],TH[i]+90)+numHex(INNER[i],0,20)+'</g>';}
     // esquinas: del tamaño de la base del cono (18 mm, con 1 mm de juego), blancas con detalles grises. Las cinco de arranque, con aro dorado
     [].concat(A,B,Cm,Cp,Dm,Dp,E,F).forEach(function(p,ix){var arr=ix>=5&&ix<10;
-      h+='<circle cx="'+n1(p[0]+.9)+'" cy="'+n1(p[1]+1.3)+'" r="9.5" fill="#000" opacity=".2"/><circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="9.5" fill="#fdfdfb" stroke="'+(arr?'#b8862b':INK)+'" stroke-width="'+(arr?2.6:1.3)+'"/>'+
-        '<circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="7.4" fill="none" stroke="#c4c4c4" stroke-width=".5" stroke-dasharray="1.2 1.2"/><circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="5.2" fill="none" stroke="#b5b5b5" stroke-width=".8"/>'+(arr?'<path d="'+estrella(p[0],p[1],3.4)+'" fill="#e2bd57" stroke="#8a6a25" stroke-width=".5"/>':'');});
+      // v19: las tres esquinas de cada Boletería van del color de su Recurso (Dp y F del mismo predio, Dm del predio anterior)
+      var bole=ix>=35?OUTER[ix-35]:(ix>=25&&ix<30?OUTER[ix-25]:(ix>=20&&ix<25?OUTER[(ix-20+4)%5]:null));
+      h+='<circle cx="'+n1(p[0]+.9)+'" cy="'+n1(p[1]+1.3)+'" r="9.5" fill="#000" opacity=".2"/><circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="9.5" fill="'+(bole?C[bole].c1:'#fdfdfb')+'" stroke="'+(arr?'#b8862b':INK)+'" stroke-width="'+(arr?2.6:1.3)+'"/>'+
+        '<circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="7.4" fill="none" stroke="'+(bole?'#fbf8f1':'#c4c4c4')+'" stroke-width=".5" stroke-dasharray="1.2 1.2"/><circle cx="'+n1(p[0])+'" cy="'+n1(p[1])+'" r="5.2" fill="'+(bole?'#fbf8f1':'none')+'" stroke="'+(bole?INK:'#b5b5b5')+'" stroke-width=".8"/>'+(arr?'<path d="'+estrella(p[0],p[1],3.4)+'" fill="#e2bd57" stroke="#8a6a25" stroke-width=".5"/>':'');});
     // números, en el eje de cada pieza; nombres en un cartel del tinte de su pieza
     for(var i=0;i<5;i++){
       var co=cen(hexOut[i]), ko=OUTER[i];
@@ -1377,26 +1386,31 @@
   var ORD=['gol','suerte','picardia','fans','sponsors'];
   var porNombre={};BENEF.forEach(function(b,i){porNombre[b[1]]=i;});
   var DTIDS=['abuelo','mister','dona','loco','profe'];
-  // El gesto de cada personaje (la versión digital lo anima con CSS)
+  // El gesto de cada personaje (la versiÃ³n digital lo anima con CSS)
   var G_J={gol:['cejas','pisoton','si','salto'],suerte:['no','salto','lengua','no'],picardia:['si','saludo','pisoton','salto'],fans:['saludo','si','cejas','lengua'],sponsors:['si','cejas','saludo','lengua']};
   var G_DT=['no','cejas','pisoton','salto','si'];
   var G_E={capitano:'si',teo:'cejas',fer:'no',piolo:'salto',pancho:'saludo',juambo:'saludo',gaspi:'pisoton',m:'cejas',muchi:'salto',mark:'salto',sora:'lengua',tai:'cejas',golzalez:'cejas',cocho:'pisoton'};
   function conGesto(svg,g){return svg.replace('class="fig"','class="fig g-'+g+'"');}
-  // Creá tu DT: cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo
+  // CreÃ¡ tu DT: cada rasgo es una lista de opciones que se traducen a los parÃ¡metros del dibujo
   var CUS={
     pelo:{m:[{pelo:'castano',corte:'corto',vol:0},{pelo:'gris',corte:'entradas',vol:4},{pelo:'canas',corte:'pelado',vol:0},{pelo:'negro',corte:'revuelto',vol:4},{pelo:'rubio',corte:'medio',vol:4}],f:[{pelo:'negro',corte:'largo',vol:5},{pelo:'rubio',corte:'largo',vol:5},{pelo:'castano',corte:'ondas',vol:6},{pelo:'colorado',corte:'medio',vol:4},{pelo:'canas',corte:'corto',vol:2,rodete:true}]},
     ojos:[{ojo:7},{ojos:'felices',ojo:7},{ojo:8,iris:'#4f9a56'},{ojo:8,iris:'#3f7fc4'},{ojo:6,anteojos:'redondos'}],
     cara:[{w:46,jaw:36,h:52},{w:52,jaw:50,h:46},{w:38,jaw:28,h:58},{w:48,jaw:46,h:50},{w:46,jaw:26,h:52}],
-    piel:['palida','clara','media','trigueña','oscura'],
+    piel:['palida','clara','media','trigueÃ±a','oscura'],
     ropa:[{c1:'#26272b',corbata:'#b23f3c',sh:INK},{c1:'#2f6fcf',silbato:true,sh:'#1c3f7a'},{c1:'#b23f3c',sh:'#6e2321'},{c1:'#3f7d46',sh:'#23492a'},{c1:'#8a6a45',delantal:true,sh:INK}],
-    pose:['cruzados','arriba','señala','hombros','biceps']
+    pose:['cruzados','arriba','seÃ±ala','hombros','biceps']
   };
   CUS.ropa.forEach(function(x,i){C['dt_c'+i]={nombre:'DT',c1:x.c1,c2:CREMA,fondo:'#efe7d4'};SHORT['dt_c'+i]=x.sh;BANDA['dt_c'+i]=CREMA;});
-  function figuraCus(r,entero){var g=r.g==='f'?'f':'m',ro=CUS.ropa[r.ropa]||CUS.ropa[0];
+  function figuraCus(r,entero,extra){var g=r.g==='f'?'f':'m',ro=CUS.ropa[r.ropa]||CUS.ropa[0];
     var o=Object.assign(g==='f'?{cuerpo:'flaco',bot:116,cintura:152,ceja:3,nariz:1.05,boca:10}:{ceja:4.5,nariz:1.25,boca:12},CUS.pelo[g][r.pelo]||CUS.pelo[g][0],CUS.ojos[r.ojos]||CUS.ojos[0],CUS.cara[r.cara]||CUS.cara[0],{piel:CUS.piel[r.piel]||'clara',gesto:'sonrisa',pose:CUS.pose[r.pose]||'cruzados'});
-    if(ro.corbata)o.corbata=ro.corbata;if(ro.silbato)o.silbato=true;if(ro.delantal)o.delantal=true;
+    if(ro.corbata)o.corbata=ro.corbata;if(ro.silbato)o.silbato=true;if(ro.delantal)o.delantal=true;if(extra)Object.assign(o,extra);
     return figura('dt_c'+(CUS.ropa.indexOf(ro)),o);}
+  // Para el Certificado: sin carta y sin los chistes de cada uno, festejando con los brazos arriba
+  var LIBRE={pose:'festeja',gag:null,globo:null,palitos:false,mancuernas:false,sinFondo:true};
   window.PEXA_CARTAS={
+    festejo:function(club,pos){return guardo('fe'+club+pos,function(){return '<svg viewBox="0 0 200 220" aria-hidden="true">'+figura(club,Object.assign({},PLANTEL[club][pos].o,LIBRE))+'</svg>';});},
+    dtCopa:function(dt){return guardo('co'+dt,function(){var id=DTIDS[dt];return '<svg viewBox="0 -140 200 360" aria-hidden="true">'+figura('dt_'+id,Object.assign({},DT_FIG[id].o,LIBRE,{pose:'copa'}))+'</svg>';});},
+    dtCopaCus:function(r){return guardo('coc'+JSON.stringify(r),function(){return '<svg viewBox="0 -140 200 360" aria-hidden="true">'+figuraCus(r,1,Object.assign({},LIBRE,{pose:'copa'}))+'</svg>';});},
     jugador:function(club,pos){return guardo('j'+club+pos,function(){return conGesto(carta(club,pos,ORD.indexOf(club)*4+pos+1),G_J[club][pos]);});},
     beneficio:function(nombre){return guardo('b'+nombre,function(){var i=porNombre[nombre],b=BENEF[i],sv=cartaBen(b,i);return b[4]?conGesto(sv,G_E[b[4]]||'si'):sv;});},
     recurso:function(k){return guardo('r'+k,function(){return cartaRecurso(k);});},
@@ -1405,7 +1419,7 @@
     dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>',G_DT[dt]);});},
     dtCustom:function(r,entero){return guardo('cus'+(entero?1:0)+JSON.stringify(r),function(){return conGesto(entero?'<svg viewBox="0 0 200 220" aria-hidden="true">'+figuraCus(r,1)+'</svg>':'<svg viewBox="45 18 110 120" aria-hidden="true">'+figuraCus(r,0)+'</svg>','si');});},
     badge:function(k){return guardo('g'+k,function(){return badge(k);});},
-    // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada Boletería tiene su mazo de cartas encima
+    // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada BoleterÃ­a tiene su mazo de cartas encima
     tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;var mazos='';for(var i=0;i<5;i++){var aF=TH[i]+36,c=P(RH,aF),cr=cartaRecurso(outer[i]);mazos+=G(c[0],c[1],aF+90)+[2,1,0].map(function(q){return cr.replace('<svg ','<svg x="'+(q-14)+'" y="'+(-21.5-q)+'" width="28" height="43" ');}).join('')+'</g>';}return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero().replace('fill="#d8c8a2"','fill="#8fc3df"')+mazos+'</svg>';},
     geo:{get RS(){return RS;},get RH(){return RH;}},
     escuelita:function(k){return guardo('x'+k,function(){return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>',G_E[k]||'salto');});},

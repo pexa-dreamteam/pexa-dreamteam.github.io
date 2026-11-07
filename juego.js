@@ -150,7 +150,8 @@ function gana(g,p,mano){return contratados(p)>=g.meta&&!!pagoEntrada(p,mano||p.m
 function boleDe(g,k){var n=NODOS[k];if(!n)return null;if(n.t==='F'||n.t==='Dp')return g.rec[6+n.i];if(n.t==='Dm')return g.rec[6+(n.i+4)%5];return null;}
 function mercadoDe(k){var n=NODOS[k];return n&&n.t==='E'?n.i:-1;}
 // Cuántos hay que dar de r para llevarse 1 de otro: la mejor tasa que tiene el DT donde está parado
-function tasaBanco(g,p,r){var t=4;if(hab(p,2)===r)t=2;if(boleDe(g,p.pos)===r)t=1;return t;}
+// La Boletería pide 2 de su Recurso por 1 de otro. g.reg.volBole: en prueba, solo para el simulador (Volante a 1:1 en la Boletería de su Recurso o en todas)
+function tasaBanco(g,p,r,k){var t=4,v=hab(p,2);if(v===r)t=2;if(boleDe(g,k==null?p.pos:k)===r){t=2;var vb=g.reg&&g.reg.volBole;if((vb==='suya'&&v===r)||(vb==='todas'&&v))t=1;}return t;}
 function nombreCarta(c){return PLANTEL[c.club][c.pos];}
 function textoCarta(c){return nombreCarta(c)+', '+POS[c.pos]+' de '+NOMBRE_REC[c.club];}
 
@@ -236,16 +237,16 @@ function destinos(g,j){
   var p=g.jug[j],res={},mv=g.mv;if(!mv)return [];
   var entra=gana(g,p);
   if(mv.jet){NODOS.forEach(function(n){if(!ocupado(g,n.id))res[n.id]=1;});if(entra)res[CENTRO]=1;return Object.keys(res).map(Number);}
-  mv.pasos.forEach(function(pasos){var vis={};vis[p.pos]=1;
+  mv.pasos.forEach(function(pasos){var vis={};
     (function dfs(u,q){
       if(q===0){if(!ocupado(g,u,j))res[u]=1;return;}
       if(q===1&&entra&&NODOS[u].t==='A')res[CENTRO]=1;
-      // Se puede terminar donde se arrancó, si se da la vuelta a una pieza: nunca volviendo sobre los propios pasos
-      ADJ[u].forEach(function(v){if(vis[v]&&!(v===p.pos&&q===1&&pasos>=3))return;if(!mv.libre&&ocupado(g,v,j))return;var ya=vis[v];vis[v]=1;dfs(v,q-1);vis[v]=ya;});
+      // Por tu lugar de salida podés pasar las veces que quieras. Por las demás intersecciones, una sola vez. Con 2 pasos no se termina donde se arrancó: ida y vuelta no es moverse.
+      ADJ[u].forEach(function(v){if(v===p.pos){if(q===1&&pasos<3)return;}else if(vis[v])return;if(!mv.libre&&ocupado(g,v,j))return;var ya=vis[v];vis[v]=1;dfs(v,q-1);vis[v]=ya;});
     })(p.pos,pasos);});
   return Object.keys(res).map(Number);
 }
-// Desde un vértice del Palco se ven los dos Mercados de Pases más cercanos; los otros tres quedan demasiado lejos
+// Desde un vértice del Palco se puede mirar uno de los dos Mercados de Pases más cercanos; los otros tres quedan demasiado lejos
 function mercadosCercanos(k){var n=NODOS[k];return n&&n.t==='A'?[n.i,(n.i+1)%5]:[];}
 function mover(g,j,k){
   var p=g.jug[j];
@@ -319,7 +320,8 @@ function cambioBanco(g,j,da,toma){
   var p=g.jug[j];if(da===toma)falla('Elegí otro Recurso.');if(g.banco[toma]<=0)falla('El Banco no tiene de ese.');
   if(!usable(p,da))falla('Ese Recurso está trabado por una Multa.');
   var t=tasaBanco(g,p,da);if(p.mano[da]<t)falla('Necesitás '+t+' de '+NOMBRE_REC[da]+'.');
-  if(t===2)infl(p,2,'cambios');
+  if(boleDe(g,p.pos)===da)totales(g).bole=(totales(g).bole||0)+1;
+  if(t===2&&hab(p,2)===da&&boleDe(g,p.pos)!==da)infl(p,2,'cambios');
   p.mano[da]-=t;g.banco[da]+=t;g.banco[toma]--;p.mano[toma]++;p.amnistia=false;
   st(p).banco++;var dio=vacio(),llevo=vacio();dio[da]=t;llevo[toma]=1;evento(g,{t:'banco',de:j,doy:dio,pido:llevo});
   anotar(g,p.nombre+' cambia '+t+' de '+NOMBRE_REC[da]+' por 1 de '+NOMBRE_REC[toma]+'.');
@@ -534,7 +536,7 @@ function accion0(g,j,a){
     case 'descartar':if(g.fase!=='descarte')falla('Ahora no se puede.');descartar(g,j,a.mapa);break;
     case 'mover':turno(['mover']);mover(g,j,a.k);break;
     case 'quedarse':turno(['mover']);quedarse(g,j);break;
-    case 'espiar':turno(['espiar']);if(mercadosCercanos(g.jug[j].pos).indexOf(a.m)<0)falla('Desde acá solo se ven los dos Mercados más cercanos.');if(g.mercados[a.m].length){st(g.jug[j]).espio++;verCartas(g,j,a.m);g.ultimaVista={j:j,m:a.m};anotar(g,g.jug[j].nombre+' mira en secreto el Mercado del '+g.num[11+a.m]+'.');}else falla('Ese Mercado está vacío.');despuesDeMover(g);break;
+    case 'espiar':turno(['espiar']);if(mercadosCercanos(g.jug[j].pos).indexOf(a.m)<0)falla('Desde acá solo se ve uno de los dos Mercados más cercanos.');if(g.mercados[a.m].length){st(g.jug[j]).espio++;verCartas(g,j,a.m);g.ultimaVista={j:j,m:a.m};anotar(g,g.jug[j].nombre+' mira en secreto el Mercado del '+g.num[11+a.m]+'.');}else falla('Ese Mercado está vacío.');despuesDeMover(g);break;
     case 'noEspiar':turno(['espiar']);despuesDeMover(g);break;
     case 'pagar':if(!esTurno)falla('No es tu turno.');if(g.oferta)falla('Primero resolvé la oferta.');pagar(g,j,a.r,a.con);break;
     case 'token':turno(['canje','mercado']);comprarToken(g,j,a.tk);break;
@@ -622,7 +624,7 @@ function puntaje(g,p,k){
   var s=valorNodo(g,p,k),f=faltanPos(g,p);
   if(contratados(p)>=g.meta){var m=99;PALCO.forEach(function(a){m=Math.min(m,DIST[k][a]);});s+=m===0?8:(m<=5?10-m:0);}
   if(puedeContratarAlgo(g,p)&&f.length){var mejor=0;for(var i=0;i<5;i++){if(!g.mercados[i].length)continue;var c=p.conoce[i],sirve=c?c.c.some(function(x){return f.indexOf(x.pos)>=0&&puedeFichar(g,p,x);}):true;if(!sirve)continue;var d=DIST[k][MERCADOS[i]];mejor=Math.max(mejor,d===0?40:14/(1+d));}s+=mejor;}
-  var bo=boleDe(g,k);if(bo){var sb=sobrante(g,p),df=deficit(g,p),t=0;REC.forEach(function(r){if(r!==bo)t+=df[r];});s+=Math.min(sb[bo],t)*1.2;}
+  var bo=boleDe(g,k);if(bo){var sb=sobrante(g,p),df=deficit(g,p),t=0;REC.forEach(function(r){if(r!==bo)t+=df[r];});s+=Math.min(Math.floor(sb[bo]/tasaBanco(g,p,bo,k)),t)*1.2;}
   return s+az(g)*.05;
 }
 function lider(g,j){var b=-1,v=-1;g.jug.forEach(function(q){if(q.id===j)return;var x=contratados(q)*10+q.V*3+q.E*3;if(x>v){v=x;b=q.id;}});return b;}

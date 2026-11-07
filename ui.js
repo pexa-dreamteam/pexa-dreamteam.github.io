@@ -152,7 +152,7 @@ function pedirDorso(){
   return null;
 }
 function dibujarTablero(g,marcados,encima){
-  var url=ui.vista==='det'?pedirArte(g):null,det=!!url,vb=det?'-305 -305 610 610':'-252 -252 504 504';
+  var url=ui.vista==='det'?pedirArte(g):null,det=!!url,vb=det?'-305 -305 610 610':'-274 -274 548 548';
   var s='<svg id="tablero" viewBox="'+vb+'" role="img" aria-label="Isla Pexa">';
   var cent=(marcados||[]).indexOf(P.CENTRO)>=0,barAnt=ui.barrasAntes;ui.barrasAntes=g.barras.slice();
   s+='<defs><radialGradient id="brilloPalco"><stop offset="0" stop-color="#fff8c9" stop-opacity="1"/><stop offset=".45" stop-color="#ffd83a" stop-opacity=".85"/><stop offset="1" stop-color="#ffb300" stop-opacity="0"/></radialGradient></defs>';
@@ -179,12 +179,11 @@ function dibujarTablero(g,marcados,encima){
     Object.keys(vis).forEach(function(ar){s+='<polygon class="activa" style="animation-delay:-'+(pasado/1000).toFixed(2)+'s" points="'+pts(poligono(+ar))+'" pointer-events="none"/>';});}
   // esquinas, Mercados y Boleterías
   P.NODOS.forEach(function(n){var q=XY[n.id],x=q[0].toFixed(1),y=q[1].toFixed(1);
-    if(n.t==='E'){if(det){s+='<rect x="'+(q[0]-13)+'" y="'+(q[1]-8)+'" width="26" height="16" rx="3" fill="#fdf3d2" stroke="#b8323a" stroke-width="2"/><text x="'+x+'" y="'+(q[1]+3.6)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="9" fill="#b8323a">'+g.mercados[n.i].length+'/4</text>';return;}
-      s+='<rect x="'+(q[0]-15)+'" y="'+(q[1]-11)+'" width="30" height="22" rx="3" fill="#b8323a" stroke="'+INK+'" stroke-width="1.2"/><rect x="'+(q[0]-11.5)+'" y="'+(q[1]-7.5)+'" width="23" height="15" rx="1.5" fill="#fdf3d2"/><text x="'+x+'" y="'+(q[1]+3)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="8.4" fill="#b8323a">'+g.mercados[n.i].length+'/4</text>';return;}
+    if(n.t==='E'){if(det)return;s+='<rect x="'+(q[0]-15)+'" y="'+(q[1]-11)+'" width="30" height="22" rx="3" fill="#b8323a" stroke="'+INK+'" stroke-width="1.2"/><rect x="'+(q[0]-11.5)+'" y="'+(q[1]-7.5)+'" width="23" height="15" rx="1.5" fill="#fdf3d2"/>';return;}
     if(det)return;
     if(n.t==='F'){var bo=g.rec[6+n.i];s+='<circle cx="'+x+'" cy="'+y+'" r="11" fill="'+COL[bo]+'" stroke="'+INK+'" stroke-width="1.3"/><circle cx="'+x+'" cy="'+y+'" r="6.6" fill="#fbf8f1"/><text x="'+x+'" y="'+(q[1]+2.6)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="7" fill="'+INK+'">$</text>';return;}
     var ar=n.t==='B';s+='<circle cx="'+x+'" cy="'+y+'" r="7" fill="#fdfdfb" stroke="'+(ar?'#b8862b':INK)+'" stroke-width="'+(ar?2.2:1.1)+'"/>';
-    if(n.t==='Dp'||n.t==='Dm'){var b2=P.boleDe(g,n.id);s+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="'+COL[b2]+'"/>';}
+    if(n.t==='Dp'||n.t==='Dm'){var b2=P.boleDe(g,n.id);s+='<circle cx="'+x+'" cy="'+y+'" r="7" fill="'+COL[b2]+'" stroke="'+INK+'" stroke-width="1.1"/><circle cx="'+x+'" cy="'+y+'" r="2.6" fill="#fbf8f1"/>';}
   });
   // El centro del Palco resplandece cuando se puede entrar
   if(cent)s+='<g class="palco-brilla" pointer-events="none"><circle r="72" fill="url(#brilloPalco)"/>'+[0,1,2,3,4,5,6,7,8,9].map(function(q){return '<path d="M0-28L5-62L0-82L-5-62Z" fill="#ffe27a" transform="rotate('+(q*36)+')"/>';}).join('')+'<circle r="17" fill="#fff8c9" stroke="#b8862b" stroke-width="3"/></g>';
@@ -195,6 +194,8 @@ function dibujarTablero(g,marcados,encima){
   (marcados||[]).forEach(function(k){var q=XY[k],gr=P.NODOS[k]&&P.NODOS[k].t==='E',rr=gr?24:18;s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+rr+'" fill="#fff" fill-opacity=".92" stroke="#111" stroke-width="1.4" pointer-events="none"/><circle class="lat" cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+(rr-2)+'" fill="#ffd83a" stroke="#e8262a" stroke-width="4" pointer-events="none"/><circle class="lat-onda" cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+rr+'" fill="none" stroke="#ffd83a" stroke-width="4" pointer-events="none"/>';});
   // Conos
   g.jug.forEach(function(p){if(p.pos<0)return;var q=XY[p.pos],c=P.DTS[p.dt],blanco='<path d="M0-13L9 8H-9Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><rect x="-12" y="6.6" width="24" height="6" rx="1.8" fill="#fff" stroke="#fff" stroke-width="5"/>';s+='<g transform="translate('+q[0].toFixed(1)+' '+(q[1]-11).toFixed(1)+') scale(1.75)" pointer-events="none"><ellipse cy="11" rx="13" ry="4" fill="#000" opacity=".25"/>'+blanco+'<path d="M0-13L9 8H-9Z" fill="'+c.color+'" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><rect x="-12" y="6.6" width="24" height="6" rx="1.8" fill="'+c.color+'" stroke="#111" stroke-width="1.6"/><text y="4.6" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="6.2" fill="'+c.tinta+'">10</text></g>';});
+  // Cuántos Jugadores quedan en cada Mercado: arriba de todo y corrido hacia afuera, para que nada lo tape
+  P.MERCADOS.forEach(function(k,m){var q=XY[k],d=Math.hypot(q[0],q[1])||1,cx=q[0]*(1+25/d),cy=q[1]*(1+25/d);s+='<g pointer-events="none"><rect x="'+(cx-15).toFixed(1)+'" y="'+(cy-9).toFixed(1)+'" width="30" height="18" rx="5" fill="#fdf3d2" stroke="#b8323a" stroke-width="2.2"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4).toFixed(1)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="11" fill="#b8323a">'+g.mercados[m].length+'/4</text></g>';});
   return s+'</svg>';
 }
 function tocarTablero(ev,marcados,fn){
@@ -284,7 +285,7 @@ var COPA='<svg class="copa" viewBox="0 0 120 170" aria-hidden="true"><defs><line
 function mostrarMundial(g){
   var v=document.querySelector('.mundial');if(v)v.remove();
   var p=g.jug[g.ganador],cs=p.eq.filter(Boolean).map(function(c,i){return '<span class="mu-carta" style="animation-delay:'+(1+i*.28).toFixed(2)+'s">'+K.jugador(c.club,c.pos)+'</span>';}).join('');
-  var t=el('<div class="mundial" role="dialog" aria-modal="true" aria-label="Campeón"><canvas></canvas><div class="mu-rayos"></div><div class="mu-in"><div class="mu-est">★ ★ ★</div>'+COPA+'<h1>¡Campeón del mundo!</h1><h2>'+esc(p.nombre)+'</h2><div class="mu-cono">'+cono(p.dt,34)+'</div><p>¡Dale campeón, dale campeón! Levantó la Copa en el turno '+g.nTurnos+'.</p><div class="mu-eq">'+cs+'</div><button class="bt oro" id="muListo">Ver cómo fue el partido</button></div></div>').firstChild;
+  var t=el('<div class="mundial" role="dialog" aria-modal="true" aria-label="Campeón"><canvas></canvas><div class="mu-rayos"></div><div class="mu-in"><div class="mu-est">★ ★ ★</div>'+COPA+'<h1>¡Campeón del mundo!</h1><h2>'+esc(p.nombre)+'</h2><div class="mu-cono">'+cono(p.dt,34)+'</div><p>¡Dale campeón, dale campeón! Levantó la Copa en el turno '+g.nTurnos+'.</p><div class="mu-eq">'+cs+'</div><button class="bt oro" id="muListo">Ver el certificado</button></div></div>').firstChild;
   document.body.appendChild(t);
   var fin=false;t.querySelector('#muListo').onclick=function(){fin=true;t.remove();var r=document.getElementById('resumen');if(r)r.scrollIntoView();};
   // Papelitos con los colores de los clubes
@@ -307,20 +308,20 @@ function influencia(p,c){
   return {n:n,d:d,e:n>=8?3:(n>=4?2:(n>=1?1:0))};
 }
 function barras(items){var mx=0;items.forEach(function(x){mx=Math.max(mx,x[1]);});return '<div class="bars">'+items.map(function(x){return '<div class="bar">'+x[0]+'<span class="bar-v"><i style="width:'+(mx?Math.round(x[1]/mx*100):0)+'%;'+(x[2]?'background:'+x[2]:'')+'"></i></span><b>'+x[1]+'</b></div>';}).join('')+'</div>';}
-function plega(tit,html,clave,abierto){ui.resAb=ui.resAb||{};var on=ui.resAb[clave]!=null?ui.resAb[clave]:abierto;return '<details class="res-pl" data-resab="'+clave+'"'+(on?' open':'')+'><summary>'+tit+'</summary><div class="res-in">'+html+'</div></details>';}
-function resumen(g){
+// Cada desplegable, del color de un Recurso
+function plega(tit,html,clave,abierto,r){ui.resAb=ui.resAb||{};var on=ui.resAb[clave]!=null?ui.resAb[clave]:abierto;return '<details class="res-pl" style="--plc:'+COL[r]+';--plt:'+(r==='picardia'?INK:'#fbf8f1')+'" data-resab="'+clave+'"'+(on?' open':'')+'><summary>'+tit+'</summary><div class="res-in">'+html+'</div></details>';}
+function resumen(g,tableroH){
   var S=P.estadisticas,suma=function(k){var s=0;g.jug.forEach(function(p){s+=S(p)[k]||0;});return s;},T=P.tot(g);
   var car=g.caras||[],s='<div class="res" id="resumen">';
   // El Certificado va primero
-  s+='<div class="cert-vista">'+svgCertificado(g).replace(/ width="1080" height="1920"/,'')+'</div><div class="cert-bts"><button class="bt wa" id="certWa">'+icoWa(22)+'<span>Compartir por WhatsApp</span></button><div class="fila"><button class="bt chico" id="certPng">Bajar imagen</button><button class="bt chico" id="certPdf">Bajar PDF</button></div><button class="bt festejo" id="verFestejo"><span class="fes-ic" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'+COPA.replace('class="copa"','class="fes-copa"')+'<span>Ver el festejo de nuevo</span></button></div>';
-  s+='<h2>Cómo fue el partido</h2><div class="res-datos">';
-  [[suma('tiros'),'tiradas'],[suma('tratos')/2,'tratos'],[suma('multas'),'Multas'],[suma('compro'),'Beneficios'],[T.robR+T.robB,'robos'],[suma('cobro'),'Recursos cobrados']].forEach(function(x){s+='<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';});
-  s+='</div>';
-  s+=plega('Menciones honoríficas','<div class="res-men">'+P.menciones(g).map(function(m,i){return '<div class="men'+(m.top?' top':'')+'" style="--gira:'+(i%2?1.2:-1.2)+'deg"><span class="men-ic">'+(MEN_IC[m.t]||'🏅')+'</span><b>'+esc(m.t)+'</b><span>'+esc(m.d)+'</span><div class="men-dt">'+m.j.map(function(id){return dtN(g.jug[id]);}).join('')+'</div></div>';}).join('')+'</div>','men',true);
-  s+=plega('Números de cada DT','<div class="res-tabla"><table><thead><tr><th></th>'+g.jug.map(function(p){return '<th'+(p.id===g.ganador?' class="gano"':'')+'>'+dtN(p)+'</th>';}).join('')+'</tr></thead><tbody><tr><td>Jugadores</td>'+g.jug.map(function(p){return '<td>'+P.contratados(p)+'</td>';}).join('')+'</tr>'+FILAS_DT.map(function(f){var mx=0;g.jug.forEach(function(p){mx=Math.max(mx,S(p)[f[0]]||0);});return '<tr><td>'+f[1]+'</td>'+g.jug.map(function(p){var v=S(p)[f[0]]||0;return '<td'+(mx&&v===mx?' class="max"':'')+'>'+v+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>','num',false);
-  s+=plega('Los equipos',g.jug.map(function(p){var cs=p.eq.filter(Boolean);return '<div class="res-eq"><div class="res-eq-t">'+dtN(p)+'</div>'+(cs.length?'<div class="inf-l">'+cs.map(function(c){var f=influencia(p,c);return '<div class="inf"><button class="cartita" data-vercarta="'+c.club+'-'+c.pos+'" aria-label="Ver a '+esc(P.nombreCarta(c))+'">'+K.jugador(c.club,c.pos)+'</button><div><b>'+esc(P.nombreCarta(c))+'</b><span class="inf-e" aria-label="Influencia: '+f.e+' de 3">'+'★★★'.slice(0,f.e)+'<em>'+'★★★'.slice(f.e)+'</em></span><span>'+esc(f.d)+'</span></div></div>';}).join('')+'</div>':'<span class="nota">Sin Jugadores.</span>')+'</div>';}).join(''),'eq',false);
-  var cu=[[T.robR,'Recursos robados'],[T.robB,'Beneficios robados'],[suma('banco'),'Tratos con el Banco'],[T.dob,'Dobles'],[T.rebotes,'Multas rebotadas'],[suma('ajenas'),'Pagos que cobró un Defensor'],[suma('devolvio'),'Recursos devueltos por el 1'],[T.goles,'Penales adentro'],[T.atajados,'Penales atajados'],[suma('espio'),'Espiadas a un Mercado'],[suma('pasos'),'Intersecciones caminadas'],[suma('cambios'),'Jugadores cambiados']];
-  s+=plega('Curiosidades','<h4>Cuántas veces salió cada dado</h4>'+barras([1,2,3,4,5,6].map(function(n){return [dado(n,'b',24),car[n]||0];}))+'<h4>Multas que cayeron, por color</h4>'+barras(P.REC.map(function(r){return [iconoMulta(r,26),T.mul[r]||0,COL[r]];}))+'<h4>Recursos cobrados</h4>'+barras(P.REC.map(function(r){return [iconoCirc(r,26),T.cob[r]||0,COL[r]];}))+'<div class="res-datos cur">'+cu.map(function(x){return '<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>','cur',false);
+  s+='<button class="cert-vista" id="certToca" aria-label="Certificado de campeón: tocalo para compartirlo o bajarlo" aria-expanded="'+(!!ui.certAb)+'">'+svgCertificado(g).replace(/ width="1080" height="1080"/,'')+'</button><div class="cert-pista" id="certPista"'+(ui.certAb?' hidden':'')+'>Tocá el certificado para compartirlo</div><div class="cert-bts" id="certBts"'+(ui.certAb?'':' hidden')+'><button class="bt wa" id="certWa">'+icoWa(22)+'<span>Compartir por WhatsApp</span></button><button class="bt chico" id="certPng">Bajar imagen</button></div>';
+  s+=plega('Menciones honoríficas','<div class="res-men">'+P.menciones(g).map(function(m,i){return '<div class="men'+(m.top?' top':'')+'" style="--gira:'+(i%2?1.2:-1.2)+'deg"><span class="men-ic">'+(MEN_IC[m.t]||'🏅')+'</span><b>'+esc(m.t)+'</b><span>'+esc(m.d)+'</span><div class="men-dt">'+m.j.map(function(id){return dtN(g.jug[id]);}).join('')+'</div></div>';}).join('')+'</div>','men',true,'gol');
+  s+=plega('Números de cada DT','<div class="res-tabla"><table><thead><tr><th></th>'+g.jug.map(function(p){return '<th'+(p.id===g.ganador?' class="gano"':'')+'>'+dtN(p)+'</th>';}).join('')+'</tr></thead><tbody><tr><td>Jugadores</td>'+g.jug.map(function(p){return '<td>'+P.contratados(p)+'</td>';}).join('')+'</tr>'+FILAS_DT.map(function(f){var mx=0;g.jug.forEach(function(p){mx=Math.max(mx,S(p)[f[0]]||0);});return '<tr><td>'+f[1]+'</td>'+g.jug.map(function(p){var v=S(p)[f[0]]||0;return '<td'+(mx&&v===mx?' class="max"':'')+'>'+v+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>','num',false,'suerte');
+  s+=plega('Los equipos',g.jug.map(function(p){var cs=p.eq.filter(Boolean);return '<div class="res-eq"><div class="res-eq-t">'+dtN(p)+'</div>'+(cs.length?'<div class="inf-l">'+cs.map(function(c){var f=influencia(p,c);return '<div class="inf"><button class="cartita" data-vercarta="'+c.club+'-'+c.pos+'" aria-label="Ver a '+esc(P.nombreCarta(c))+'">'+K.jugador(c.club,c.pos)+'</button><div><b>'+esc(P.nombreCarta(c))+'</b><span class="inf-e" aria-label="Influencia: '+f.e+' de 3">'+'★★★'.slice(0,f.e)+'<em>'+'★★★'.slice(f.e)+'</em></span><span>'+esc(f.d)+'</span></div></div>';}).join('')+'</div>':'<span class="nota">Sin Jugadores.</span>')+'</div>';}).join(''),'eq',false,'picardia');
+  var cu=[[suma('tiros'),'Tiradas'],[suma('tratos')/2,'Tratos'],[suma('multas'),'Multas'],[suma('compro'),'Beneficios comprados'],[T.robR+T.robB,'Robos'],[suma('cobro'),'Recursos cobrados'],[T.robR,'Recursos robados'],[T.robB,'Beneficios robados'],[suma('banco'),'Tratos con el Banco'],[T.dob,'Dobles'],[T.rebotes,'Multas rebotadas'],[suma('ajenas'),'Pagos que cobró un Defensor'],[suma('devolvio'),'Recursos devueltos por el 1'],[T.goles,'Penales adentro'],[T.atajados,'Penales atajados'],[suma('espio'),'Espiadas a un Mercado'],[suma('pasos'),'Intersecciones caminadas'],[suma('cambios'),'Jugadores cambiados']];
+  s+=plega('Curiosidades','<h4>Cuántas veces salió cada dado</h4>'+barras([1,2,3,4,5,6].map(function(n){return [dado(n,'b',24),car[n]||0];}))+'<h4>Multas que cayeron, por color</h4>'+barras(P.REC.map(function(r){return [iconoMulta(r,26),T.mul[r]||0,COL[r]];}))+'<h4>Recursos cobrados</h4>'+barras(P.REC.map(function(r){return [iconoCirc(r,26),T.cob[r]||0,COL[r]];}))+'<div class="res-datos cur">'+cu.map(function(x){return '<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>','cur',false,'fans');
+  s+=plega('Cómo quedó el tablero',tableroH,'tab',false,'sponsors');
+  s+='<div class="fin-bts"><button class="bt festejo" id="verFestejo"><span class="fes-ic" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'+COPA.replace('class="copa"','class="fes-copa"')+'<span>Ver el festejo de nuevo</span></button><button class="bt fuerte" id="otra">Volver al inicio</button></div>';
   return s+'</div>';
 }
 // Un intercambio de Recursos: las cartas cruzan de un DT al otro. Se ve igual cuando negocian las máquinas.
@@ -406,7 +407,7 @@ function tabReglas(g,me){
   var sec=[
     ['¿Cómo se gana?','Armá un equipo de <b>4 Jugadores</b>, uno por posición, juntá <b>1 Recurso de cada tipo</b> y <b>levantá la Copa</b> en el centro del Palco, con el número justo del dado blanco. Si tenés Multas, tienen que alcanzarte los Recursos para pagarlas al entrar y que igual te quede 1 de cada tipo.'+ej('Equipo completo + 1 de cada Recurso + el número justo = campeón.',[['gol',0],['picardia',1],['fans',2],['suerte',3]].map(function(x){return ejCarta(K.jugador(x[0],x[1]));}).join('')+'<i class="ej-mas">+</i>'+P.REC.map(function(r){return ic(r,22);}).join('')+ejFl()+CO)+(cam?'<div style="margin-top:8px">'+cam+'</div>':'')],
     ['Cómo arranca el partido','Por turno, cada DT pone su cono en un <b>punto de arranque</b> (las esquinas con estrella) y cobra 1 Recurso de cada hexágono que toca. Después, los <b>Barrabravas</b> van a los puntos de arranque que quedaron libres.'+ej('Tu cono toca tres piezas: arrancás con tres Recursos.',cono(0,26)+ejFl()+ic('gol')+ic('suerte')+ic('fans'))],
-    ['Tu turno, paso a paso','<ol class="ej-pasos"><li>'+dado(4,'a',22)+dado(2,'b',22)+'<span><b>Tirás los dos dados.</b> Con cada número, cobran todos.</span></li><li>'+cono(0,22)+'<span><b>Movés tu cono</b> exactamente lo que marca el dado blanco. Con dobles, la suma de los dos. Sin volver sobre tus pasos: si das la vuelta a una pieza, podés terminar donde estabas.</span></li><li>'+ejNoqui(26)+'<span><b>Los Barrabravas avanzan solos</b> una intersección, en sentido horario.</span></li><li>'+token('V',24)+'<span><b>Canjeás y negociás</b> lo que quieras.</span></li><li><i class="ej-fl">✓</i><span><b>Terminás el turno.</b></span></li></ol>'],
+    ['Tu turno, paso a paso','<ol class="ej-pasos"><li>'+dado(4,'a',22)+dado(2,'b',22)+'<span><b>Tirás los dos dados.</b> Con cada número, cobran todos.</span></li><li>'+cono(0,22)+'<span><b>Movés tu cono</b> exactamente lo que marca el dado blanco. Con dobles, la suma de los dos. Por tu lugar de salida podés pasar las veces que quieras; por las demás intersecciones, una sola vez.</span></li><li>'+ejNoqui(26)+'<span><b>Los Barrabravas avanzan solos</b> una intersección, en sentido horario.</span></li><li>'+token('V',24)+'<span><b>Canjeás y negociás</b> lo que quieras.</span></li><li><i class="ej-fl">✓</i><span><b>Terminás el turno.</b></span></li></ol>'],
     ['Cómo se cobra','Cada pieza del tablero tiene un número. Si sale ese número y tu cono toca la pieza, cobrás. Cobran todos, no solo el que tiró. Con dobles, la pieza paga dos veces.'+ej('Sale un 4 y tu cono toca una pieza azul con el 4: cobrás 1 de Gol.',dado(4,'a',34)+ejFl()+ejPieza(COL.gol,4)+ejFl()+ejCarta(K.recurso('gol')))+ej('Sale un 5 y tu cono toca una zona de Mala Fama con el 5: te cae 1 Multa.',dado(5,'a',34)+ejFl()+ejPieza('#3d3731',5,true)+ejFl()+iconoMulta('fans',44))],
     ['Salió un 1','Si sale un 1, el que <b>ya tenía más de 9 Recursos antes de tirar devuelve la mitad</b>. Además se activa el Palco: el que esté en un vértice se lleva una Multa.'+ej('Con 12 Recursos en la mano antes de tirar, si sale un 1 devolvés 6.',dado(1,'a',34)+ejFl()+'<b class="ej-n">12</b>'+ejFl()+'<b class="ej-n">6</b>')+ej('Si tenías 9 y llegaste a 11 con esta misma tirada, no devolvés nada.','<b class="ej-n">9</b>'+ejFl()+dado(1,'a',30)+ejFl()+'<b class="ej-n">11</b><i class="ej-fl">✓</i>')],
     ['Recursos y sus Multas','Cada club tiene su Recurso, su número y su Multa. Los números de los estadios y predios no cambian nunca.<div class="rm">'+P.REC.map(function(r){return '<div class="rm-f" style="--rc:'+COL[r]+'">'+iconoCirc(r,32)+'<span><b>'+P.NOMBRE_REC[r]+'</b><small>'+esc(P.CLUB[r])+'</small></span><b class="rm-n">'+P.NUM[r]+'</b>'+iconoMulta(r,32)+'<small class="rm-m">'+esc(P.MULTA[r])+'</small></div>';}).join('')+'</div>'],
@@ -414,10 +415,10 @@ function tabReglas(g,me){
     ['Tokens y Jugadores','Los Tokens se canjean en tu turno, y con ellos se contratan los Jugadores.'+ej('Token de Victoria',pr(P.PRECIO.V)+ejFl()+token('V',32))+ej('Token de Efectivo',pr(P.PRECIO.E)+ejFl()+token('E',32))+ej('Partido completo: cada Jugador cuesta los dos Tokens.',token('V',28)+token('E',28)+ejFl()+ejCarta(K.dorso('Jugador')))+ej('Partido rápido: Arquero y Defensor, 1 de Victoria. Volante y Delantero, 1 de Efectivo.',token('V',28)+ejFl()+ejCarta(K.jugador('gol',0))+ejCarta(K.jugador('gol',1))+'<i class="ej-mas"></i>'+token('E',28)+ejFl()+ejCarta(K.jugador('gol',2))+ejCarta(K.jugador('gol',3)))],
     ['Mercado de Pases','Parado en un Mercado, en tu turno, podés <b>entrar a mirar los Jugadores todas las veces que quieras</b>. Mirar es gratis. Si te falta un Token, salís, canjeás o negociás, y volvés a entrar. Se contrata uno por turno, y cambiar a uno que ya tenés cuesta 1 Token, el que quieras.'+ej('Tocás un Jugador y aparece el botón para contratarlo.',ejCarta(K.jugador('fans',2))+ejFl()+token('V',28)+token('E',28))],
     ['Qué hace cada Jugador','Cada uno tiene el Recurso de su club, y su habilidad usa ese Recurso.'+ej('<b>Arquero de Gol:</b> con Gol pagás cualquier Multa.',ic('gol')+ejFl()+iconoMulta('fans',36))+ej('<b>Defensor de Fans:</b> la Multa de Fans te rebota: no te cae.','<span class="ej-tacha">'+iconoMulta('fans',36)+'</span>')+ej('<b>Y además:</b> si un rival paga la Multa de Fans, ese pago es tuyo.',cono(1,24)+iconoMulta('fans',32)+ic('fans')+ejFl()+cono(0,24))+ej('<b>Volante de Gol:</b> cambiás 2 de Gol por 1 cualquiera, donde estés.',ic('gol')+ic('gol')+ejFl()+ic('sponsors'))+ej('<b>Delantero de Gol:</b> cuando cobrás Gol, levantás el doble.',ic('gol')+ejFl()+ic('gol')+ic('gol'))],
-    ['Beneficios','Se usan desde tu próximo turno, uno por turno.'+ej('Un Beneficio es una sorpresa del mazo.',pr(P.PRECIO.B)+ejFl()+ejCarta(K.dorso('Beneficio')))+ej('Con 3 usados te llevás 1 Recurso.',ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejFl()+ic('suerte'))],
-    ['Cambiar con el Banco','Con el Banco se cambia en cualquier lugar. En una <b>Boletería</b> sale mucho más barato: se usa desde las 3 esquinas de la punta del predio.'+ej('En cualquier lugar: 4 iguales por 1.',ic('gol',22)+ic('gol',22)+ic('gol',22)+ic('gol',22)+ejFl()+ic('suerte'))+ej('En la Boletería de Gol: das 1 de Gol y te llevás 1 del que quieras.',ic('gol')+ejFl()+ic('picardia'))],
+    ['Beneficios','Se usan desde tu próximo turno, uno por turno.'+ej('Un Beneficio es una sorpresa del mazo.',pr(P.PRECIO.B)+ejFl()+ejCarta(K.dorso('Beneficio')))+ej('Con 3 usados, cuando quieras, los entregás por 1 Recurso a elección.',ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejFl()+ic('suerte'))],
+    ['Cambiar con el Banco','Con el Banco se cambia en cualquier lugar. En una <b>Boletería</b> sale más barato: se usa desde las 3 esquinas de la punta del predio.'+ej('En cualquier lugar: 4 iguales por 1.',ic('gol',22)+ic('gol',22)+ic('gol',22)+ic('gol',22)+ejFl()+ic('suerte'))+ej('En la Boletería de Gol: das 2 de Gol y te llevás 1 del que quieras.',ic('gol')+ic('gol')+ejFl()+ic('picardia'))],
     ['Negociar','En tu turno, después de mover, podés ofrecer un trato a un DT o a todos. Cuando es el turno de otro, también podés ofrecerle a él. Una oferta a todos se la lleva el primero que acepte.'+ej('Das lo que te sobra, pedís lo que te falta.',cono(0,24)+ic('fans')+'<i class="ej-fl">⇄</i>'+ic('gol')+cono(1,24))],
-    ['El Palco','Desde un vértice se pueden espiar los dos Mercados de Pases más cercanos. Al centro solo se entra para levantar la Copa.'+ej('Desde un vértice ves dos Mercados.',icoBinoculares(38)+ejFl()+ejCarta(K.dorso('Jugador'))+ejCarta(K.dorso('Jugador')))],
+    ['El Palco','Desde un vértice podés espiar <b>uno solo</b> de los dos Mercados de Pases más cercanos: vos elegís cuál. Al centro solo se entra para levantar la Copa.'+ej('Mirás uno de los dos, no los dos.',icoBinoculares(38)+ejFl()+ejCarta(K.dorso('Jugador'))+'<b>o</b>'+ejCarta(K.dorso('Jugador')))],
     ['Barrabravas','Después de que movés tu cono, cada Barrabrava avanza <b>solo</b> una intersección en sentido horario, por su recorrido. Nadie puede pasar ni pararse donde hay un Barrabrava.'+ejCalle(['n','',''],1,'Si está libre, avanza uno.')+ejCalle(['n','c',''],2,'Si hay un cono, lo salta.')+ejCalle(['n','n',''],0,'Si hay otro Barrabrava, se queda donde está.')]
   ];
   return '<div class="reglas"><p class="nota" style="margin:0">Tocá un tema para abrirlo. Y si tocás cualquier pieza del tablero, te cuenta para qué sirve.</p>'+sec.map(function(x,i){return '<details'+(i===0?' open':'')+'><summary>'+x[0]+'</summary><div>'+x[1]+'</div></details>';}).join('')+'</div>';
@@ -440,7 +441,7 @@ function fichaPieza(g,pz){
   function tocan(a){return g.jug.filter(function(p){return p.pos>=0&&P.NODOS[p.pos]&&(P.NODOS[p.pos].areas||[]).indexOf(a)>=0;});}
   if(pz.t==='area'){var a=pz.a,r=g.rec[a],n=g.num[a];f.quien=tocan(a);f.num=n;
     if(a===0){f.tit='El Palco';f.sup='El centro de la isla';f.color='#22305a';
-      f.filas=[filaFicha(dado(1,'b',30),'Con cada 1','El que esté parado en un vértice se lleva una Multa.'),filaFicha(icoBinoculares(30),'Desde el Palco se ve todo','Desde cada vértice podés espiar los dos Mercados de Pases más cercanos.'),filaFicha('<span class="ff-copa">★</span>','Acá se levanta la Copa','Al centro se entra por el pasillo, con el número justo, cuando ya tenés todo lo necesario.')];}
+      f.filas=[filaFicha(dado(1,'b',30),'Con cada 1','El que esté parado en un vértice se lleva una Multa.'),filaFicha(icoBinoculares(30),'Desde el Palco se ve todo','Desde cada vértice podés espiar uno solo de los dos Mercados de Pases más cercanos.'),filaFicha('<span class="ff-copa">★</span>','Acá se levanta la Copa','Al centro se entra por el pasillo, con el número justo, cuando ya tenés todo lo necesario.')];}
     else if(r){var est=a<=5;f.tit=est?P.ESTADIO[r]:P.PREDIO[r];f.sup=(est?'Estadio':'Predio')+' de '+P.CLUB[r];f.color=COL[r];
       f.filas=[filaFicha(iconoCirc(r,34),'Cobrás '+P.NOMBRE_REC[r],'Cuando sale un <b>'+n+'</b>, cada cono que toque esta pieza se lleva 1.'),filaFicha('<span class="ff-pos">DEL</span>','Con su Delantero','El Delantero de '+P.NOMBRE_REC[r]+' cobra el doble.')];
       if(!est)f.filas.push(filaFicha('<span class="ff-pos">$</span>','Boletería','En su punta está la Boletería de '+P.NOMBRE_REC[r]+'.'));}
@@ -449,7 +450,7 @@ function fichaPieza(g,pz){
   } else if(pz.t==='mercado'){var mm=g.mercados[pz.i];f.tit='Mercado de Pases';f.sup=P.ZONA[pz.i];f.color='#b8323a';f.quien=g.jug.filter(function(p){return p.pos===P.MERCADOS[pz.i];});
     f.filas=[filaFicha('<span class="ff-pos">'+mm.length+'/4</span>','Jugadores','Quedan <b>'+mm.length+' de 4</b> en este Mercado.'),filaFicha(token('V',28)+token('E',28),'Para contratar','Parate acá. Un Jugador '+costoJugador(g)+'.'),filaFicha(icoBinoculares(30),'Mirar es gratis','En tu turno, todas las veces que quieras. Si ninguno te sirve, no pagás nada.')];}
   else{var b=g.rec[6+pz.i];f.tit='Boletería de '+P.NOMBRE_REC[b];f.sup=P.PREDIO[b];f.color=COL[b];
-    f.filas=[filaFicha(iconoCirc(b,34),'Das 1 y elegís','Das 1 de '+P.NOMBRE_REC[b]+' y te llevás 1 del que quieras.'),filaFicha('<span class="ff-pos">3</span>','Desde dónde','Desde cualquiera de las 3 esquinas de la punta de su predio, cuando canjeás.'),filaFicha('<span class="ff-pos">4:1</span>','Afuera','Lejos de la Boletería, el Banco te pide 4 iguales por 1.')];}
+    f.filas=[filaFicha(iconoCirc(b,34),'Das 2 y elegís','Das 2 de '+P.NOMBRE_REC[b]+' y te llevás 1 del que quieras.'),filaFicha('<span class="ff-pos">3</span>','Desde dónde','Desde cualquiera de las 3 esquinas de la punta de su predio, cuando canjeás.'),filaFicha('<span class="ff-pos">4:1</span>','Afuera','Lejos de la Boletería, el Banco te pide 4 iguales por 1.')];}
   return f;
 }
 function modalPieza(g,pz){
@@ -494,59 +495,49 @@ function mostrarEfecto(g,e){
   return capa('<div class="fichaje corto efecto" aria-hidden="true"><div class="fj-tit"><b>'+esc(tit)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div>'+cuerpo+'</div>',ms);
 }
 // ---------- El final: compartir y el Certificado de Campeón ----------
-// El mensaje para compartir: lo que da curiosidad, no los números
+// El mensaje para compartir: corto, con la figura y el desafío
 function textoResumen(g){
-  var p=g.jug[g.ganador],T=P.tot(g),eq=p.eq.filter(Boolean),fig=null,fv=-1;
-  eq.forEach(function(c){var f=influencia(p,c);if(f.n>fv){fv=f.n;fig={c:c,f:f};}});
-  var ms=P.menciones(g).filter(function(m){return m.j.indexOf(g.ganador)<0;}).slice(0,2);
-  var t='🏆 ¡'+p.nombre+' levantó la Copa en PEXA Dream Team!\n\n';
-  if(fig&&fv>0)t+='⭐ La figura fue '+P.nombreCarta(fig.c)+': '+fig.f.d.charAt(0).toLowerCase()+fig.f.d.slice(1)+'\n';
-  var rob=T.robR+T.robB;if(rob)t+='🦝 Hubo '+rob+' robo'+(rob>1?'s':'')+' en la cancha.\n';
-  ms.forEach(function(m){t+=(MEN_IC[m.t]||'🏅')+' '+m.t+': '+m.j.map(function(id){return g.jug[id].nombre;}).join(' y ')+'.\n';});
-  return t+'\n¿Te animás a sacarle la Copa? Armá tu Dream Team acá:\nhttps://pexa-dreamteam.github.io/';
+  var p=g.jug[g.ganador],fig=null,fv=-1,rivales=g.jug.filter(function(q){return q.id!==g.ganador;}).map(function(q){return q.nombre;});
+  p.eq.filter(Boolean).forEach(function(c){var f=influencia(p,c);if(f.n>fv){fv=f.n;fig=c;}});
+  var lista=rivales.length>1?rivales.slice(0,-1).join(', ')+' y '+rivales[rivales.length-1]:rivales[0];
+  var t='🏆 ¡'+p.nombre+' levantó la Copa en PEXA Dream Team!\n';
+  t+=(rivales.length>1?'Les ganó a ':'Le ganó a ')+lista+'.\n';
+  if(fig&&fv>0)t+='⭐ Figura del partido: '+P.nombreCarta(fig)+'.\n';
+  return t+'\n¿Quién le saca la Copa? Armá tu Dream Team acá:\nhttps://pexa-dreamteam.github.io/';
 }
 function escXml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function ubicarSvg(svg,x,y,w,h){return svg.replace('<svg ','<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" ');}
-// El Certificado, en formato de historia: 1080 x 1920
+// El Certificado: cuadrado, sobre fondo dorado, con el DT levantando la Copa y sus cuatro Jugadores festejando alrededor
 function svgCertificado(g){
-  var p=g.jug[g.ganador],W=1080,H=1920,D='font-family="Bowlby One SC, sans-serif"',T='font-family="Atkinson Hyperlegible, sans-serif"',cs=p.eq.filter(Boolean),hoy=new Date(g.t1||Date.now());
+  var p=g.jug[g.ganador],W=1080,H=1080,D='font-family="Bowlby One SC, sans-serif"',cs=p.eq.filter(Boolean),hoy=new Date(g.t1||Date.now());
   var fecha=hoy.getDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][hoy.getMonth()]+' de '+hoy.getFullYear();
-  // Las Menciones más destacables: las que ganó el campeón, primero las más importantes
-  var ms=P.menciones(g).filter(function(m){return m.j.indexOf(g.ganador)>=0;}).sort(function(a,b){return (b.top?1:0)-(a.top?1:0);}).slice(0,3);
-  var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'"><rect width="'+W+'" height="'+H+'" fill="#f6efe0"/><rect x="30" y="30" width="'+(W-60)+'" height="'+(H-60)+'" fill="none" stroke="#22305a" stroke-width="14"/><rect x="54" y="54" width="'+(W-108)+'" height="'+(H-108)+'" fill="none" stroke="#b8862b" stroke-width="5"/>';
-  s+=ubicarSvg(K.logo('copa'),450,74,180,180);
-  s+='<text x="540" y="312" text-anchor="middle" '+D+' font-size="62" fill="#22305a">CERTIFICADO DE CAMPEÓN</text><text x="540" y="360" text-anchor="middle" '+T+' font-size="32" fill="#2b2620">La Liga PEXA certifica que</text>';
-  var fs=Math.min(100,Math.floor(1500/Math.max(6,p.nombre.length)));
-  s+='<text x="540" y="'+(448-Math.round((100-fs)/4))+'" text-anchor="middle" '+D+' font-size="'+fs+'" fill="#b8862b" stroke="#22305a" stroke-width="2" paint-order="stroke">'+escXml(p.nombre)+'</text>';
-  s+='<text x="540" y="504" text-anchor="middle" '+T+' font-size="32" fill="#2b2620">dirigió a su Dream Team y levantó la Copa</text><text x="540" y="546" text-anchor="middle" '+T+' font-size="32" fill="#2b2620">en el Palco de Isla Pexa.</text>';
-  s+=ubicarSvg(enteroJ(p),320,560,440,484);
-  var cw=206,ch=317,gap=16,x0=(W-(cs.length*cw+(cs.length-1)*gap))/2;
-  cs.forEach(function(c,i){s+=ubicarSvg(K.jugador(c.club,c.pos),Math.round(x0+i*(cw+gap)),1058,cw,ch);});
-  ms.forEach(function(m,i){var y=1392+i*118;s+='<rect x="70" y="'+y+'" width="940" height="106" rx="16" fill="'+(m.top?'#fbecc0':'#fbf8f1')+'" stroke="#b8862b" stroke-width="4"/><text x="540" y="'+(y+44)+'" text-anchor="middle" '+D+' font-size="32" fill="#22305a">'+escXml(m.t)+'</text><text x="540" y="'+(y+84)+'" text-anchor="middle" '+T+' font-size="27" fill="#2b2620">'+escXml(m.d)+'</text>';});
-  s+='<text x="540" y="1806" text-anchor="middle" '+D+' font-size="46" fill="#22305a">'+fecha+'</text>';
+  var nom='¡'+p.nombre+' CAMPEÓN!',fs=Math.min(92,Math.floor(1000/(nom.length*.68)));
+  var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'"><defs><radialGradient id="certOro" cx=".5" cy=".45" r=".78"><stop offset="0" stop-color="#ffeb9c"/><stop offset=".55" stop-color="#ecc452"/><stop offset="1" stop-color="#b8862b"/></radialGradient></defs><rect width="'+W+'" height="'+H+'" fill="url(#certOro)"/>';
+  // Papelitos: siempre los mismos para el mismo partido
+  var sem=(g.t1||1)%9973,cols=['#3f6aa6','#4d7a3a','#fbf8f1','#d4692a','#b23f3c','#22305a'];
+  function az(){sem=(sem*16807+11)%2147483647;return (sem%1000)/1000;}
+  for(var i=0;i<70;i++){var px=Math.round(40+az()*1000),py=Math.round(130+az()*840);s+='<rect x="'+px+'" y="'+py+'" width="'+Math.round(9+az()*8)+'" height="'+Math.round(14+az()*10)+'" rx="2" fill="'+cols[i%cols.length]+'" transform="rotate('+Math.round(az()*180)+' '+px+' '+py+')" opacity=".85"/>';}
+  s+='<rect x="20" y="20" width="'+(W-40)+'" height="'+(H-40)+'" rx="18" fill="none" stroke="#22305a" stroke-width="9"/>';
+  s+='<text x="540" y="122" text-anchor="middle" '+D+' font-size="'+fs+'" fill="#22305a" stroke="#fff8d6" stroke-width="10" paint-order="stroke" stroke-linejoin="round">'+escXml(nom)+'</text>';
+  // Dos Jugadores de cada lado del DT: los de atrás primero, para que los de adelante queden encima
+  var lugar=[[-4,566,300,330],[112,590,350,385],[618,590,350,385],[784,566,300,330]];
+  function jugadorEn(i){if(cs[i]){var l=lugar[i];s+=ubicarSvg(K.festejo(cs[i].club,cs[i].pos),l[0],l[1],l[2],l[3]);}}
+  jugadorEn(0);jugadorEn(3);
+  s+=ubicarSvg(p.cus?K.dtCopaCus(p.cus):K.dtCopa(p.dt),312,140,456,820);
+  jugadorEn(1);jugadorEn(2);
+  s+=ubicarSvg(K.logo('copa'),44,950,86,86);
+  s+='<text x="540" y="1032" text-anchor="middle" '+D+' font-size="38" fill="#22305a" stroke="#fff8d6" stroke-width="6" paint-order="stroke" stroke-linejoin="round">'+fecha+'</text>';
   return s+'</svg>';
 }
-function certificadoCanvas(g,cb){svgAImagen(svgCertificado(g),function(im,u){if(!im){cb(null);return;}var cv=document.createElement('canvas');cv.width=1080;cv.height=1920;cv.getContext('2d').drawImage(im,0,0);URL.revokeObjectURL(u);cb(cv);});}
-function pdfDesdeJpeg(bytes,w,h){
-  var enc=new TextEncoder(),partes=[],off=[],pos=0,pw=595,ph=Math.round(595*h/w);
-  function esc2(x){var b=typeof x==='string'?enc.encode(x):x;partes.push(b);pos+=b.length;}
-  esc2('%PDF-1.4\n');
-  function ob(n,txt,stream){off[n]=pos;esc2(n+' 0 obj\n'+txt);if(stream){esc2('\nstream\n');esc2(stream);esc2('\nendstream');}esc2('\nendobj\n');}
-  ob(1,'<< /Type /Catalog /Pages 2 0 R >>');ob(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
-  ob(3,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+pw+' '+ph+'] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
-  ob(4,'<< /Type /XObject /Subtype /Image /Width '+w+' /Height '+h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+bytes.length+' >>',bytes);
-  var c=pw+' 0 0 '+ph+' 0 0 cm /Im0 Do';ob(5,'<< /Length '+c.length+' >>',enc.encode(c));
-  var xr=pos,t='xref\n0 6\n0000000000 65535 f \n';for(var i=1;i<=5;i++)t+=('0000000000'+off[i]).slice(-10)+' 00000 n \n';
-  esc2(t+'trailer << /Size 6 /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF');
-  return new Blob(partes,{type:'application/pdf'});
-}
+function certificadoCanvas(g,cb){svgAImagen(svgCertificado(g),function(im,u){if(!im){cb(null);return;}var cv=document.createElement('canvas');cv.width=1080;cv.height=1080;cv.getContext('2d').drawImage(im,0,0);URL.revokeObjectURL(u);cb(cv);});}
 function bajar(blob,nombre){var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},4000);}
 function conCertificado(g,fn){if(ui.cert&&ui.cert.g===g.t1){fn(ui.cert.cv);return;}certificadoCanvas(g,function(cv){if(!cv){mostrarError('No se pudo armar el certificado.');return;}ui.cert={g:g.t1,cv:cv};fn(cv);});}
 function nombreCert(g){return 'Campeon-PEXA-'+g.jug[g.ganador].nombre.normalize('NFD').replace(/[^\w]+/g,'-');}
 function conectarCert(c,g){
-  var png=c.querySelector('#certPng'),pdf=c.querySelector('#certPdf'),wa=c.querySelector('#certWa');
+  var png=c.querySelector('#certPng'),wa=c.querySelector('#certWa'),tc=c.querySelector('#certToca');
+  // Tocando el Certificado aparecen las opciones
+  if(tc)tc.onclick=function(){ui.certAb=!ui.certAb;tc.setAttribute('aria-expanded',ui.certAb);c.querySelector('#certBts').hidden=!ui.certAb;c.querySelector('#certPista').hidden=!!ui.certAb;};
   if(png)png.onclick=function(){conCertificado(g,function(cv){cv.toBlob(function(b){bajar(b,nombreCert(g)+'.png');},'image/png');});};
-  if(pdf)pdf.onclick=function(){conCertificado(g,function(cv){var d=cv.toDataURL('image/jpeg',.93),bin=atob(d.split(',')[1]),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);bajar(pdfDesdeJpeg(u,cv.width,cv.height),nombreCert(g)+'.pdf');});};
   // En el celu se comparte con el Certificado adjunto. Donde no se puede, se baja la imagen y se abre WhatsApp con el mensaje.
   if(wa)wa.onclick=function(){var t=textoResumen(g);conCertificado(g,function(cv){cv.toBlob(function(b){var f=new File([b],nombreCert(g)+'.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:t}).catch(function(){});}
@@ -606,7 +597,7 @@ function pantallaInicio(){
     sala.g=P.nuevaPartida({dts:d,modo:conf.modo,limite:conf.limite,semilla:Math.floor(Math.random()*1e9),t0:Date.now()});ui.yo=null;reiniciarVista();ui.verDT=null;sala.guardar();actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
 }
 function guardarNombreInput(){var x=document.getElementById('miNombre');if(x){try{localStorage.setItem('pexa-nombre',x.value.trim());}catch(e){}}}
-function reiniciarVista(){ui.pausa=false;ui.mercSel=null;ui.manoI=0;ui.turnoVisto=null;ui.resAb=null;ui.barrasAntes=null;ui.ofertaK=null;ui.tiradaVista=null;ui.eventoVisto=null;ui.cola=[];ui.animando=false;ui.logVisto=null;ui.festejo=false;ui.faseVista=null;}
+function reiniciarVista(){ui.certAb=false;ui.pausa=false;ui.mercSel=null;ui.manoI=0;ui.turnoVisto=null;ui.resAb=null;ui.barrasAntes=null;ui.ofertaK=null;ui.tiradaVista=null;ui.eventoVisto=null;ui.cola=[];ui.animando=false;ui.logVisto=null;ui.festejo=false;ui.faseVista=null;}
 function leerNombres(){app.querySelectorAll('[data-nom]').forEach(function(x){conf.nombres[+x.dataset.nom]=x.value;});}
 
 // ---------- Lo que tiene que hacer cada uno ----------
@@ -629,8 +620,10 @@ function pintar(){
   if(!ui.modal&&g.fase==='mercado'&&yo===g.turno&&!g.oferta)ui.modal={tipo:'mercado'};
   if(!ui.modal&&g.fase==='descarte'&&yo!=null&&g.descartes[yo]!=null)ui.modal={tipo:'descarte'};
   var h='',turno=g.fase==='ubicar'?g.jug[g.faltaUbicar[0]]:g.fase==='barraIni'?g.jug[deben[0]]:g.jug[g.turno];
-  h+='<div class="juego"><div class="barra">'+cono(turno.dt,28)+'<div class="q"><b>'+esc(turno.nombre)+'</b><span>'+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span></div>';
-  var finH=g.fase==='fin'?'<div class="campeon"><h2>¡'+esc(g.jug[g.ganador].nombre)+' campeón!</h2><p style="margin:4px 0 10px">Levantó la Copa con su Dream Team en '+g.nTurnos+' turnos.</p><button class="bt fuerte" id="otra">Otro partido</button></div><div class="panel">'+resumen(g)+'</div>':'';
+  var esFin=g.fase==='fin',tabVista='<button class="vista-tab" id="vistaTab">'+(ui.vista==='det'?(ui.arteHaciendo?'Armando el tablero…':'Ver tablero simplificado'):'Ver tablero detallado')+'</button>';
+  h+=esFin?'<div class="juego es-fin"><span id="reloj" hidden></span>':'<div class="juego"><div class="barra">'+cono(turno.dt,28)+'<div class="q"><b>'+esc(turno.nombre)+'</b><span>'+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span></div>';
+  // Al final: el Certificado arriba de todo y el tablero, plegado
+  var finH=esFin?resumen(g,'<div class="mesa mesa-fin">'+dibujarTablero(g,[])+tabVista+'</div>'):'';
   // qué se puede tocar
   if(miTurno&&!g.oferta){
     if(g.fase==='ubicar'){marcados=[0,1,2,3,4].map(function(i){return P.BASE.B+i;}).filter(function(k){return !P.ocupado(g,k);});tap=function(k){sala.enviar(yo,{t:'ubicar',k:k});};}
@@ -643,13 +636,13 @@ function pintar(){
     if(ui.modal&&ui.modal.tipo==='tocarMercado'){marcados=[0,1,2,3,4].filter(function(m){return g.mercados[m].length;}).map(function(m){return P.MERCADOS[m];});tap=function(k){var m=P.MERCADOS.indexOf(k);ui.modal=null;sala.enviar(yo,{t:'usar',b:'espionaje',m:m},function(){ui.modal={tipo:'visto',m:m};});};}
   }
   var cDT=P.DTS[turno.dt],pa=panelAccion(g,yo,me,miTurno),tt=g.fase!=='fin'?textoTirada(g):'';
-  h+='<div class="col-mesa">'+conDT(g,'<div class="relator" id="relator" style="--dtc:'+cDT.color+';--dtt:'+cDT.tinta+'"><span class="rel-tag">El Relator</span><b class="rel-tit">'+pa.tit+'</b><div class="rel-x">'+pa.txt+'</div>'+(tt?'<div class="rel-t">'+tt+'</div>':'')+(g.oferta&&me?panelOferta(g,yo):'')+'</div>');
-  h+='<div class="mesa">'+tiradaCol(g)+dibujarTablero(g,marcados)+historial(g)+'<button class="vista-tab" id="vistaTab">'+(ui.vista==='det'?(ui.arteHaciendo?'Armando el tablero…':'Ver tablero simplificado'):'Ver tablero detallado')+'</button></div></div>';
+  if(!esFin)h+='<div class="col-mesa">'+conDT(g,'<div class="relator" id="relator" style="--dtc:'+cDT.color+';--dtt:'+cDT.tinta+'"><span class="rel-tag">El Relator</span><b class="rel-tit">'+pa.tit+'</b><div class="rel-x">'+pa.txt+'</div>'+(tt?'<div class="rel-t">'+tt+'</div>':'')+(g.oferta&&me?panelOferta(g,yo):'')+'</div>');
+  if(!esFin)h+='<div class="mesa">'+tiradaCol(g)+dibujarTablero(g,marcados)+historial(g)+tabVista+'</div></div>';
   h+='<div class="col-der">'+finH;
   if(g.fase!=='fin'){if(!me)h+=espectador(g,pa);else h+=manos(g,yo,false)+acciones(g,yo,me,miTurno,pa);h+=pieDePagina(g,yo);}
   h+='</div></div>';
   app.innerHTML=h;tickReloj();
-  var sv=document.getElementById('tablero');if(sv)sv.addEventListener('click',function(ev){if(ui.modal)return;tocarTablero(ev,marcados,tap);});
+  var sv=document.getElementById('tablero');if(sv)sv.addEventListener('click',function(ev){if(ui.modal&&ui.modal.tipo!=='gas'&&ui.modal.tipo!=='tocarMercado')return;tocarTablero(ev,marcados,tap);});
   conectar(g,yo,me);conectarAsa(g);conectarManos();if(g.fase==='fin')conectarCert(app,g);
   if(ui.faseVista!==g.fase){ui.faseVista=g.fase;if(['tirar','mover','ubicar','espiar'].indexOf(g.fase)>=0)window.scrollTo(0,0);}
   if(ui.modal&&ui.modal.tipo!=='gas'&&ui.modal.tipo!=='tocarMercado'&&!modalQuieto())pintarModal(g,yo,me);
@@ -681,7 +674,7 @@ function panelAccion(g,yo,me,miTurno){
     case 'tirar':return R('Te toca tirar','Los dos dados activan piezas: con cada número cobran todos los que las tocan. El blanco, además, te dice cuánto caminás.','<button class="bt oro tirar-bt" id="tirar">'+dado(5,'a',34)+'<span>Tirar los dados</span>'+dado(3,'b',34)+'</button>');
     case 'mover':{var ds=P.destinos(g,yo),q=g.mv.quieto;
       return R(ds.length?'Mové tu cono':'No tenés camino',(g.dados[0]===g.dados[1]&&!g.mv.jet?'¡Doble! Caminás la suma de los dos dados. ':'')+(g.mv.jet?'Jet Privado: elegí cualquier intersección libre.':(g.mv.arreglo?'Los Barrabravas ya avanzaron. ':'')+(ds.length?'Tocá una de las esquinas marcadas. Tenés que caminar '+g.mv.pasos.join(' o ')+'.':'Te quedás donde estás.'))+(ds.indexOf(P.CENTRO)>=0?' <b class="palco-si">¡Podés levantar la Copa! Tocá el centro del Palco.'+(P.suma(me.multas)?' Al entrar pagás tus '+P.suma(me.multas)+' Multas con lo que tenés en la mano.':'')+'</b>':''),(!ds.length||q)?'<button class="bt gr fuerte" id="quedarse">Quedarme acá</button>':'');}
-    case 'espiar':return R('Desde el Palco se ve todo','Tocá en el tablero uno de los dos Mercados de Pases marcados: los más cercanos. Los otros tres quedan demasiado lejos.','<button class="bt gr" id="noEspiar">No mirar</button>');
+    case 'espiar':return R('Desde el Palco se ve todo','Podés mirar uno solo: tocá en el tablero cuál de los dos Mercados de Pases marcados querés ver. Los otros tres quedan demasiado lejos.','<button class="bt gr" id="noEspiar">No mirar</button>');
     case 'mercado':return R(esc(nombreMercado(g,g.mercadoAbierto)),'Estás mirando los Jugadores de este Mercado.');
     case 'canje':{var m=P.mercadoDe(me.pos),entra=m>=0&&!me.contrato&&g.mercados[m].length;return R('Canjeá y negociá',esc(consejoCanje(g,me)),entra?'<button class="bt gr rojo ancho" data-abrir>Entrar al Mercado de Pases</button>'+filaTurno(g,yo,me,miTurno):'');}
   }
@@ -766,7 +759,7 @@ function manoPanel(g,yo,q,verTodo){
   q.benef.forEach(function(b){bs.push(abierta?{peso:2,html:K.beneficio(P.BENEF[b].n),data:'data-verb="'+b+'"'+(mia?'':' data-solo="1"'),label:'Ver '+P.BENEF[b].n}:{peso:1,html:K.dorso('Beneficio')});});
   q.nuevos.forEach(function(b){bs.push(abierta?{peso:2,html:K.beneficio(P.BENEF[b].n)+'<i class="nuevo">Nuevo</i>',data:'data-verb="'+b+'"'+(mia?' data-nuevo="1"':' data-solo="1"'),label:'Ver '+P.BENEF[b].n+', recién comprado'}:{peso:1,html:K.dorso('Beneficio')});});
   var nr=rs.length,riesgo=nr>9,s='<div class="mano-p"><div class="mano-t"><button class="mp-cara" data-verdtj="'+q.id+'" aria-label="Ver a '+esc(q.nombre)+'">'+retratoJ(q)+'</button><h3>'+(mia?'Tu mano':dtN(q))+(q.roja?' <em class="mp-roja" title="Tarjeta Roja"></em>':'')+'</h3><span class="mp-rec'+(riesgo?' riesgo':'')+'">'+nr+' Recurso'+(nr===1?'':'s')+'</span></div>';
-  if(riesgo)s+='<div class="mp-alerta" role="status">⚠ '+(mia?'Tenés más de 9: si en tu próxima tirada':'Tiene más de 9: si en la próxima tirada')+' sale un 1, devuelve'+(mia?'s':'')+' la mitad.</div>';
+  if(riesgo)s+='<div class="mp-alerta" role="status">⚠ '+(mia?'Tenés más de 9: si en tu próxima tirada sale un 1, devolvés la mitad (redondeando para abajo).':'Tiene más de 9: si en la próxima tirada sale un 1, devuelve la mitad (redondeando para abajo).')+'</div>';
   s+=nr+bs.length?abanico(rs.concat(bs),window.innerWidth>=1000?100:78,ancho):'<div class="nota mano-vacia">'+(mia?'Tenés la mano vacía.':'No tiene cartas.')+'</div>';
   s+='<div class="mp"><div class="mp-eq">'+['ARQ','DEF','VOL','DEL'].map(function(n,i){var c=q.eq[i];return c?'<button class="cartita" data-vercarta="'+c.club+'-'+c.pos+'" aria-label="Ver a '+esc(P.nombreCarta(c))+'">'+K.jugador(c.club,c.pos)+'</button>':'<button class="mp-v" data-verpos="'+i+'" aria-label="Qué hace el '+P.POS[i]+'">'+n+'</button>';}).join('')+'</div><div class="mp-dat"><div class="mp-fila"><button class="mp-t'+(q.V?'':' apag')+'" data-vertk="V" aria-label="Ver el Token de Victoria">'+token('V',26)+'<b>'+q.V+'</b></button><button class="mp-t'+(q.E?'':' apag')+'" data-vertk="E" aria-label="Ver el Token de Efectivo">'+token('E',26)+'<b>'+q.E+'</b></button><button class="mp-t" data-verusados="'+q.id+'" aria-label="Ver los Beneficios usados"><span class="ben-d mp-ben">'+K.dorso('Beneficio')+'</span><b>'+q.usados.length+'/3</b></button></div><div class="mp-mul" aria-label="Multas">';
   for(var k=0;k<5;k++)s+=ml[k]?'<button class="mp-m" data-vermulta="'+ml[k]+'" aria-label="Ver la Multa '+esc(P.MULTA[ml[k]])+'">'+iconoMulta(ml[k],22)+'</button>':'<span class="mp-m"></span>';
@@ -808,7 +801,7 @@ function tabCanjes(g,yo,me){
   s+='<div class="op"><span class="ben-d">'+K.dorso('Beneficio')+'</span><div><b>Beneficio</b>'+precioIc(P.PRECIO.B,24)+faltaPara(me,P.PRECIO.B)+'<span class="sub">Quedan '+g.mazoB.length+' en el mazo.</span></div><button class="bt chico" id="comprarB"'+(g.mazoB.length&&P.puedePagar(me,P.PRECIO.B)?'':' disabled')+'>Comprar</button></div>';
   // Banco
   var bo=P.boleDe(g,me.pos);
-  s+='<h3 style="font-size:16px;margin-top:4px">Cambiar con el Banco</h3><div class="nota">'+(bo?'Estás en la Boletería de '+P.NOMBRE_REC[bo]+': das 1 de '+P.NOMBRE_REC[bo]+' y te llevás 1 del que quieras.':'En cualquier lugar: 4 iguales por 1.')+'</div>';
+  s+='<h3 style="font-size:16px;margin-top:4px">Cambiar con el Banco</h3><div class="nota">'+(bo?'Estás en la Boletería de '+P.NOMBRE_REC[bo]+': das 2 de '+P.NOMBRE_REC[bo]+' y te llevás 1 del que quieras.':'En cualquier lugar: 4 iguales por 1.')+'</div>';
   s+='<div class="nota" style="font-weight:700">Das:</div><div class="sel">'+P.REC.map(function(r){var t=P.tasaBanco(g,me,r),ok=me.mano[r]>=t&&P.usable(me,r);return '<button class="chip ic" data-da="'+r+'" aria-label="Dar '+t+' de '+P.NOMBRE_REC[r]+'" aria-pressed="'+(ui.bancoDa===r)+'"'+(ok?'':' disabled')+'>'+t+'×'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
   if(ui.bancoDa)s+='<div class="nota" style="font-weight:700">Te llevás 1:</div><div class="sel">'+P.REC.filter(function(r){return r!==ui.bancoDa;}).map(function(r){return '<button class="chip ic" data-toma="'+r+'" aria-label="Llevarte '+P.NOMBRE_REC[r]+'"'+(g.banco[r]>0?'':' disabled')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
   if(me.usados.length>=3)s+='<h3 style="font-size:16px;margin-top:4px">3 Beneficios usados por 1 Recurso</h3><div class="sel">'+P.REC.map(function(r){return '<button class="chip ic" data-usados="'+r+'" aria-label="'+P.NOMBRE_REC[r]+'"'+(g.banco[r]>0?'':' disabled')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
@@ -838,7 +831,9 @@ function pintarModal(g,yo,me){
   if(M.tipo==='crear')s=modalCrear(M);
   if(M.tipo==='tok'){var tkV=M.tk==='V';s='<div class="multa-g">'+token(M.tk,150)+'</div><h2 style="margin:0">Token de '+(tkV?'Victoria':'Efectivo')+'</h2><div class="ej"><div class="ej-v">'+precioIc(P.PRECIO[M.tk],28)+ejFl()+token(M.tk,40)+'</div><small>Se canjea en tu turno.</small></div><p style="margin:0">Con Tokens se contratan los Jugadores, parado en un Mercado de Pases. '+(g&&g.modo==='rapido'&&g.meta===4?(tkV?'En este partido, el de Victoria paga a tu Arquero y a tu Defensor.':'En este partido, el de Efectivo paga a tu Volante y a tu Delantero.'):'Cada Jugador cuesta uno de Victoria y uno de Efectivo.')+' Cambiar a uno que ya tenés cuesta 1 Token.</p>';}
   if(M.tipo==='pos'){var PD=[['Arquero','Con su Recurso pagás cualquier Multa.'],['Defensor','La Multa de su Recurso te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.'],['Volante','En cualquier lugar cambiás 2 de su Recurso por 1 a elección.'],['Delantero','Cuando cobrás su Recurso, levantás el doble.']][M.i];s='<div class="grande chica">'+K.dorso('Jugador')+'</div><h2 style="margin:0">'+PD[0]+'</h2><p style="margin:0"><b>Qué hace:</b> '+PD[1]+'</p><p class="nota" style="margin:0">Hay un '+PD[0]+' por cada club, y su habilidad usa el Recurso de ese club. Se contrata en un Mercado de Pases.</p>';}
-  if(M.tipo==='usados'){var qu=g.jug[M.q];s='<h2>Beneficios usados</h2><p style="margin:0">'+dtN(qu)+' lleva <b>'+qu.usados.length+'</b>. Con 3 usados se lleva 1 Recurso.</p>'+(qu.usados.length?'<div class="pz-eq">'+qu.usados.map(function(b){return '<button class="cartita" data-verb="'+b+'" data-solo="1" aria-label="Ver '+esc(P.BENEF[b].n)+'">'+K.beneficio(P.BENEF[b].n)+'</button>';}).join('')+'</div>':'<p class="nota" style="margin:0">Todavía no usó ninguno.</p>');}
+  if(M.tipo==='usados'){var qu=g.jug[M.q];s='<h2>Beneficios usados</h2><p style="margin:0">'+dtN(qu)+' lleva <b>'+qu.usados.length+'</b>. Con 3 usados, cuando quiera, los entrega por 1 Recurso a elección.</p>'+(qu.usados.length?'<div class="pz-eq">'+qu.usados.map(function(b){return '<button class="cartita" data-verb="'+b+'" data-solo="1" aria-label="Ver '+esc(P.BENEF[b].n)+'">'+K.beneficio(P.BENEF[b].n)+'</button>';}).join('')+'</div>':'<p class="nota" style="margin:0">Todavía no usó ninguno.</p>');
+    if(M.q===yo&&qu.usados.length>=3){if(yo===g.turno&&(g.fase==='canje'||g.fase==='mercado')&&!g.oferta)s+='<h3 style="font-size:16px;margin:4px 0 0">Entregá 3 y elegí tu Recurso</h3><div class="sel">'+P.REC.map(function(r){return '<button class="chip ic" data-usados="'+r+'" aria-label="'+P.NOMBRE_REC[r]+'"'+(g.banco[r]>0?'':' disabled')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
+      else s+='<p class="nota" style="margin:0">No es obligatorio: los entregás cuando quieras, en tu turno, después de mover.</p>';}}
   if(M.tipo==='mercados')s='<h2 class="tit-ic">'+icoBinoculares(34)+'Mercados vistos</h2>'+tabMercados(g,me)+'';
   if(M.tipo==='mercado')s=panelMercado(g,yo,me);
   if(M.tipo==='descarte')s=panelDescarte(g,yo,me);
@@ -963,7 +958,7 @@ function conectarEn(raiz,g,yo,me){
   todos('[data-token]',function(x){sala.enviar(yo,{t:'token',tk:x.dataset.token});});
   todos('[data-da]',function(x){ui.bancoDa=x.dataset.da;pintar();});
   todos('[data-toma]',function(x){var d=ui.bancoDa;ui.bancoDa=null;sala.enviar(yo,{t:'banco',da:d,toma:x.dataset.toma});});
-  todos('[data-usados]',function(x){sala.enviar(yo,{t:'usados',toma:x.dataset.usados});});
+  todos('[data-usados]',function(x){if(ui.modal&&ui.modal.tipo==='usados')ui.modal=null;sala.enviar(yo,{t:'usados',toma:x.dataset.usados});});
   todos('[data-contratar]',function(x){ui.mercSel=null;sala.enviar(yo,{t:'contratar',i:+x.dataset.contratar});});
   todos('[data-cambiar]',function(x){ui.mercSel=null;sala.enviar(yo,{t:'cambiar',i:+x.dataset.cambiar,tk:x.dataset.tk});});
   todos('[data-resp]',function(x){sala.enviar(yo,{t:'responder',ok:x.dataset.resp==='1'});});
@@ -1095,7 +1090,7 @@ var TUTO=[
   {tit:'Los Beneficios cambian todo',txt:function(){return 'Cuestan '+precioIc(P.PRECIO.B,20)+' y son cartas sorpresa: robarle a un rival, patear un penal, viajar en jet privado. Se usan desde tu próximo turno. Mirá las de tu mano: <b>tocá una</b> para verla en grande.';},
     prep:function(g){g.jug[0].benef=['barrida','penal','jet'];},boton:'Seguir',acc:function(g){g.jug[0].benef=[];}},
   {tit:'Cómo se gana',txt:function(){return 'No hay un solo camino. Mirá abajo algunas ideas para arrancar.';},
-    extra:function(){return '<h3 class="tuto-tit">Algunos tips para tener en cuenta</h3>'+tutoFilas([[iconoCirc('gol',30)+iconoCirc('fans',30),'Tocá colores distintos','Parate donde se juntan piezas de números distintos: vas a cobrar más seguido.'],['<span class="ff-pos">DEL</span>','Buscá un buen Delantero','Cobra el doble de su Recurso. Si es del que más sale en tu zona, te adelantás.'],[iconoMulta('fans',30),'Esquivá las zonas oscuras','Una Multa te traba el Recurso justo cuando lo necesitás.'],['<span class="ff-pos">DEF</span>','No te olvides del Defensor','Su Multa te rebota, y si un rival la paga, ese pago es tuyo.'],[icoBinoculares(30),'Espiá antes de ir','Desde un vértice del Palco ves dos Mercados y evitás caminar al pedo.'],['<i class="ej-fl">⇄</i>','Negociá todo el tiempo','Muchas veces el Recurso que te falta lo tiene alguien que le sobra.'],['<b class="ej-n">9</b>','No juntes más de 9','Si ya tenías más de 9 cuando sale un 1, devolvés la mitad. Gastá antes.'],['<span class="ben-d">'+K.dorso('Beneficio')+'</span>','Guardate un Beneficio','Sirve para frenar al que está por levantar la Copa.']]);},boton:'Seguir'},
+    extra:function(){return '<h3 class="tuto-tit">Algunos tips para tener en cuenta</h3>'+tutoFilas([[iconoCirc('gol',30)+iconoCirc('fans',30),'Tocá colores distintos','Parate donde se juntan piezas de números distintos: vas a cobrar más seguido.'],['<span class="ff-pos">DEL</span>','Buscá un buen Delantero','Cobra el doble de su Recurso. Si es del que más sale en tu zona, te adelantás.'],[iconoMulta('fans',30),'Esquivá las zonas oscuras','Una Multa te traba el Recurso justo cuando lo necesitás.'],['<span class="ff-pos">DEF</span>','No te olvides del Defensor','Su Multa te rebota, y si un rival la paga, ese pago es tuyo.'],[icoBinoculares(30),'Espiá antes de ir','Desde un vértice del Palco ves uno de los dos Mercados más cercanos y evitás caminar al pedo.'],['<i class="ej-fl">⇄</i>','Negociá todo el tiempo','Muchas veces el Recurso que te falta lo tiene alguien que le sobra.'],['<b class="ej-n">9</b>','No juntes más de 9','Si ya tenías más de 9 cuando sale un 1, devolvés la mitad. Gastá antes.'],['<span class="ben-d">'+K.dorso('Beneficio')+'</span>','Guardate un Beneficio','Sirve para frenar al que está por levantar la Copa.']]);},boton:'Seguir'},
   {tit:'¡Levantá la Copa!',txt:function(){return 'Pasaron los turnos: ya tenés los 4 Jugadores, 1 Recurso de cada tipo y ninguna Multa. El dado blanco marca 2, el número justo: un paso hasta un vértice del Palco y otro al centro. <b>Tocá el centro.</b>';},
     prep:function(g){var me=g.jug[0],li=[0,1,2,3,4].map(function(i){return P.BASE.B+i;}).filter(function(k){return !P.ocupado(g,k,0);});me.eq=[{club:'gol',pos:0},{club:'suerte',pos:1},{club:'picardia',pos:2},{club:'fans',pos:3}];P.REC.forEach(function(r){me.mano[r]=1;me.multas[r]=0;});me.pos=li[0];g.dados=[4,2];g.tiradas.push({d:g.dados,j:0});g.nTirada++;g.ultTiro={n:g.nTirada,j:0,d:g.dados,cob:[],mul:[],sinB:[]};},
     marc:function(){return [P.CENTRO];},tap:function(g){g.ganador=0;g.nTurnos=28;g.jug[0].pos=P.CENTRO;mostrarMundial(g);var b=document.getElementById('muListo');if(b)b.textContent='Seguir';}},
