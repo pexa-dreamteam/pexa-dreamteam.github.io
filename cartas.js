@@ -77,19 +77,23 @@
     var d='M14 24Q33 25 50 15Q67 25 86 24V60C86 82 67 96 50 106C33 96 14 82 14 60Z', OS='#6e2321';
     var s='<rect width="100" height="110" fill="'+c.c1+'"/>';
     for(var a=-5;a<190;a+=20){var r1=a*Math.PI/180,r2=(a+10)*Math.PI/180;s+='<path d="M50 22L'+(50+120*Math.cos(r1)).toFixed(1)+' '+(22+120*Math.sin(r1)).toFixed(1)+'L'+(50+120*Math.cos(r2)).toFixed(1)+' '+(22+120*Math.sin(r2)).toFixed(1)+'Z" fill="'+OS+'" opacity=".55"/>';}
-    s+='<path d="M0 24H100V36H0Z" fill="'+ORO+'"/><path d="M0 36.4H100" stroke="'+INK+'" stroke-width="1.2"/><text x="50" y="33" text-anchor="middle" '+D+' font-size="7.2" letter-spacing=".5" fill="'+INK+'">LA SERENA</text>';
-    // el monograma va dibujado, no con letras: S y J entrelazadas, con remates de bolita
-    var S='M46 44.5C43 40 31 39.5 30 46.5C29 54 47.5 52.5 47 60.5C46.6 67.5 33 68 28 62.5', J='M57 41.5H75M66 41.5V59.5C66 68.5 54 70 50.5 63.5';
-    [[S+J,INK,8],[S+J,ORO,5.2],[S+J,'#fff3c4',1.3]].forEach(function(t){s+='<path d="'+t[0]+'" fill="none" stroke="'+t[1]+'" stroke-width="'+t[2]+'" stroke-linecap="round" stroke-linejoin="round"/>';});
-    [[46,44.5],[28,62.5],[50.5,63.5]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.2" fill="'+ORO+'" stroke="'+INK+'" stroke-width="1.2"/>';});
-    s+='<text x="50" y="99.5" text-anchor="middle" '+D+' font-size="5" fill="'+ORO+'">2001</text>';
+    // arriba, chiquito, el sponsor con su cabaña
+    s+='<path d="M0 24H100V33.5H0Z" fill="'+ORO+'"/><path d="M0 33.9H100" stroke="'+INK+'" stroke-width="1"/><g transform="translate(29.5 25)"><path d="M0 7.2L3.8 .6L7.6 7.2Z" fill="'+OS+'" stroke="'+INK+'" stroke-width=".55" stroke-linejoin="round"/><rect x="2.8" y="4.1" width="2" height="1.6" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".3"/></g><text x="55" y="31" text-anchor="middle" '+D+' font-size="4.6" letter-spacing=".4" fill="'+INK+'">LA SERENA</text>';
+    // las iniciales, con punto y serifa, como en una tarjeta de escribanía
+    var LS='M24 1L25 13L23.5 13C22 6 17 2.5 12.5 2.5C8 2.5 5.5 5 5.5 8.5C5.5 12 8.5 14 14 17C21 20.8 26 24 26 30C26 36 20.5 41 13.5 41C10 41 7 40 5 39C4 38.5 3 38.5 2.5 41L1 41L0 28L1.5 28C3 35 8 39 13.5 39C18 39 21 36.5 21 32.5C21 28.5 18 26.5 12 23C5.5 19.4 1.5 16.5 1.5 10.5C1.5 5 6 1 12.5 1C15.5 1 18 1.7 20 2.7C21.5 3.4 22.2 3 22.7 1Z';
+    var LJ='M9 1H30V2.5C26.5 2.7 25.5 3.5 25.5 7V29C25.5 36.5 21 41 14.5 41C9.5 41 5.5 38.5 5.5 34.5C5.5 32 7.3 30.5 9.5 30.5C11.5 30.5 13 32 13 34C13 36 11.5 36.8 11.5 38C11.5 39 12.5 39.5 14 39.5C17.5 39.5 19.5 36 19.5 29V7C19.5 3.5 18.5 2.7 9 2.5Z';
+    [[LS,23.5],[LJ,54.5]].forEach(function(q){s+='<path d="'+q[0]+'" transform="translate('+q[1]+' 37.5) scale(.72)" fill="'+CREMA+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round" paint-order="stroke"/>';});
+    s+='<circle cx="46.3" cy="65" r="1.7" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="77.5" cy="65" r="1.7" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/>';
+    // abajo, en la punta, el sobre: mejor no preguntar
+    s+='<g transform="translate(50 87.5) rotate(-7)"><rect x="-10.5" y="-6.5" width="21" height="13" rx=".8" fill="#c9a877" stroke="'+INK+'" stroke-width="1"/><path d="M-10.5-6.5L0 1L10.5-6.5" fill="none" stroke="'+INK+'" stroke-width=".9" stroke-linejoin="round"/><circle cy="1" r="2.8" fill="#26272b" stroke="'+INK+'" stroke-width=".5"/><text y="2.9" text-anchor="middle" '+D+' font-size="4.6" fill="'+ORO+'">$</text></g>';
+    s+=tx(32,86,5,ORO,'20')+tx(68,86,5,ORO,'01');
     var en='';
     // el sol que sale atrás de la corona
     for(var a=-172;a<=-8;a+=20.5){var r=a*Math.PI/180,lr=17+19*Math.abs(Math.cos(r));en+='<path d="M'+(50+11*Math.cos(r-.11)).toFixed(1)+' '+(18+11*Math.sin(r-.11)).toFixed(1)+'L'+(50+lr*Math.cos(r)).toFixed(1)+' '+(18+lr*Math.sin(r)).toFixed(1)+'L'+(50+11*Math.cos(r+.11)).toFixed(1)+' '+(18+11*Math.sin(r+.11)).toFixed(1)+'Z" fill="'+ORO+'" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"/>';}
     // la corona, torcida
     en+='<g transform="rotate(-9 50 16)"><path d="M36 20L33 7L42 12.5L50 3.5L58 12.5L67 7L64 20Z" fill="'+ORO+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round"/><path d="M36 17.4H64" stroke="'+INK+'" stroke-width=".8"/><circle cx="33" cy="6.5" r="1.8" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="50" cy="3.2" r="2" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="67" cy="6.5" r="1.8" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="50" cy="14" r="1.5" fill="'+c.c1+'" stroke="'+INK+'" stroke-width=".6"/></g>';
     // el lema: "todo es nuestro"
-    en+='<path d="M9 74L1 72L5 80L1 88L12 86M91 74L99 72L95 80L99 88L88 86" fill="#cdbf91" stroke="'+INK+'" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 70Q50 85 92 70L92 82Q50 97 8 82Z" fill="'+CREMA+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round"/><path id="'+id+'c" d="M10 80Q50 94 90 80" fill="none"/><text '+D+' font-size="7" letter-spacing=".3" text-anchor="middle" fill="'+OS+'"><textPath href="#'+id+'c" startOffset="50%">OMNIA NOSTRA</textPath></text>';
+    en+='<path d="M28 72.5L23.5 71L25.8 75L23.5 79L30 78M72 72.5L76.5 71L74.2 75L76.5 79L70 78" fill="#cdbf91" stroke="'+INK+'" stroke-width=".9" stroke-linejoin="round"/><path d="M27 70.5Q50 75.5 73 70.5L73 77Q50 82 27 77Z" fill="'+CREMA+'" stroke="'+INK+'" stroke-width="1" stroke-linejoin="round"/><path id="'+id+'c" d="M28 75.2Q50 80 72 75.2" fill="none"/><text font-family="Courier Prime, monospace" font-weight="700" font-size="4" letter-spacing=".25" text-anchor="middle" fill="'+OS+'"><textPath href="#'+id+'c" startOffset="50%">OMNIA NOSTRA</textPath></text>';
     return marco(d,ORO,s,en);
   }
   function escuditoPiluso(x,y,s){
