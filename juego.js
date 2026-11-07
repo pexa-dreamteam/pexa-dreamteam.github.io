@@ -14,7 +14,7 @@ var ESTADIO={gol:'La Canasta',suerte:'La Fortuna',picardia:'La Astucia',fans:'La
 var PREDIO={gol:'Bajo Nono',suerte:'Restaurante La Serena',picardia:'Banadi',fans:'La Milla',sponsors:'La Canterita'};
 var ZONA=['Estacionamiento La Canterita','Rotisería El Chulengo','Cementerio de Rodillas','Diario La Pipeta','Oficina del Sapo'];
 var POS=['Arquero','Defensor','Volante','Delantero'];
-var HABILIDAD=['Podés usar su Recurso para pagar cualquier Multa.','La Multa de su Recurso te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.','En cualquier lugar cambiás 2 de su Recurso por 1 a elección.','Cuando cobrás su Recurso, levantás el doble.'];
+var HABILIDAD=['Podés usar su Recurso para pagar cualquier Multa.','La Multa de su Recurso te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.','En cualquier lugar cambiás 2 de su Recurso por 1 a elección. En la Boletería de su Recurso, 1 por 1.','Cuando cobrás su Recurso, levantás el doble.'];
 var PLANTEL={gol:['Polaco','Moncho','Nano','Cocho'],suerte:['Caba','Mosca','Tanos','Topo'],picardia:['Pipes','Tomo','Krupo','Chun'],fans:['Tuki','Joaquinho','Baigo','Juane'],sponsors:['Nico','Falso Topo','Guido','Cale']};
 var DTS=[{id:'abuelo',nombre:'El Abuelo',color:'#f4f1ea',tinta:'#2b2620'},{id:'mister',nombre:'El Míster',color:'#26231f',tinta:'#f6efe0'},{id:'dona',nombre:'La Doña',color:'#e77fb3',tinta:'#2b2620'},{id:'loco',nombre:'El Terror del Río',color:'#7b4fa3',tinta:'#f6efe0'},{id:'profe',nombre:'El Gallo',color:'#7cc4e4',tinta:'#2b2620'}];
 var BENEF={
@@ -150,8 +150,8 @@ function gana(g,p,mano){return contratados(p)>=g.meta&&!!pagoEntrada(p,mano||p.m
 function boleDe(g,k){var n=NODOS[k];if(!n)return null;if(n.t==='F'||n.t==='Dp')return g.rec[6+n.i];if(n.t==='Dm')return g.rec[6+(n.i+4)%5];return null;}
 function mercadoDe(k){var n=NODOS[k];return n&&n.t==='E'?n.i:-1;}
 // Cuántos hay que dar de r para llevarse 1 de otro: la mejor tasa que tiene el DT donde está parado
-// La Boletería pide 2 de su Recurso por 1 de otro. g.reg.volBole: en prueba, solo para el simulador (Volante a 1:1 en la Boletería de su Recurso o en todas)
-function tasaBanco(g,p,r,k){var t=4,v=hab(p,2);if(v===r)t=2;if(boleDe(g,k==null?p.pos:k)===r){t=2;var vb=g.reg&&g.reg.volBole;if((vb==='suya'&&v===r)||(vb==='todas'&&v))t=1;}return t;}
+// La Boletería pide 2 de su Recurso por 1 de otro. El Volante de ese Recurso, parado en esa Boletería, cambia 1 por 1.
+function tasaBanco(g,p,r,k){var t=4,v=hab(p,2);if(v===r)t=2;if(boleDe(g,k==null?p.pos:k)===r)t=v===r?1:2;return t;}
 function nombreCarta(c){return PLANTEL[c.club][c.pos];}
 function textoCarta(c){return nombreCarta(c)+', '+POS[c.pos]+' de '+NOMBRE_REC[c.club];}
 
@@ -237,12 +237,12 @@ function destinos(g,j){
   var p=g.jug[j],res={},mv=g.mv;if(!mv)return [];
   var entra=gana(g,p);
   if(mv.jet){NODOS.forEach(function(n){if(!ocupado(g,n.id))res[n.id]=1;});if(entra)res[CENTRO]=1;return Object.keys(res).map(Number);}
-  mv.pasos.forEach(function(pasos){var vis={};
+  mv.pasos.forEach(function(pasos){var hecho={};
     (function dfs(u,q){
       if(q===0){if(!ocupado(g,u,j))res[u]=1;return;}
       if(q===1&&entra&&NODOS[u].t==='A')res[CENTRO]=1;
-      // Por tu lugar de salida podés pasar las veces que quieras. Por las demás intersecciones, una sola vez. Con 2 pasos no se termina donde se arrancó: ida y vuelta no es moverse.
-      ADJ[u].forEach(function(v){if(v===p.pos){if(q===1&&pasos<3)return;}else if(vis[v])return;if(!mv.libre&&ocupado(g,v,j))return;var ya=vis[v];vis[v]=1;dfs(v,q-1);vis[v]=ya;});
+      // Nunca se retrocede: no se camina al revés un tramo ya hecho. Sí se puede pasar por donde se arrancó y dar la vuelta a una pieza más de una vez.
+      ADJ[u].forEach(function(v){if(hecho[v*100+u])return;if(!mv.libre&&ocupado(g,v,j))return;var c=u*100+v,ya=hecho[c];hecho[c]=1;dfs(v,q-1);hecho[c]=ya;});
     })(p.pos,pasos);});
   return Object.keys(res).map(Number);
 }
@@ -321,7 +321,7 @@ function cambioBanco(g,j,da,toma){
   if(!usable(p,da))falla('Ese Recurso está trabado por una Multa.');
   var t=tasaBanco(g,p,da);if(p.mano[da]<t)falla('Necesitás '+t+' de '+NOMBRE_REC[da]+'.');
   if(boleDe(g,p.pos)===da)totales(g).bole=(totales(g).bole||0)+1;
-  if(t===2&&hab(p,2)===da&&boleDe(g,p.pos)!==da)infl(p,2,'cambios');
+  if(hab(p,2)===da)infl(p,2,'cambios');
   p.mano[da]-=t;g.banco[da]+=t;g.banco[toma]--;p.mano[toma]++;p.amnistia=false;
   st(p).banco++;var dio=vacio(),llevo=vacio();dio[da]=t;llevo[toma]=1;evento(g,{t:'banco',de:j,doy:dio,pido:llevo});
   anotar(g,p.nombre+' cambia '+t+' de '+NOMBRE_REC[da]+' por 1 de '+NOMBRE_REC[toma]+'.');

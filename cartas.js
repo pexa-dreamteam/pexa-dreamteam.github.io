@@ -73,16 +73,24 @@
       s+=tx(50,92,10,CREMA,'UNIDA',' stroke="'+INK+'" stroke-width=".35"');
       return marco(d,CREMA,s);
     }
-    // Sponsor Juniors: el más rico, con corona, esquinas cortadas, dorado por todos lados y el sponsor bien arriba
-    var d='M27 16H73L86 28V66L50 106L14 66V28Z';
+    // Sponsor Juniors: plata y superioridad. Corona torcida con el sol atrás ("todo lo que toca la luz es nuestro"), monograma de joyería y lema en latín
+    var d='M14 24Q33 25 50 15Q67 25 86 24V60C86 82 67 96 50 106C33 96 14 82 14 60Z', OS='#6e2321';
     var s='<rect width="100" height="110" fill="'+c.c1+'"/>';
-    for(var x=4;x<100;x+=6)s+='<path d="M'+x+' 0V110" stroke="'+c.c2+'" stroke-width=".55" opacity=".35"/>';
-    s+='<rect y="16" width="100" height="20" fill="'+c.c2+'"/><path d="M0 36H100" stroke="'+INK+'" stroke-width="1.5"/><text x="50" y="30" text-anchor="middle" '+M+' font-size="10" letter-spacing=".1" fill="'+INK+'">LA SERENA</text>';
-    s+=tx(50.8,70.8,29,INK,'SJ')+tx(50,70,29,CREMA,'SJ');
-    [23,77].forEach(function(x){s+='<circle cx="'+x+'" cy="46" r="5.2" fill="'+c.c2+'" stroke="'+INK+'" stroke-width="1.1"/><circle cx="'+x+'" cy="46" r="3.7" fill="none" stroke="'+INK+'" stroke-width=".45"/><text x="'+x+'" y="48.6" text-anchor="middle" '+D+' font-size="6.6" fill="'+INK+'">$</text>';});
-    s+='<text x="50" y="87" text-anchor="middle" '+D+' font-size="8.6" fill="'+c.c2+'">2001</text>';
-    var cor='<path d="M36 16L33 5L42 10.5L50 2.5L58 10.5L67 5L64 16Z" fill="'+c.c2+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round"/><circle cx="33" cy="5" r="1.7" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="50" cy="3" r="1.9" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="67" cy="5" r="1.7" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/>';
-    return marco(d,c.c2,s,cor);
+    for(var a=-5;a<190;a+=20){var r1=a*Math.PI/180,r2=(a+10)*Math.PI/180;s+='<path d="M50 22L'+(50+120*Math.cos(r1)).toFixed(1)+' '+(22+120*Math.sin(r1)).toFixed(1)+'L'+(50+120*Math.cos(r2)).toFixed(1)+' '+(22+120*Math.sin(r2)).toFixed(1)+'Z" fill="'+OS+'" opacity=".55"/>';}
+    s+='<path d="M0 24H100V36H0Z" fill="'+ORO+'"/><path d="M0 36.4H100" stroke="'+INK+'" stroke-width="1.2"/><text x="50" y="33" text-anchor="middle" '+D+' font-size="7.2" letter-spacing=".5" fill="'+INK+'">LA SERENA</text>';
+    // el monograma va dibujado, no con letras: S y J entrelazadas, con remates de bolita
+    var S='M46 44.5C43 40 31 39.5 30 46.5C29 54 47.5 52.5 47 60.5C46.6 67.5 33 68 28 62.5', J='M57 41.5H75M66 41.5V59.5C66 68.5 54 70 50.5 63.5';
+    [[S+J,INK,8],[S+J,ORO,5.2],[S+J,'#fff3c4',1.3]].forEach(function(t){s+='<path d="'+t[0]+'" fill="none" stroke="'+t[1]+'" stroke-width="'+t[2]+'" stroke-linecap="round" stroke-linejoin="round"/>';});
+    [[46,44.5],[28,62.5],[50.5,63.5]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.2" fill="'+ORO+'" stroke="'+INK+'" stroke-width="1.2"/>';});
+    s+='<text x="50" y="99.5" text-anchor="middle" '+D+' font-size="5" fill="'+ORO+'">2001</text>';
+    var en='';
+    // el sol que sale atrás de la corona
+    for(var a=-172;a<=-8;a+=20.5){var r=a*Math.PI/180,lr=17+19*Math.abs(Math.cos(r));en+='<path d="M'+(50+11*Math.cos(r-.11)).toFixed(1)+' '+(18+11*Math.sin(r-.11)).toFixed(1)+'L'+(50+lr*Math.cos(r)).toFixed(1)+' '+(18+lr*Math.sin(r)).toFixed(1)+'L'+(50+11*Math.cos(r+.11)).toFixed(1)+' '+(18+11*Math.sin(r+.11)).toFixed(1)+'Z" fill="'+ORO+'" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"/>';}
+    // la corona, torcida
+    en+='<g transform="rotate(-9 50 16)"><path d="M36 20L33 7L42 12.5L50 3.5L58 12.5L67 7L64 20Z" fill="'+ORO+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round"/><path d="M36 17.4H64" stroke="'+INK+'" stroke-width=".8"/><circle cx="33" cy="6.5" r="1.8" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="50" cy="3.2" r="2" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="67" cy="6.5" r="1.8" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="50" cy="14" r="1.5" fill="'+c.c1+'" stroke="'+INK+'" stroke-width=".6"/></g>';
+    // el lema: "todo es nuestro"
+    en+='<path d="M9 74L1 72L5 80L1 88L12 86M91 74L99 72L95 80L99 88L88 86" fill="#cdbf91" stroke="'+INK+'" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 70Q50 85 92 70L92 82Q50 97 8 82Z" fill="'+CREMA+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round"/><path id="'+id+'c" d="M10 80Q50 94 90 80" fill="none"/><text '+D+' font-size="7" letter-spacing=".3" text-anchor="middle" fill="'+OS+'"><textPath href="#'+id+'c" startOffset="50%">OMNIA NOSTRA</textPath></text>';
+    return marco(d,ORO,s,en);
   }
   function escuditoPiluso(x,y,s){
     return '<g transform="translate('+x+' '+y+') scale('+s+')"><path d="M-10-9l4-1.5 1 2.5h10l1-2.5 4 1.5v9c0 6-4 10-10 12-6-2-10-6-10-12z" fill="#f4efe3"/><path d="M-4.5-1q0-4 4.5-4t4.5 4zM-6.5 0.5q6.5-2.5 13 0l-.8 1.3q-5.7-2-11.4 0z" fill="'+PILUSO+'"/></g>';
@@ -691,13 +699,14 @@
   function dorso(tipo){
     // v17: Jugadores en violeta y negro, Recursos en celeste y blanco, Beneficios en rosa clarito y blanco (la suplente de Piluso)
     // v18: Recursos multicolor (Azul, Verde, Amarillo, Naranja, Rojo) y Beneficios en verde y naranja, los Recursos que los compran
-    var pal={Jugador:{fd:'#4a2d82',zz:['#120c1f','#4a2d82'],ma:'#d6c2f5',bo:'#120c1f',fs:58},Recurso:{fd:C.gol.c1,zz:ORDEN_D.map(function(k){return C[k].c1;}),ma:CREMA,bo:INK,fs:58},Beneficio:{fd:C.suerte.c1,zz:[C.suerte.c1,C.fans.c1],ma:CREMA,bo:INK,fs:50}}[tipo];
+    var pal={Jugador:{li:'#120c1f',fd:'#4a2d82',zz:['#120c1f','#4a2d82'],ma:'#d6c2f5',bo:'#120c1f',fs:58},Recurso:{li:PILUSO,fd:C.gol.c1,zz:ORDEN_D.map(function(k){return C[k].c1;}),ma:CREMA,bo:INK,fs:58},Beneficio:{li:'#2f4f25',fd:C.suerte.c1,zz:[C.suerte.c1,C.fans.c1],ma:CREMA,bo:INK,fs:50}}[tipo];
     var zz=U('zz'), s='<svg viewBox="0 0 410 630" role="img" aria-label="Dorso de las cartas '+tipo+'">';
     var alto=34,pz='';pal.zz.forEach(function(col,ix){var y=ix*alto;pz+='<path d="M-30 '+(y-17)+'L-15 '+(y-32)+'L0 '+(y-17)+'L15 '+(y-32)+'L30 '+(y-17)+'L45 '+(y-32)+'L60 '+(y-17)+'L75 '+(y-32)+'L90 '+(y-17)+'V'+(y+alto*2)+'H-30Z" fill="'+col+'"/>';});
     var ultimo=pal.zz.length*alto;pz+='<path d="M-30 '+(ultimo-17)+'L-15 '+(ultimo-32)+'L0 '+(ultimo-17)+'L15 '+(ultimo-32)+'L30 '+(ultimo-17)+'L45 '+(ultimo-32)+'L60 '+(ultimo-17)+'L75 '+(ultimo-32)+'L90 '+(ultimo-17)+'V'+(ultimo+alto)+'H-30Z" fill="'+pal.zz[0]+'"/>';
     // v19: líneas más gruesas: el mismo zigzag, casi al doble
     s+='<defs><pattern id="'+zz+'" width="60" height="'+ultimo+'" patternUnits="userSpaceOnUse" patternTransform="scale(1.9)">'+pz+'</pattern></defs>';
-    s+='<rect x="3" y="3" width="404" height="624" rx="24" fill="'+pal.fd+'" stroke="'+INK+'" stroke-width="5"/><rect x="3" y="3" width="404" height="624" rx="24" fill="url(#'+zz+')"/><rect x="24" y="24" width="362" height="582" rx="14" fill="none" stroke="'+pal.ma+'" stroke-width="4"/>';
+    // v20: entre el borde de la carta y la línea de adentro, un color liso que rodea toda la carta
+    s+='<rect x="3" y="3" width="404" height="624" rx="24" fill="'+pal.li+'" stroke="'+INK+'" stroke-width="5"/><rect x="24" y="24" width="362" height="582" rx="14" fill="'+pal.fd+'"/><rect x="24" y="24" width="362" height="582" rx="14" fill="url(#'+zz+')"/><rect x="24" y="24" width="362" height="582" rx="14" fill="none" stroke="'+pal.ma+'" stroke-width="4"/>';
     s+='<svg x="33" y="56" width="344" height="344" viewBox="-142 -142 284 284">'+logoPexa('pexa')+'</svg>';
     s+='<text x="205" y="505" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="'+pal.fs+'" letter-spacing="1" fill="#fff" stroke="'+pal.bo+'" stroke-width="10" stroke-linejoin="round" paint-order="stroke">'+tipo.toUpperCase()+'</text>';
     return s+'</svg>';
