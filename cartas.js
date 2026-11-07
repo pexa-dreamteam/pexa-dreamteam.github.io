@@ -89,7 +89,7 @@
     s+=tx(32,86,5,ORO,'20')+tx(68,86,5,ORO,'01');
     var en='';
     // el sol que sale atrás de la corona
-    for(var a=-172;a<=-8;a+=20.5){var r=a*Math.PI/180,lr=17+19*Math.abs(Math.cos(r));en+='<path d="M'+(50+11*Math.cos(r-.11)).toFixed(1)+' '+(18+11*Math.sin(r-.11)).toFixed(1)+'L'+(50+lr*Math.cos(r)).toFixed(1)+' '+(18+lr*Math.sin(r)).toFixed(1)+'L'+(50+11*Math.cos(r+.11)).toFixed(1)+' '+(18+11*Math.sin(r+.11)).toFixed(1)+'Z" fill="'+ORO+'" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"/>';}
+    for(var a=-172;a<=-8;a+=20.5){var r=a*Math.PI/180,lr=Math.min(17+19*Math.abs(Math.cos(r)),15.5/Math.abs(Math.sin(r)));en+='<path d="M'+(50+11*Math.cos(r-.11)).toFixed(1)+' '+(18+11*Math.sin(r-.11)).toFixed(1)+'L'+(50+lr*Math.cos(r)).toFixed(1)+' '+(18+lr*Math.sin(r)).toFixed(1)+'L'+(50+11*Math.cos(r+.11)).toFixed(1)+' '+(18+11*Math.sin(r+.11)).toFixed(1)+'Z" fill="'+ORO+'" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"/>';}
     // la corona, torcida
     en+='<g transform="rotate(-9 50 16)"><path d="M36 20L33 7L42 12.5L50 3.5L58 12.5L67 7L64 20Z" fill="'+ORO+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round"/><path d="M36 17.4H64" stroke="'+INK+'" stroke-width=".8"/><circle cx="33" cy="6.5" r="1.8" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="50" cy="3.2" r="2" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="67" cy="6.5" r="1.8" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="50" cy="14" r="1.5" fill="'+c.c1+'" stroke="'+INK+'" stroke-width=".6"/></g>';
     // el lema: "todo es nuestro"
