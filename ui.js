@@ -154,7 +154,7 @@ function pedirDorso(){
 function dibujarTablero(g,marcados,encima){
   var url=ui.vista==='det'?pedirArte(g):null,det=!!url,vb=det?'-305 -305 610 610':'-274 -274 548 548';
   var s='<svg id="tablero" viewBox="'+vb+'" role="img" aria-label="Isla Pexa">';
-  var cent=(marcados||[]).indexOf(P.CENTRO)>=0,barAnt=ui.barrasAntes;ui.barrasAntes=g.barras.slice();
+  var cent=(marcados||[]).indexOf(P.CENTRO)>=0&&g.fase==='mover'&&P.gana(g,g.jug[g.turno]),barAnt=ui.barrasAntes;ui.barrasAntes=g.barras.slice();
   s+='<defs><radialGradient id="brilloPalco"><stop offset="0" stop-color="#fff8c9" stop-opacity="1"/><stop offset=".45" stop-color="#ffd83a" stop-opacity=".85"/><stop offset="1" stop-color="#ffb300" stop-opacity="0"/></radialGradient></defs>';
   if(det){s+='<image href="'+url+'" x="-320" y="-320" width="640" height="640"/>';
     var du=pedirDorso();if(du)for(var im=0;im<5;im++){var cm=Pol(K.geo.RS,TH[im]),nm=g.mercados[im].length;s+='<g transform="translate('+cm[0].toFixed(1)+' '+cm[1].toFixed(1)+') rotate('+(TH[im]+90)+')" pointer-events="none">';for(var jm=0;jm<nm;jm++)s+='<image href="'+du+'" x="'+((jm-(nm-1)/2)*13.5-9.5).toFixed(1)+'" y="-16" width="19" height="29.2"/>';s+='</g>';}}
@@ -315,7 +315,9 @@ function resumen(g,tableroH){
   var car=g.caras||[],s='<div class="res" id="resumen">';
   // El Certificado va primero
   s+='<button class="cert-vista" id="certToca" aria-label="Certificado de campeón: tocalo para compartirlo o bajarlo" aria-expanded="'+(!!ui.certAb)+'">'+svgCertificado(g).replace(/ width="1080" height="1080"/,'')+'</button><div class="cert-pista" id="certPista"'+(ui.certAb?' hidden':'')+'>Tocá el certificado para compartirlo</div><div class="cert-bts" id="certBts"'+(ui.certAb?'':' hidden')+'><button class="bt wa" id="certWa">'+icoWa(22)+'<span>Compartir por WhatsApp</span></button><button class="bt chico" id="certPng">Bajar imagen</button></div>';
-  s+=plega('Menciones honoríficas','<div class="res-men">'+P.menciones(g).map(function(m,i){return '<div class="men'+(m.top?' top':'')+'" style="--gira:'+(i%2?1.2:-1.2)+'deg"><span class="men-ic">'+(MEN_IC[m.t]||'🏅')+'</span><b>'+esc(m.t)+'</b><span>'+esc(m.d)+'</span><div class="men-dt">'+m.j.map(function(id){return dtN(g.jug[id]);}).join('')+'</div></div>';}).join('')+'</div>','men',true,'gol');
+    // Primero las del campeón, de la más importante a la menos; después las de los demás
+  var mens=P.menciones(g).map(function(m,i){m.o=i;return m;}).sort(function(a,b){var ga=a.j.indexOf(g.ganador)>=0?0:1,gb=b.j.indexOf(g.ganador)>=0?0:1;if(ga!==gb)return ga-gb;if(!ga&&(a.top?0:1)!==(b.top?0:1))return (a.top?0:1)-(b.top?0:1);return a.o-b.o;});
+  s+=plega('Menciones honoríficas','<div class="res-men">'+mens.map(function(m,i){return '<div class="men'+(m.top?' top':'')+'" style="--gira:'+(i%2?1.2:-1.2)+'deg"><span class="men-ic">'+(MEN_IC[m.t]||'🏅')+'</span><b>'+esc(m.t)+'</b><span>'+esc(m.d)+'</span><div class="men-dt">'+m.j.map(function(id){return dtN(g.jug[id]);}).join('')+'</div></div>';}).join('')+'</div>','men',false,'gol');
   s+=plega('Números de cada DT','<div class="res-tabla"><table><thead><tr><th></th>'+g.jug.map(function(p){return '<th'+(p.id===g.ganador?' class="gano"':'')+'>'+dtN(p)+'</th>';}).join('')+'</tr></thead><tbody><tr><td>Jugadores</td>'+g.jug.map(function(p){return '<td>'+P.contratados(p)+'</td>';}).join('')+'</tr>'+FILAS_DT.map(function(f){var mx=0;g.jug.forEach(function(p){mx=Math.max(mx,S(p)[f[0]]||0);});return '<tr><td>'+f[1]+'</td>'+g.jug.map(function(p){var v=S(p)[f[0]]||0;return '<td'+(mx&&v===mx?' class="max"':'')+'>'+v+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>','num',false,'suerte');
   s+=plega('Los equipos',g.jug.map(function(p){var cs=p.eq.filter(Boolean);return '<div class="res-eq"><div class="res-eq-t">'+dtN(p)+'</div>'+(cs.length?'<div class="inf-l">'+cs.map(function(c){var f=influencia(p,c);return '<div class="inf"><button class="cartita" data-vercarta="'+c.club+'-'+c.pos+'" aria-label="Ver a '+esc(P.nombreCarta(c))+'">'+K.jugador(c.club,c.pos)+'</button><div><b>'+esc(P.nombreCarta(c))+'</b><span class="inf-e" aria-label="Influencia: '+f.e+' de 3">'+'★★★'.slice(0,f.e)+'<em>'+'★★★'.slice(f.e)+'</em></span><span>'+esc(f.d)+'</span></div></div>';}).join('')+'</div>':'<span class="nota">Sin Jugadores.</span>')+'</div>';}).join(''),'eq',false,'picardia');
   var cu=[[suma('tiros'),'Tiradas'],[suma('tratos')/2,'Tratos'],[suma('multas'),'Multas'],[suma('compro'),'Beneficios comprados'],[T.robR+T.robB,'Robos'],[suma('cobro'),'Recursos cobrados'],[T.robR,'Recursos robados'],[T.robB,'Beneficios robados'],[suma('banco'),'Tratos con el Banco'],[T.dob,'Dobles'],[T.rebotes,'Multas rebotadas'],[suma('ajenas'),'Pagos que cobró un Defensor'],[suma('devolvio'),'Recursos devueltos por el 1'],[T.goles,'Penales adentro'],[T.atajados,'Penales atajados'],[suma('espio'),'Espiadas a un Mercado'],[suma('pasos'),'Intersecciones caminadas'],[suma('cambios'),'Jugadores cambiados']];
@@ -418,7 +420,7 @@ function tabReglas(g,me){
     ['Beneficios','Se usan desde tu próximo turno, uno por turno.'+ej('Un Beneficio es una sorpresa del mazo.',pr(P.PRECIO.B)+ejFl()+ejCarta(K.dorso('Beneficio')))+ej('Con 3 usados, cuando quieras, los entregás por 1 Recurso a elección.',ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejFl()+ic('suerte'))],
     ['Cambiar con el Banco','Con el Banco se cambia en cualquier lugar. En una <b>Boletería</b> sale más barato: se usa desde las 3 esquinas de la punta del predio.'+ej('En cualquier lugar: 4 iguales por 1.',ic('gol',22)+ic('gol',22)+ic('gol',22)+ic('gol',22)+ejFl()+ic('suerte'))+ej('En la Boletería de Gol: das 2 de Gol y te llevás 1 del que quieras.',ic('gol')+ic('gol')+ejFl()+ic('picardia'))],
     ['Negociar','En tu turno, después de mover, podés ofrecer un trato a un DT o a todos. Cuando es el turno de otro, también podés ofrecerle a él. Una oferta a todos se la lleva el primero que acepte.'+ej('Das lo que te sobra, pedís lo que te falta.',cono(0,24)+ic('fans')+'<i class="ej-fl">⇄</i>'+ic('gol')+cono(1,24))],
-    ['El Palco','Desde un vértice podés espiar <b>uno solo</b> de los dos Mercados de Pases más cercanos: vos elegís cuál. Al centro solo se entra para levantar la Copa.'+ej('Mirás uno de los dos, no los dos.',icoBinoculares(38)+ejFl()+ejCarta(K.dorso('Jugador'))+'<b>o</b>'+ejCarta(K.dorso('Jugador')))],
+    ['El Palco','Desde un vértice podés espiar <b>uno solo</b> de los dos Mercados de Pases más cercanos: vos elegís cuál. Al centro se puede entrar en cualquier momento, pero solo con el último paso: no es lugar de paso. Si te alcanza, levantás la Copa; si no, quedás adentro y con cada 1 te puede caer una Multa.'+ej('Mirás uno de los dos, no los dos.',icoBinoculares(38)+ejFl()+ejCarta(K.dorso('Jugador'))+'<b>o</b>'+ejCarta(K.dorso('Jugador')))],
     ['Barrabravas','Después de que movés tu cono, cada Barrabrava avanza <b>solo</b> una intersección en sentido horario, por su recorrido. Nadie puede pasar ni pararse donde hay un Barrabrava.'+ejCalle(['n','',''],1,'Si está libre, avanza uno.')+ejCalle(['n','c',''],2,'Si hay un cono, lo salta.')+ejCalle(['n','n',''],0,'Si hay otro Barrabrava, se queda donde está.')]
   ];
   return '<div class="reglas"><p class="nota" style="margin:0">Tocá un tema para abrirlo. Y si tocás cualquier pieza del tablero, te cuenta para qué sirve.</p>'+sec.map(function(x,i){return '<details'+(i===0?' open':'')+'><summary>'+x[0]+'</summary><div>'+x[1]+'</div></details>';}).join('')+'</div>';
@@ -441,7 +443,7 @@ function fichaPieza(g,pz){
   function tocan(a){return g.jug.filter(function(p){return p.pos>=0&&P.NODOS[p.pos]&&(P.NODOS[p.pos].areas||[]).indexOf(a)>=0;});}
   if(pz.t==='area'){var a=pz.a,r=g.rec[a],n=g.num[a];f.quien=tocan(a);f.num=n;
     if(a===0){f.tit='El Palco';f.sup='El centro de la isla';f.color='#22305a';
-      f.filas=[filaFicha(dado(1,'b',30),'Con cada 1','El que esté parado en un vértice se lleva una Multa.'),filaFicha(icoBinoculares(30),'Desde el Palco se ve todo','Desde cada vértice podés espiar uno solo de los dos Mercados de Pases más cercanos.'),filaFicha('<span class="ff-copa">★</span>','Acá se levanta la Copa','Al centro se entra por el pasillo, con el número justo, cuando ya tenés todo lo necesario.')];}
+      f.filas=[filaFicha(dado(1,'b',30),'Con cada 1','El que esté parado en un vértice se lleva una Multa.'),filaFicha(icoBinoculares(30),'Desde el Palco se ve todo','Desde cada vértice podés espiar uno solo de los dos Mercados de Pases más cercanos.'),filaFicha('<span class="ff-copa">★</span>','Acá se levanta la Copa','Al centro se entra por el pasillo, con el último paso del dado blanco. Si tenés todo lo necesario, levantás la Copa; si no, quedás adentro y el 1 también te toca.')];}
     else if(r){var est=a<=5;f.tit=est?P.ESTADIO[r]:P.PREDIO[r];f.sup=(est?'Estadio':'Predio')+' de '+P.CLUB[r];f.color=COL[r];
       f.filas=[filaFicha(iconoCirc(r,34),'Cobrás '+P.NOMBRE_REC[r],'Cuando sale un <b>'+n+'</b>, cada cono que toque esta pieza se lleva 1.'),filaFicha('<span class="ff-pos">DEL</span>','Con su Delantero','El Delantero de '+P.NOMBRE_REC[r]+' cobra el doble.')];
       if(!est)f.filas.push(filaFicha('<span class="ff-pos">$</span>','Boletería','En su punta está la Boletería de '+P.NOMBRE_REC[r]+'.'));}
@@ -549,14 +551,18 @@ var conf={limite:0,sel:[0,1,2,3],modo:'completo',filas:[{h:true},{h:false},{h:fa
 function caja(tit,html,clave,valor){if(!clave)return '<section class="caja"><h3>'+tit+'</h3>'+html+'</section>';ui.cajas=ui.cajas||{};return '<details class="caja plega" data-caja="'+clave+'"'+(ui.cajas[clave]?' open':'')+'><summary><h3>'+tit+'</h3><span class="caja-val">'+esc(valor)+'</span></summary><div class="caja-in">'+html+'</div></details>';}
 function cajaCuantos(n,attr,plega){return caja('¿Cuántos van a jugar?','<div class="sel" role="group" aria-label="Cuántos van a jugar">'+[2,3,4,5].map(function(x){return '<button class="chip" '+attr+'="'+x+'" aria-pressed="'+(n===x)+'">'+x+' DTs</button>';}).join('')+'</div><p class="nota" style="margin:0">Cada persona dirige a un DT. Los lugares libres los puede jugar la Máquina.</p>',plega?'cuantos':null,n+' DTs');}
 var MODOS=[['completo','Partido completo','Cada DT arma un equipo de 4 Jugadores: Arquero, Defensor, Volante y Delantero. Cada uno cuesta 2 Tokens. Es el juego entero, de unos 30 a 45 minutos.'],['rapido','Partido rápido','También con 4 Jugadores, pero cuestan 1 Token: Arquero y Defensor, 1 de Victoria; Volante y Delantero, 1 de Efectivo. Termina antes: cerca de un cuarto menos de turnos.']];
+// Modo de juego y tiempo por turno: dos botones de color, uno al lado del otro; cada toque pasa a la opción siguiente
+var LAPIZ='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-5L15.5 4.5a2.1 2.1 0 0 1 3 0l1 1a2.1 2.1 0 0 1 0 3L9 19z" fill="#fff8d6" stroke="#2b2620" stroke-width="2" stroke-linejoin="round"/><path d="M13.5 6.5l4 4M4 20l5-1" stroke="#2b2620" stroke-width="2"/></svg>';
+function botonesJuego(m,lim,attrM,attrL){var il=0;LIMITES.forEach(function(l,i){if(l[0]===lim)il=i;});
+  return '<div class="ini-bts"><button class="bt-op modo-'+m+'" '+attrM+'="'+(m==='rapido'?'completo':'rapido')+'" aria-label="Modo de juego: '+(m==='rapido'?'partido rápido':'partido completo')+'. Tocá para cambiarlo"><small>Modo de juego</small><b>'+(m==='rapido'?'Partido rápido':'Partido completo')+'</b><span>'+(m==='rapido'?'Jugadores a 1 Token':'Jugadores a 2 Tokens')+'</span></button><button class="bt-op tiempo" '+attrL+'="'+LIMITES[(il+1)%LIMITES.length][0]+'" aria-label="Tiempo por turno: '+LIMITES[il][1]+'. Tocá para cambiarlo"><small>Tiempo por turno</small><b>'+LIMITES[il][1]+'</b><span>'+(lim?'Después sigue solo':'Sin apuro')+'</span></button></div>';}
 function cajaModo(m,attr,plega){return caja('Modo de juego','<div class="modos" role="group" aria-label="Modo de juego">'+MODOS.map(function(x){var on=m===x[0];return '<button class="modo" '+attr+'="'+x[0]+'" aria-pressed="'+on+'"><b>'+x[1]+'</b>'+(on?'<span>'+x[2]+'</span>':'')+'</button>';}).join('')+'</div>',plega?'modo':null,m==='rapido'?'Partido rápido':'Partido completo');}
 function selectorLimite(actual,attr,plega){return caja('Tiempo por turno','<div class="sel" role="group" aria-label="Tiempo por turno">'+LIMITES.map(function(l){return '<button class="chip" '+attr+'="'+l[0]+'" aria-pressed="'+(actual===l[0])+'">'+l[1]+'</button>';}).join('')+'</div><p class="nota" style="margin:0">Si se acaba, el juego sigue por el colgado sin gastarle nada. Se frena mientras hay una oferta.</p>',plega?'tiempo':null,(LIMITES.filter(function(l){return l[0]===actual;})[0]||LIMITES[0])[1]);}
 function pantallaInicio(){
   var hay=false;try{hay=!!localStorage.getItem(CLAVE);}catch(e){}
   var redOk=window.PEXA_RED&&PEXA_RED.disponible(),salaGuardada=null;try{salaGuardada=localStorage.getItem('pexa-sala');}catch(e){}
   if(!ui.iniTab)ui.iniTab=redOk?'online':'local';
-  var s='<div class="ini"><span class="logo">'+K.logo('copa')+'</span><h1>PEXA<small>DREAM TEAM</small></h1>';
-  s+='<div class="hero"><h2>Armá tu Dream Team y levantá la Copa antes que nadie.</h2><ol class="hero-pasos"><li><div class="hp-vis hp-esc">'+P.REC.map(function(r){return iconoCirc(r,30);}).join('')+'</div><b>Juntá Recursos</b><span>Tirás los dados y cobran todos.</span></li><li><div class="hp-vis hp-car">'+[['fans',0],['gol',1],['picardia',2],['sponsors',3]].map(function(x){return '<span>'+K.jugador(x[0],x[1])+'</span>';}).join('')+'</div><b>Contratá 4 Jugadores</b><span>Uno por posición, a tu gusto.</span></li><li><div class="hp-vis">'+COPA.replace('class="copa"','class="hp-copa"')+'</div><b>Levantá la Copa</b><span>El primero en el Palco gana.</span></li></ol><ul class="hero-eng"><li>'+dado(5,'a',24)+'Jugás aunque no sea tu turno</li><li><i>⇄</i>Negociás con cualquiera</li><li><span class="ben-d">'+K.dorso('Beneficio')+'</span>Un Beneficio da vuelta el partido</li></ul><div class="hero-dato">2 a 5 DTs · 30 a 45 minutos</div><div class="hero-bts"><button class="bt oro" id="verTuto">Tutorial</button><button class="bt" id="verReglas">¿Cómo se juega?</button></div></div>';
+  var s='<div class="ini ini-com"><div class="ini-cab"><span class="logo">'+K.logo('copa')+'</span><h1>PEXA<small>DREAM TEAM</small></h1></div>';
+  s+='<div class="hero"><h2>Armá tu Dream Team y levantá la Copa antes que nadie.</h2><ol class="hero-pasos"><li><div class="hp-vis hp-esc">'+P.REC.map(function(r){return iconoCirc(r,30);}).join('')+'</div><b>Juntá Recursos</b><span>Tirás los dados y cobran todos.</span></li><li><div class="hp-vis hp-car">'+[['fans',0],['gol',1],['picardia',2],['sponsors',3]].map(function(x){return '<span>'+K.jugador(x[0],x[1])+'</span>';}).join('')+'</div><b>Contratá 4 Jugadores</b><span>Uno por posición, a tu gusto.</span></li><li><div class="hp-vis">'+COPA.replace('class="copa"','class="hp-copa"')+'</div><b>Levantá la Copa</b><span>El primero en el Palco gana.</span></li></ol><div class="hero-dato">2 a 5 DTs · 30 a 45 minutos</div><div class="hero-bts"><button class="bt oro" id="verTuto">Tutorial</button><button class="bt" id="verReglas">¿Cómo se juega?</button></div></div>';
   if(hay)s+='<button class="bt fuerte" id="seguir">Seguir el partido guardado</button>';
   s+='<div class="ini-tabs" role="tablist"><button role="tab" data-itab="online" aria-selected="'+(ui.iniTab==='online')+'"><b>Juego online</b><span>Cada uno desde su celu</span></button><button role="tab" data-itab="local" aria-selected="'+(ui.iniTab==='local')+'"><b>Juego local</b><span>Todos en este aparato</span></button></div><div class="ini-panel">';
   if(ui.iniTab==='online'){
@@ -567,11 +573,13 @@ function pantallaInicio(){
       s+=caja('¿Sos el que arma el partido?','<button class="bt oro" id="crearSala">Armar una sala</button><p class="nota" style="margin:0">Te damos un link y un código para pasarles a tus amigos.</p>');
     } else s+='<div class="aviso"><b>Para jugar cada uno desde su celu</b>Entrá por el link público: <a href="https://pexa-dreamteam.github.io/">pexa-dreamteam.github.io</a></div>';
   } else {
-    s+=cajaCuantos(conf.sel.length,'data-cuantos',1)+cajaModo(conf.modo,'data-m',1)+selectorLimite(conf.limite,'data-lim',1);
-    var filas='<p class="nota" style="margin:0">Tocá la cara para sumarlo o sacarlo, y el + para conocerlo. Podés cambiarle el nombre.</p>';
-    for(var i=0;i<5;i++){var d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0;filas+='<div class="dtelige'+(on?' on':'')+'"><div class="dt-cara"><button class="dt-tog" data-togdt="'+i+'" aria-pressed="'+on+'" aria-label="'+(on?'Sacar a ':'Sumar a ')+d.nombre+'">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-mas" data-verficha="'+i+'" aria-label="Conocer a '+d.nombre+'">+</button></div>'+(on?'<div class="dt-dat"><input data-nom="'+i+'" aria-label="Nombre de '+d.nombre+'" placeholder="'+d.nombre+'" maxlength="16" value="'+esc(conf.nombres[i]||d.nombre)+'"><div class="seg" role="group" aria-label="Quién juega"><button data-h="'+i+'" data-v="1" aria-pressed="'+h+'">Persona</button><button data-h="'+i+'" data-v="0" aria-pressed="'+(!h)+'">Máquina</button></div></div>':'<div class="dt-dat"><b>'+d.nombre+'</b><span class="nota">No juega</span></div>')+cono(i,22)+'</div>';}
-    filas='<button class="bt chico crea" id="crearDT">'+(conf.cus&&Object.keys(conf.cus).length?'Cambiar a tu propio DT':'Creá tu propio DT')+'</button>'+filas;
-    s+=caja('Elegí a tu DT',filas,'dts',conf.sel.map(function(q){return P.DTS[q].nombre;}).join(', '))+'<button class="bt oro" id="empezar">Empezar el partido</button><p class="nota" style="margin:0">Jugás contra la Máquina o pasándose el aparato.</p>';
+    s+=botonesJuego(conf.modo,conf.limite,'data-m','data-lim');
+    // Los cinco DTs: el botón de la izquierda lo suma o lo saca; el lápiz (o la cara) abre su ficha para editarlo
+    var filas='';
+    for(var i=0;i<5;i++){var d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0,nom=conf.nombres[i]||d.nombre;
+      filas+='<div class="dtelige'+(on?' on':'')+'"><button class="dt-add" data-togdt="'+i+'" aria-pressed="'+on+'" aria-label="'+(on?'Sacar a ':'Sumar a ')+esc(nom)+'">'+(on?'✓':'+')+'</button><div class="dt-cara"><button class="dt-tog" data-edit="'+i+'" aria-label="Ver y editar a '+esc(nom)+'">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-lapiz" data-edit="'+i+'" aria-label="Editar a '+esc(nom)+'">'+LAPIZ+'</button></div>'+
+        '<div class="dt-dat dt-lin"><b>'+esc(nom)+'</b>'+(on?'<button class="dt-quien'+(h?' per':'')+'" data-h="'+i+'" data-v="'+(h?0:1)+'" aria-label="Lo juega '+(h?'una persona':'la Máquina')+'. Tocá para cambiar">'+(h?'Persona':'Máquina')+'</button>':'<span class="nota">No juega</span>')+'</div>'+cono(i,22)+'</div>';}
+    s+='<section class="caja"><h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><button class="bt oro" id="empezar">Empezar el partido</button>';
   }
   s+='</div></div>';
   app.innerHTML=s;
@@ -581,14 +589,13 @@ function pantallaInicio(){
   app.querySelectorAll('[data-caja]').forEach(function(x){x.ontoggle=function(){ui.cajas[x.dataset.caja]=x.open;};});
   app.querySelectorAll('[data-itab]').forEach(function(x){x.onclick=function(){guardarNombreInput();leerNombres();ui.iniTab=x.dataset.itab;pantallaInicio();};});
   if(redOk&&ui.iniTab==='online')conectarAmigos(salaGuardada);
-  var cdt=document.getElementById('crearDT');if(cdt)cdt.onclick=function(){leerNombres();var i0=conf.sel.filter(function(q){return conf.filas[q].h;})[0];ui.modal={tipo:'crear',r:rasgosGuardados(),para:i0};pintarModal(null,null,null);};
+  app.querySelectorAll('[data-edit]').forEach(function(x){x.onclick=function(){var i3=+x.dataset.edit;ui.modal={tipo:'editDT',i:i3,r:conf.cus&&conf.cus[i3]?JSON.parse(JSON.stringify(conf.cus[i3])):null,nombre:conf.nombres[i3]||P.DTS[i3].nombre};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-cuantos]').forEach(function(x){x.onclick=function(){leerNombres();var n=+x.dataset.cuantos,i2;
     while(conf.sel.length<n){for(i2=0;i2<5;i2++)if(conf.sel.indexOf(i2)<0){conf.sel.push(i2);break;}}
     while(conf.sel.length>n){var maq=conf.sel.filter(function(q){return !conf.filas[q].h;});conf.sel.splice(conf.sel.indexOf(maq.length?maq[maq.length-1]:conf.sel[conf.sel.length-1]),1);}
     conf.sel.sort();if(!conf.sel.some(function(q){return conf.filas[q].h;}))conf.filas[conf.sel[0]].h=true;pantallaInicio();};});
   app.querySelectorAll('[data-lim]').forEach(function(x){x.onclick=function(){leerNombres();conf.limite=+x.dataset.lim;pantallaInicio();};});
   app.querySelectorAll('[data-togdt]').forEach(function(x){x.onclick=function(){leerNombres();var v=+x.dataset.togdt,ix=conf.sel.indexOf(v);if(ix>=0){if(conf.sel.length<=2){mostrarAviso('Tienen que jugar 2 DTs como mínimo.');return;}conf.sel.splice(ix,1);}else{conf.sel.push(v);conf.sel.sort();}if(!conf.sel.some(function(q){return conf.filas[q].h;}))conf.filas[conf.sel[0]].h=true;pantallaInicio();};});
-  app.querySelectorAll('[data-verficha]').forEach(function(x){x.onclick=function(){leerNombres();ui.modal={tipo:'dt',dt:+x.dataset.verficha};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-m]').forEach(function(x){x.onclick=function(){leerNombres();conf.modo=x.dataset.m;pantallaInicio();};});
   app.querySelectorAll('[data-h]').forEach(function(x){x.onclick=function(){leerNombres();conf.filas[+x.dataset.h].h=x.dataset.v==='1';pantallaInicio();};});
   app.querySelectorAll('[data-nom]').forEach(function(x){x.onfocus=function(){x.select();};});
@@ -673,7 +680,7 @@ function panelAccion(g,yo,me,miTurno){
     case 'barraIni':return R('Poné un Barrabrava',g.barraPaso===0?'En un vértice libre del Palco.':'En un punto de arranque libre.');
     case 'tirar':return R('Te toca tirar','Los dos dados activan piezas: con cada número cobran todos los que las tocan. El blanco, además, te dice cuánto caminás.','<button class="bt oro tirar-bt" id="tirar">'+dado(5,'a',34)+'<span>Tirar los dados</span>'+dado(3,'b',34)+'</button>');
     case 'mover':{var ds=P.destinos(g,yo),q=g.mv.quieto;
-      return R(ds.length?'Mové tu cono':'No tenés camino',(g.dados[0]===g.dados[1]&&!g.mv.jet?'¡Doble! Caminás la suma de los dos dados. ':'')+(g.mv.jet?'Jet Privado: elegí cualquier intersección libre.':(g.mv.arreglo?'Los Barrabravas ya avanzaron. ':'')+(ds.length?'Tocá una de las esquinas marcadas. Tenés que caminar '+g.mv.pasos.join(' o ')+'.':'Te quedás donde estás.'))+(ds.indexOf(P.CENTRO)>=0?' <b class="palco-si">¡Podés levantar la Copa! Tocá el centro del Palco.'+(P.suma(me.multas)?' Al entrar pagás tus '+P.suma(me.multas)+' Multas con lo que tenés en la mano.':'')+'</b>':''),(!ds.length||q)?'<button class="bt gr fuerte" id="quedarse">Quedarme acá</button>':'');}
+      return R(ds.length?'Mové tu cono':'No tenés camino',(g.dados[0]===g.dados[1]&&!g.mv.jet?'¡Doble! Caminás la suma de los dos dados. ':'')+(g.mv.jet?'Jet Privado: elegí cualquier intersección libre.':(g.mv.arreglo?'Los Barrabravas ya avanzaron. ':'')+(ds.length?'Tocá una de las esquinas marcadas. Tenés que caminar '+g.mv.pasos.join(' o ')+'.':'Te quedás donde estás.'))+(ds.indexOf(P.CENTRO)>=0?(P.gana(g,me)?' <b class="palco-si">¡Podés levantar la Copa! Tocá el centro del Palco.'+(P.suma(me.multas)?' Al entrar pagás tus '+P.suma(me.multas)+' Multas con lo que tenés en la mano.':'')+'</b>':' <b>Ojo: el centro del Palco está marcado, pero todavía no te alcanza para levantar la Copa.</b> Si entrás, quedás adentro y con cada 1 te puede caer una Multa.'):''),(!ds.length||q)?'<button class="bt gr fuerte" id="quedarse">Quedarme acá</button>':'');}
     case 'espiar':return R('Desde el Palco se ve todo','Podés mirar uno solo: tocá en el tablero cuál de los dos Mercados de Pases marcados querés ver. Los otros tres quedan demasiado lejos.','<button class="bt gr" id="noEspiar">No mirar</button>');
     case 'mercado':return R(esc(nombreMercado(g,g.mercadoAbierto)),'Estás mirando los Jugadores de este Mercado.');
     case 'canje':{var m=P.mercadoDe(me.pos),entra=m>=0&&!me.contrato&&g.mercados[m].length;return R('Canjeá y negociá',esc(consejoCanje(g,me)),entra?'<button class="bt gr rojo ancho" data-abrir>Entrar al Mercado de Pases</button>'+filaTurno(g,yo,me,miTurno):'');}
@@ -829,6 +836,7 @@ function pintarModal(g,yo,me){
   if(M.tipo==='reglas')s='<h2>Reglas</h2>'+tabReglas(g,me)+'';
   if(M.tipo==='canjes')s='<h2>Canjear</h2>'+tabCanjes(g,yo,me)+'';
   if(M.tipo==='crear')s=modalCrear(M);
+  if(M.tipo==='editDT')s=modalEditDT(M);
   if(M.tipo==='tok'){var tkV=M.tk==='V';s='<div class="multa-g">'+token(M.tk,150)+'</div><h2 style="margin:0">Token de '+(tkV?'Victoria':'Efectivo')+'</h2><div class="ej"><div class="ej-v">'+precioIc(P.PRECIO[M.tk],28)+ejFl()+token(M.tk,40)+'</div><small>Se canjea en tu turno.</small></div><p style="margin:0">Con Tokens se contratan los Jugadores, parado en un Mercado de Pases. '+(g&&g.modo==='rapido'&&g.meta===4?(tkV?'En este partido, el de Victoria paga a tu Arquero y a tu Defensor.':'En este partido, el de Efectivo paga a tu Volante y a tu Delantero.'):'Cada Jugador cuesta uno de Victoria y uno de Efectivo.')+' Cambiar a uno que ya tenés cuesta 1 Token.</p>';}
   if(M.tipo==='pos'){var PD=[['Arquero','Con su Recurso pagás cualquier Multa.'],['Defensor','La Multa de su Recurso te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.'],['Volante','En cualquier lugar cambiás 2 de su Recurso por 1 a elección. En la Boletería de su Recurso, 1 por 1.'],['Delantero','Cuando cobrás su Recurso, levantás el doble.']][M.i];s='<div class="grande chica">'+K.dorso('Jugador')+'</div><h2 style="margin:0">'+PD[0]+'</h2><p style="margin:0"><b>Qué hace:</b> '+PD[1]+'</p><p class="nota" style="margin:0">Hay un '+PD[0]+' por cada club, y su habilidad usa el Recurso de ese club. Se contrata en un Mercado de Pases.</p>';}
   if(M.tipo==='usados'){var qu=g.jug[M.q];s='<h2>Beneficios usados</h2><p style="margin:0">'+dtN(qu)+' lleva <b>'+qu.usados.length+'</b>. Con 3 usados, cuando quiera, los entrega por 1 Recurso a elección.</p>'+(qu.usados.length?'<div class="pz-eq">'+qu.usados.map(function(b){return '<button class="cartita" data-verb="'+b+'" data-solo="1" aria-label="Ver '+esc(P.BENEF[b].n)+'">'+K.beneficio(P.BENEF[b].n)+'</button>';}).join('')+'</div>':'<p class="nota" style="margin:0">Todavía no usó ninguno.</p>');
@@ -873,6 +881,7 @@ function pintarModal(g,yo,me){
   if(ui.tuto&&ui.tutoHook)ui.tutoHook(c2,M);
   c2.querySelectorAll('[data-cerrar]').forEach(function(x){x.onclick=cierra;});
   if(M.tipo==='crear')conectarCrear(c2,M);
+  if(M.tipo==='editDT')conectarEditDT(c2,M);
   var ub=c2.querySelector('#usarB');if(ub)ub.onclick=function(){limpiarModales();usarBen(g,yo,M.b);};
   c2.querySelectorAll('[data-par]').forEach(function(x){x.onclick=function(){var v=x.dataset.val;if(x.dataset.par==='dt'||x.dataset.par==='pos')v=+v;M.a[x.dataset.par]=v;limpiarModales();pintarModal(g,yo,me);};});
   var cb=c2.querySelector('#confirmarB');if(cb)cb.onclick=function(){var a=Object.assign({t:'usar',b:M.b},M.a);limpiarModales();ui.modal=null;sala.enviar(yo,a);};
@@ -894,6 +903,28 @@ var RASGOS=[['g','Es',['Varón','Mujer']],['pelo','Pelo',{m:['Corto','Con entrad
 function rasgosGuardados(){try{var t=localStorage.getItem('pexa-midt');if(t)return JSON.parse(t);}catch(e){}return {g:'m',pelo:0,ojos:0,cara:0,piel:1,ropa:0,pose:0};}
 function modalCrear(M){var r=M.r;
   return '<h2>Creá tu propio DT</h2><div class="dt-grande chica">'+K.dtCustom(r,true)+'</div>'+RASGOS.map(function(x){var ops=x[0]==='pelo'?x[2][r.g==='f'?'f':'m']:x[2];return '<div class="cr-f"><b>'+x[1]+'</b><div class="sel">'+ops.map(function(n,i){var on=x[0]==='g'?(r.g==='f')===(i===1):r[x[0]]===i;return '<button class="chip" data-cr="'+x[0]+'" data-v="'+i+'" aria-pressed="'+on+'">'+esc(n)+'</button>';}).join('')+'</div></div>';}).join('')+'<button class="bt fuerte" id="crListo">Usar este DT</button>'+(M.habia?'<button class="bt chico" id="crSacar">Volver a un DT de la liga</button>':'');
+}
+// La ficha de cada DT: de cuerpo entero, con su descripción, el nombre y flechitas para cambiarle cada rasgo
+function opsRasgo(x,r){return x[0]==='pelo'?x[2][r.g==='f'?'f':'m']:x[2];}
+function modalEditDT(M){var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r;
+  var fig=r?K.dtCustom(r,true):K.dtEntero(M.i);
+  var izq=RASGOS.map(function(x){return '<button class="ed-fl" data-ed="'+x[0]+'" data-d="-1" aria-label="'+x[1]+': anterior"><i>‹</i>'+x[1]+'</button>';}).join(''),der=RASGOS.map(function(x){return '<button class="ed-fl der" data-ed="'+x[0]+'" data-d="1" aria-label="'+x[1]+': siguiente">'+x[1]+'<i>›</i></button>';}).join('');
+  var cap=M.ult?M.ult:(r?'Un DT hecho a tu medida.':esc(pz.como||''));
+  return '<input class="ent ed-nom" id="edNom" aria-label="Nombre del DT" maxlength="16" value="'+esc(M.nombre)+'">'+(r?'':'<p class="ed-frase">«'+esc(pz.frase||'')+'»</p>')+
+    '<div class="ed-grid"><div class="ed-col">'+izq+'</div><div class="ed-fig">'+fig+'</div><div class="ed-col">'+der+'</div></div><p class="ed-cap">'+cap+'</p>'+
+    '<button class="bt fuerte" id="edListo">Listo</button>'+(r?'<button class="bt chico" id="edOrig">Volver a '+esc(d.nombre)+' original</button>':'');
+}
+function conectarEditDT(c,M){
+  var n=c.querySelector('#edNom');if(n){n.oninput=function(){M.nombre=n.value;};n.onfocus=function(){n.select();};}
+  c.querySelectorAll('[data-ed]').forEach(function(b){b.onclick=function(){var k=b.dataset.ed,dl=+b.dataset.d;if(!M.r)M.r=rasgosGuardados();
+    var x=RASGOS.filter(function(y){return y[0]===k;})[0];
+    if(k==='g'){M.r.g=M.r.g==='f'?'m':'f';M.r.pelo=0;}else{var len=opsRasgo(x,M.r).length;M.r[k]=((M.r[k]||0)+dl+len)%len;}
+    M.ult=x[1]+': '+esc(k==='g'?(M.r.g==='f'?'Mujer':'Varón'):opsRasgo(x,M.r)[M.r[k]]);
+    var h=c.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;};});
+  var o=c.querySelector('#edOrig');if(o)o.onclick=function(){M.r=null;M.ult=null;limpiarModales();pintarModal(null,null,null);};
+  var l=c.querySelector('#edListo');if(l)l.onclick=function(){conf.nombres[M.i]=(M.nombre||'').trim()||P.DTS[M.i].nombre;conf.cus=conf.cus||{};
+    if(M.r){conf.cus[M.i]=M.r;try{localStorage.setItem('pexa-midt',JSON.stringify(M.r));}catch(e){}}else delete conf.cus[M.i];
+    limpiarModales();ui.modal=null;pantallaInicio();};
 }
 function conectarCrear(c,M){
   c.querySelectorAll('[data-cr]').forEach(function(b){b.onclick=function(){var k=b.dataset.cr,v=+b.dataset.v;if(k==='g')M.r.g=v===1?'f':'m';else M.r[k]=v;var h=c.querySelector('.hoja'),top=h.scrollTop;limpiarModales();pintarModal(null,null,null);var n=document.querySelector('.modal .hoja');if(n)n.scrollTop=top;};});
@@ -930,7 +961,8 @@ function conectarEn(raiz,g,yo,me){
   todos('[data-verpos]',function(x){ui.modal={tipo:'pos',i:+x.dataset.verpos};pintar();});
   todos('[data-vertk]',function(x){ui.modal={tipo:'tok',tk:x.dataset.vertk};pintar();});
   todos('[data-verusados]',function(x){ui.modal={tipo:'usados',q:+x.dataset.verusados};pintar();});
-  raiz.querySelectorAll('[data-resab]').forEach(function(x){x.ontoggle=function(){ui.resAb=ui.resAb||{};ui.resAb[x.dataset.resab]=x.open;};});
+  // Los desplegables del final: uno abierto a la vez
+  raiz.querySelectorAll('[data-resab]').forEach(function(x){x.ontoggle=function(){ui.resAb=ui.resAb||{};ui.resAb[x.dataset.resab]=x.open;if(x.open)raiz.querySelectorAll('[data-resab]').forEach(function(y){if(y!==x&&y.open)y.open=false;});};});
   on('pausaTog',function(){ui.pausa=!ui.pausa;pintar();if(!ui.pausa)avanzarBots();});
 
   on('tirar',function(){sala.enviar(yo,{t:'tirar'});});
@@ -1010,7 +1042,7 @@ function pantallaLobby(){
   for(i=0;i<l.n;i++)if(!l.a[i])listos=false;
   var s='<div class="ini"><span class="logo logo-sala">'+K.logo('pexa')+'</span><h1 style="font-size:28px">Sala<small>'+esc(c)+'</small></h1>';
   s+=caja('Pasales la sala a tus amigos','<div class="fila"><a class="bt chico compartir wa" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent('¿Jugamos a PEXA? Entrá acá: '+link)+'">'+icoWa(20)+'<span>Mandar por WhatsApp</span></a><button class="bt chico compartir" id="copiarLink">Copiar el link</button></div><p class="nota" style="margin:0">También pueden entrar con el código <b>'+esc(c)+'</b>.</p>');
-  if(host)s+=cajaCuantos(l.n,'data-ln')+cajaModo(l.modo,'data-lm')+selectorLimite(l.limite||0,'data-ll');
+  if(host)s+=cajaCuantos(l.n,'data-ln')+botonesJuego(l.modo,l.limite||0,'data-lm','data-ll');
   else s+='<p class="nota" style="margin:0">'+l.n+' DTs · '+(l.modo==='rapido'?'Partido rápido (Jugadores a 1 Token)':'Partido completo (Jugadores a 2 Tokens)')+' · '+(l.limite?'reloj de '+l.limite+' s por turno':'sin límite de tiempo')+'.</p>';
   // Un solo lugar para elegir o cambiar de DT: cada DT aparece una vez
   var filas='<p class="nota" style="margin:0">Tocá la cara del DT que querés y el + para conocerlo.</p>',miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});

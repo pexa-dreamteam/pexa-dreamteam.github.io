@@ -149,6 +149,9 @@ function pagoEntrada(p,mano){
 function gana(g,p,mano){return contratados(p)>=g.meta&&!!pagoEntrada(p,mano||p.mano);}
 function boleDe(g,k){var n=NODOS[k];if(!n)return null;if(n.t==='F'||n.t==='Dp')return g.rec[6+n.i];if(n.t==='Dm')return g.rec[6+(n.i+4)%5];return null;}
 function mercadoDe(k){var n=NODOS[k];return n&&n.t==='E'?n.i:-1;}
+// El centro del Palco no es una intersección más: está en el Palco (le toca el 1) y se llega desde cualquier vértice
+function areasDe(k){return k===CENTRO?[0]:(NODOS[k]&&NODOS[k].areas)||[];}
+function dd(a,b){if(a===b)return 0;if(a===CENTRO)return 1+Math.min.apply(null,PALCO.map(function(z){return DIST[z][b];}));if(b===CENTRO)return dd(b,a);return DIST[a][b];}
 // Cuántos hay que dar de r para llevarse 1 de otro: la mejor tasa que tiene el DT donde está parado
 // La Boletería pide 2 de su Recurso por 1 de otro. El Volante de ese Recurso, parado en esa Boletería, cambia 1 por 1.
 function tasaBanco(g,p,r,k){var t=4,v=hab(p,2);if(v===r)t=2;if(boleDe(g,k==null?p.pos:k)===r)t=v===r?1:2;return t;}
@@ -201,13 +204,13 @@ function cobrar(g,d){
   // Recursos primero. Si el Banco no alcanza para todos los que cobran un Recurso, ese Recurso no lo cobra nadie en esta tirada.
   var pide={};REC.forEach(function(r){pide[r]=[];});
   d.forEach(function(x){g.porNum[x].forEach(function(a){var r=g.rec[a];if(!r)return;
-    g.jug.forEach(function(p){if(p.pos<0||!NODOS[p.pos].areas||NODOS[p.pos].areas.indexOf(a)<0)return;pide[r].push([p,hab(p,3)===r?2:1]);});});});
+    g.jug.forEach(function(p){if(p.pos<0||areasDe(p.pos).indexOf(a)<0)return;pide[r].push([p,hab(p,3)===r?2:1]);});});});
   REC.forEach(function(r){var tot=0;pide[r].forEach(function(x){tot+=x[1];});if(!tot)return;
     if(tot>g.banco[r]){anotar(g,'El Banco no alcanza: nadie cobra '+NOMBRE_REC[r]+' en esta tirada.');if(g.ultTiro)g.ultTiro.sinB.push(r);return;}
     var porJ={};pide[r].forEach(function(x){x[0].mano[r]+=x[1];g.banco[r]-=x[1];porJ[x[0].id]=(porJ[x[0].id]||0)+x[1];st(x[0]).cobro+=x[1];totales(g).cob[r]+=x[1];if(x[1]>1)infl(x[0],3,'extra',x[1]-1);});
     Object.keys(porJ).forEach(function(id){anotar(g,g.jug[id].nombre+' cobra '+porJ[id]+' de '+NOMBRE_REC[r]+'.');if(g.ultTiro)g.ultTiro.cob.push({j:+id,r:r,n:porJ[id]});});});
   d.forEach(function(x){g.porNum[x].forEach(function(a){if(g.rec[a])return;
-    g.jug.forEach(function(p){if(p.pos<0||NODOS[p.pos].areas.indexOf(a)<0)return;sacarMulta(g,p);});});});
+    g.jug.forEach(function(p){if(p.pos<0||areasDe(p.pos).indexOf(a)<0)return;sacarMulta(g,p);});});});
 }
 function sacarMulta(g,p){
   if(suma(p.multas)>=maxMultas(g,p))return;
@@ -235,14 +238,14 @@ function iniciarMover(g){
 }
 function destinos(g,j){
   var p=g.jug[j],res={},mv=g.mv;if(!mv)return [];
-  var entra=gana(g,p);
-  if(mv.jet){NODOS.forEach(function(n){if(!ocupado(g,n.id))res[n.id]=1;});if(entra)res[CENTRO]=1;return Object.keys(res).map(Number);}
+  if(mv.jet){NODOS.forEach(function(n){if(!ocupado(g,n.id))res[n.id]=1;});res[CENTRO]=1;return Object.keys(res).map(Number);}
   mv.pasos.forEach(function(pasos){var hecho={};
     (function dfs(u,q){
       if(q===0){if(!ocupado(g,u,j))res[u]=1;return;}
-      if(q===1&&entra&&NODOS[u].t==='A')res[CENTRO]=1;
+      // Al centro del Palco se entra en cualquier momento, pero solo con el último paso y desde un vértice: no es lugar de paso
+      if(q===1&&NODOS[u]&&NODOS[u].t==='A'&&!hecho[CENTRO*100+u])res[CENTRO]=1;
       // Nunca se retrocede: no se camina al revés un tramo ya hecho. Sí se puede pasar por donde se arrancó y dar la vuelta a una pieza más de una vez.
-      ADJ[u].forEach(function(v){if(hecho[v*100+u])return;if(!mv.libre&&ocupado(g,v,j))return;var c=u*100+v,ya=hecho[c];hecho[c]=1;dfs(v,q-1);hecho[c]=ya;});
+      (u===CENTRO?PALCO:ADJ[u]).forEach(function(v){if(hecho[v*100+u])return;if(!mv.libre&&ocupado(g,v,j))return;var c=u*100+v,ya=hecho[c];hecho[c]=1;dfs(v,q-1);hecho[c]=ya;});
     })(p.pos,pasos);});
   return Object.keys(res).map(Number);
 }
@@ -252,8 +255,9 @@ function mover(g,j,k){
   var p=g.jug[j];
   if(destinos(g,j).indexOf(k)<0)falla('A ese lugar no llegás con este número.');
   if(k===CENTRO&&defPrueba(g)==='ultimo'){var ul=g.jug.filter(function(q){return q.id!==j&&hab(q,1)&&!q.usoUlt;})[0];if(ul){ul.usoUlt=true;st(ul).frenadas++;despuesDeMover(g);return;}}
-  if(k!==CENTRO&&p.pos>=0&&!g.mv.jet)st(p).pasos+=DIST[p.pos][k];
-  p.pos=k;anotar(g,p.nombre+' va a '+nombreNodo(g,k)+'.');
+  if(p.pos>=0&&!g.mv.jet)st(p).pasos+=dd(p.pos,k);
+  p.pos=k;anotar(g,p.nombre+(k===CENTRO?' va al centro del Palco.':' va a '+nombreNodo(g,k)+'.'));
+  if(k===CENTRO&&!gana(g,p)){anotar(g,p.nombre+' queda adentro del Palco sin poder levantar la Copa.');despuesDeMover(g);return;}
   if(k===CENTRO){var pg=pagoEntrada(p,p.mano);pg.forEach(function(x){pagar(g,j,x[0],x[1]);});g.comoGano={jet:!!g.mv.jet,pagos:pg.length};g.t1=Date.now();g.ganador=j;g.fase='fin';anotar(g,'¡'+p.nombre+' levanta la Copa con su Dream Team y gana el partido!');return;}
   if(NODOS[k].t==='A'&&mercadosCercanos(k).some(function(m){return g.mercados[m].length;})){g.fase='espiar';return;}
   despuesDeMover(g);
@@ -435,7 +439,7 @@ function usarBeneficio(g,j,b,a){
       g.banco[a.r]--;p.mano[a.r]++;g.banco[a.r2]--;p.mano[a.r2]++;p.amnistia=false;ef={da:a.da,gana:[a.r,a.r2]};break;
     case 'asistencia':ef={rob:[]};g.jug.forEach(function(o){if(o===p||!suma(o.mano))return;var l=[];REC.forEach(function(k){for(var i=0;i<o.mano[k];i++)l.push(k);});var r=l[Math.floor(az(g)*l.length)];o.mano[r]--;p.mano[r]++;st(p).robo++;st(o).robado++;totales(g).robR++;ef.rob.push({q:o.id,r:r});golpe(g,p.nombre+' te robó 1 de '+NOMBRE_REC[r]+' con Asistencia Forzosa.',o.id);});break;
     case 'descuento':var x=dado(g),cob=0;anotar(g,p.nombre+' juega el Alargue: sale '+x+'.');
-      g.porNum[x].forEach(function(ar){var r=g.rec[ar];if(r&&NODOS[p.pos].areas&&NODOS[p.pos].areas.indexOf(ar)>=0){var c=Math.min(2*(hab(p,3)===r?2:1),g.banco[r]);g.banco[r]-=c;p.mano[r]+=c;cob+=c;}});
+      g.porNum[x].forEach(function(ar){var r=g.rec[ar];if(r&&areasDe(p.pos).indexOf(ar)>=0){var c=Math.min(2*(hab(p,3)===r?2:1),g.banco[r]);g.banco[r]-=c;p.mano[r]+=c;cob+=c;}});
       anotar(g,cob?p.nombre+' levanta '+cob+' Recursos.':p.nombre+' no toca ese número: no cobra nada.');ef={dado:x,cob:cob};break;
     case 'barrida':q=otro(g,j,a.dt);if(REC.indexOf(a.r)<0)falla('Nombrá un Recurso.');var cb=q.mano[a.r];q.mano[a.r]=0;p.mano[a.r]+=cb;
       anotar(g,p.nombre+' le barre '+cb+' de '+NOMBRE_REC[a.r]+' a '+q.nombre+'.');st(p).robo+=cb;st(q).robado+=cb;totales(g).robR+=cb;golpe(g,p.nombre+' te barrió '+cb+' de '+NOMBRE_REC[a.r]+' con Barrida.',q.id);ef={q:q.id,r:a.r,n:cb};break;
@@ -561,7 +565,7 @@ function accion0(g,j,a){
 // Se la lleva el que más tiene (si hay empate, todos los empatados); si empatan todos o nadie hizo nada, no se entrega.
 function menciones(g){
   var l=[];
-  function mas(tit,txt,val){var b=-1,q=[];g.jug.forEach(function(p){var v=val(p);if(v>b){b=v;q=[p.id];}else if(v===b)q.push(p.id);});if(b>0&&q.length<g.n)l.push({t:tit,d:txt.replace('#',String(b).replace('.',',')),j:q});}
+  function mas(tit,txt,val){var b=-1,q=[];g.jug.forEach(function(p){var v=val(p);if(v>b){b=v;q=[p.id];}else if(v===b)q.push(p.id);});if(b>0&&q.length<g.n)l.push({t:tit,d:b===1?txt.replace('# veces','una vez').replace('# intersecciones','1 intersección').replace(/# (\S+?)s\b/,'1 $1'):txt.replace('#',String(b).replace('.',',')),j:q});}
   var s=function(k){return function(p){return st(p)[k];};};
   g.jug.forEach(function(p){var e=p.eq.filter(Boolean);if(e.length<g.meta)return;var cl={};e.forEach(function(c){cl[c.club]=1;});var n=Object.keys(cl).length;
     if(n===1)l.push({t:'Fútbol Champagne',d:'Armó el equipo completo de un solo color: '+CLUB[e[0].club]+'.',j:[p.id],top:1});
@@ -617,13 +621,14 @@ function evaluarTrato(g,p,q,rec,da){
   return yo-peso*Math.max(el,0);
 }
 function margen(p){return [.2,.6,.4,.8,.3][p.dt];}
-function valorNodo(g,p,k){var d=deficit(g,p),v=0,del=hab(p,3);NODOS[k].areas.forEach(function(a){var r=g.rec[a];if(r)v+=(d[r]>0?1:.3)*(del===r?2:1);else v-=.6;});return v;}
+function valorNodo(g,p,k){var d=deficit(g,p),v=0,del=hab(p,3);areasDe(k).forEach(function(a){var r=g.rec[a];if(r)v+=(d[r]>0?1:.3)*(del===r?2:1);else v-=.6;});return v;}
 function faltanPos(g,p){var f=[];for(var i=0;i<4;i++)if(!p.eq[i])f.push(i);return contratados(p)>=g.meta?[]:f;}
 function puntaje(g,p,k){
-  if(k===CENTRO)return 1e6;
+  // Al centro solo conviene entrar para ganar: si no, únicamente cuando no queda otra
+  if(k===CENTRO)return gana(g,p)?1e6:-1e6;
   var s=valorNodo(g,p,k),f=faltanPos(g,p);
-  if(contratados(p)>=g.meta){var m=99;PALCO.forEach(function(a){m=Math.min(m,DIST[k][a]);});s+=m===0?8:(m<=5?10-m:0);}
-  if(puedeContratarAlgo(g,p)&&f.length){var mejor=0;for(var i=0;i<5;i++){if(!g.mercados[i].length)continue;var c=p.conoce[i],sirve=c?c.c.some(function(x){return f.indexOf(x.pos)>=0&&puedeFichar(g,p,x);}):true;if(!sirve)continue;var d=DIST[k][MERCADOS[i]];mejor=Math.max(mejor,d===0?40:14/(1+d));}s+=mejor;}
+  if(contratados(p)>=g.meta){var m=99;PALCO.forEach(function(a){m=Math.min(m,dd(k,a));});s+=m===0?8:(m<=5?10-m:0);}
+  if(puedeContratarAlgo(g,p)&&f.length){var mejor=0;for(var i=0;i<5;i++){if(!g.mercados[i].length)continue;var c=p.conoce[i],sirve=c?c.c.some(function(x){return f.indexOf(x.pos)>=0&&puedeFichar(g,p,x);}):true;if(!sirve)continue;var d=dd(k,MERCADOS[i]);mejor=Math.max(mejor,d===0?40:14/(1+d));}s+=mejor;}
   var bo=boleDe(g,k);if(bo){var sb=sobrante(g,p),df=deficit(g,p),t=0;REC.forEach(function(r){if(r!==bo)t+=df[r];});s+=Math.min(Math.floor(sb[bo]/tasaBanco(g,p,bo,k)),t)*1.2;}
   return s+az(g)*.05;
 }
@@ -672,9 +677,9 @@ function botBeneficio(g,j,p,f2){
   if(tiene('uno')&&quiero.length){var dar=REC.filter(function(k){return s[k]>=1&&quiero.indexOf(k)<0&&usable(p,k);})[0];if(dar&&g.banco[quiero[0]]>=2)return {t:'usar',b:'uno',da:dar,r:quiero[0],r2:quiero[1]||quiero[0]};}
   if(tiene('extra')&&quiero.length)return {t:'usar',b:'extra',r:quiero[0]};
   if(tiene('descuento')&&suma(p.mano)<8&&Object.keys(tocados(g,p.pos)).length>=2)return {t:'usar',b:'descuento'};
-  if(tiene('espionaje')&&f2>0){var ms=[0,1,2,3,4].filter(function(m){return g.mercados[m].length&&!p.conoce[m];}).sort(function(a,b){return DIST[p.pos][MERCADOS[a]]-DIST[p.pos][MERCADOS[b]];});if(ms.length)return {t:'usar',b:'espionaje',m:ms[0]};}
+  if(tiene('espionaje')&&f2>0){var ms=[0,1,2,3,4].filter(function(m){return g.mercados[m].length&&!p.conoce[m];}).sort(function(a,b){return dd(p.pos,MERCADOS[a])-dd(p.pos,MERCADOS[b]);});if(ms.length)return {t:'usar',b:'espionaje',m:ms[0]};}
   if(tiene('figuritas')){for(var pz=3;pz>=0;pz--){if(!p.eq[pz])continue;for(var i2=0;i2<g.n;i2++){if(i2===j)continue;var c2=g.jug[i2].eq[pz];if(c2&&c2.club!==p.eq[pz].club&&d[c2.club]>d[p.eq[pz].club])return {t:'usar',b:'figuritas',dt:i2,pos:pz};}}}
-  if(tiene('gas')&&L&&g.barras.length){var libres=NODOS.map(function(n){return n.id;}).filter(function(k){return !ocupado(g,k)&&enRecorrido(k);}),ce=L.pos===CENTRO?[]:ADJ[L.pos].filter(function(k){return !ocupado(g,k)&&enRecorrido(k);}),el2=[];ce.concat(libres).forEach(function(k){if(el2.length<g.barras.length&&el2.indexOf(k)<0)el2.push(k);});if(ce.length&&el2.length===g.barras.length)return {t:'usar',b:'gas',nodos:el2};}
+  if(tiene('gas')&&L&&g.barras.length){var libres=NODOS.map(function(n){return n.id;}).filter(function(k){return !ocupado(g,k)&&enRecorrido(k);}),ce=L.pos===CENTRO||L.pos<0?[]:ADJ[L.pos].filter(function(k){return !ocupado(g,k)&&enRecorrido(k);}),el2=[];ce.concat(libres).forEach(function(k){if(el2.length<g.barras.length&&el2.indexOf(k)<0)el2.push(k);});if(ce.length&&el2.length===g.barras.length)return {t:'usar',b:'gas',nodos:el2};}
   return null;
 }
 function botResponde(g,j,p){

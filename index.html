@@ -249,6 +249,20 @@ border:0;padding:0 6px;color:var(--tinta)}.neg-cab b{text-align:center;font-fami
 .ini .logo{display:block;width:30%;max-width:120px;margin:0 auto}
 .dtelige{display:flex;align-items:center;gap:9px;padding:7px;border:2px solid var(--linea);border-radius:10px;background:var(--crema2);opacity:.72}.dtelige.on{border-color:var(--tinta);opacity:1}
 .dt-cara{position:relative;flex:none}
+.dt-add{flex:none;width:36px;height:36px;border-radius:50%;border:2.5px solid var(--tinta);background:#fff;color:var(--tinta);font:700 22px/1 var(--t);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 0 2px}
+.dt-add[aria-pressed=true]{background:#3f7d46;color:#fff;font-size:19px}
+.dt-lapiz{position:absolute;right:-7px;top:-7px;width:27px;height:27px;padding:4px;border-radius:50%;background:var(--oro);border:2px solid var(--tinta);cursor:pointer;display:flex}.dt-lapiz svg{width:100%;height:100%}
+.ini-bts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bt-op{display:grid;gap:1px;text-align:left;padding:9px 11px;border:2px solid var(--tinta);border-radius:12px;color:#fff;cursor:pointer;min-width:0}
+.bt-op small{font-size:11.5px;opacity:.9;font-weight:700}.bt-op b{font:400 16px/1.1 var(--d)}.bt-op span{font-size:12px;opacity:.92}
+.bt-op.modo-completo{background:#3f6aa6}.bt-op.modo-rapido{background:#d4692a}.bt-op.tiempo{background:#4d7a3a}
+.ed-nom{text-align:center;font:400 20px var(--d)!important;color:var(--piluso)}
+.ed-frase{margin:-4px 0 0;text-align:center;font-style:italic;font-size:14px}
+.ed-grid{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center}
+.ed-col{display:grid;gap:5px}
+.ed-fl{display:flex;align-items:center;gap:3px;padding:5px 7px;min-height:36px;border:2px solid var(--tinta);border-radius:9px;background:#fff;color:var(--tinta);font:700 12px var(--t);cursor:pointer}.ed-fl i{font-style:normal;font-size:20px;line-height:1;color:var(--piluso)}.ed-fl.der{justify-content:flex-end}
+.ed-fig{border:2px solid var(--tinta);border-radius:10px;background:#efe7d4;overflow:hidden}.ed-fig svg{display:block;width:100%;height:auto}
+.ed-cap{margin:0;text-align:center;font-size:14px;min-height:20px}
 .dt-tog{display:block;width:58px;height:58px;padding:0;border-radius:50%;overflow:hidden;border:2.5px solid var(--tinta);background:#efe7d4;cursor:pointer}.dt-tog svg{display:block;width:100%;height:100%}
 .dtelige:not(.on) .dt-tog svg{filter:grayscale(1)}
 .dt-tog.chico{width:46px;height:46px}.dt-tog.mio{outline:3px solid var(--oro);outline-offset:1px}.dt-tog:disabled{opacity:.3;cursor:not-allowed}
@@ -583,6 +597,29 @@ border:0;padding:0 6px;color:var(--tinta)}.neg-cab b{text-align:center;font-fami
 
 @media (prefers-reduced-motion:reduce){:is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) :is(.an-br1,.an-ceja,.an-cab,.an-len,.fig){animation:none!important}.llama,.barra-va{animation:none}.reloj.urgente{animation:none}
 .lat,.rueda,.fj-gira,.fj-pone,.mu-rayos,.mu-est,.copa,.mu-carta,.cj-tk{animation:none}.tq-c.ida,.tq-c.vuelta{animation-duration:.01s}}
+/* v36: el inicio entra entero en la pantalla, sin bajar */
+.ini-com{gap:6px;padding:6px 12px 10px}.ed-nom{padding-right:44px!important;padding-left:44px!important}
+.ini-cab{display:flex;align-items:center;justify-content:center;gap:10px}
+.ini-com .logo{width:54px;margin:0}.ini-com h1{margin:0;font-size:28px;text-align:left}.ini-com h1 small{font-size:12px}
+.ini-com .hero{padding:10px 10px 10px;gap:8px}.ini-com .hero h2{font-size:clamp(16px,4.6vw,20px)}
+.ini-com .hp-vis{transform:scale(.52);margin:-20px 0}
+.ini-com .caja,.ini-com .ini-panel{grid-template-columns:minmax(0,1fr)}
+.ini-com .ini-tabs span{display:none}.ini-com .dtelige{min-height:0}
+.dt-lin{display:flex;align-items:center;gap:6px}.dt-lin b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dt-quien{flex:none;min-height:30px;padding:3px 10px;border:2px solid var(--tinta);border-radius:16px;background:#fff;color:var(--tinta);font:700 12.5px var(--t);cursor:pointer}.dt-quien.per{background:var(--piluso);color:var(--crema)}
+.dt-cuenta{font:700 13px var(--t);color:#5e5446;margin-left:4px}
+.ini-com .hero-pasos li{padding:5px 4px}.ini-com .hero-pasos li::before{width:16px;height:16px;font-size:11px;line-height:16px;left:3px;top:3px}
+.ini-com .hero-pasos b{font-size:12px}.ini-com .hero-pasos li>span{display:none}.ini-com .hero h2{font-size:clamp(15px,4.3vw,19px)}.ini-com .ini-tabs button{padding:5px 4px}
+.ini-com .hero-dato{font-size:12px;margin-top:-2px}
+.ini-com .hero-bts .bt{min-height:38px;padding:6px 8px}
+.ini-com .ini-tabs button{padding:6px 4px}.ini-com .ini-tabs b{font-size:15px}.ini-com .ini-tabs span{font-size:11.5px}
+.ini-com .ini-panel{padding:9px;gap:8px}
+.ini-com .bt-op{padding:6px 9px}.ini-com .bt-op span{display:none}
+.ini-com .caja{padding:7px 8px;gap:5px}.ini-com .caja h3{font-size:15px}
+.ini-com .dtelige{padding:3px 6px;gap:7px}.ini-com .dt-tog{width:42px;height:42px}.ini-com .dt-lapiz{width:23px;height:23px;padding:3px;right:-8px;top:-6px}
+.ini-com .dt-add{width:31px;height:31px;font-size:19px}
+.ini-com .dt-dat{gap:3px}.ini-com .seg button{min-height:28px;font-size:12px}
+.ini-com #empezar{min-height:42px}
 </style>
 </head>
 <body>

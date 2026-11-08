@@ -82,11 +82,12 @@
     // las iniciales, con punto y serifa, como en una tarjeta de escribanía
     var LS='M24 1L25 13L23.5 13C22 6 17 2.5 12.5 2.5C8 2.5 5.5 5 5.5 8.5C5.5 12 8.5 14 14 17C21 20.8 26 24 26 30C26 36 20.5 41 13.5 41C10 41 7 40 5 39C4 38.5 3 38.5 2.5 41L1 41L0 28L1.5 28C3 35 8 39 13.5 39C18 39 21 36.5 21 32.5C21 28.5 18 26.5 12 23C5.5 19.4 1.5 16.5 1.5 10.5C1.5 5 6 1 12.5 1C15.5 1 18 1.7 20 2.7C21.5 3.4 22.2 3 22.7 1Z';
     var LJ='M9 1H30V2.5C26.5 2.7 25.5 3.5 25.5 7V29C25.5 36.5 21 41 14.5 41C9.5 41 5.5 38.5 5.5 34.5C5.5 32 7.3 30.5 9.5 30.5C11.5 30.5 13 32 13 34C13 36 11.5 36.8 11.5 38C11.5 39 12.5 39.5 14 39.5C17.5 39.5 19.5 36 19.5 29V7C19.5 3.5 18.5 2.7 9 2.5Z';
-    [[LS,23.5],[LJ,54.5]].forEach(function(q){s+='<path d="'+q[0]+'" transform="translate('+q[1]+' 37.5) scale(.72)" fill="'+CREMA+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round" paint-order="stroke"/>';});
-    s+='<circle cx="46.3" cy="65" r="1.7" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><circle cx="77.5" cy="65" r="1.7" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/>';
+    [[LS,27],[LJ,50]].forEach(function(q){s+='<path d="'+q[0]+'" transform="translate('+q[1]+' 37.5) scale(.72)" fill="'+CREMA+'" stroke="'+INK+'" stroke-width="1.5" stroke-linejoin="round" paint-order="stroke"/>';});
+
     // abajo, en la punta, el sobre: mejor no preguntar
-    s+='<g transform="translate(50 87.5) rotate(-7)"><rect x="-10.5" y="-6.5" width="21" height="13" rx=".8" fill="#c9a877" stroke="'+INK+'" stroke-width="1"/><path d="M-10.5-6.5L0 1L10.5-6.5" fill="none" stroke="'+INK+'" stroke-width=".9" stroke-linejoin="round"/><circle cy="1" r="2.8" fill="#26272b" stroke="'+INK+'" stroke-width=".5"/><text y="2.9" text-anchor="middle" '+D+' font-size="4.6" fill="'+ORO+'">$</text></g>';
-    s+=tx(32,86,5,ORO,'20')+tx(68,86,5,ORO,'01');
+    // abajo, en la punta, apenas asomado: un sobre. Mejor no preguntar
+    s+=tx(50,87,5,ORO,'2001');
+    s+='<g transform="translate(50 95.3) rotate(-6)" opacity=".9"><rect x="-6" y="-3.6" width="12" height="7.2" rx=".5" fill="'+OS+'" stroke="'+INK+'" stroke-width=".6"/><path d="M-6-3.6L0 .6L6-3.6" fill="none" stroke="'+ORO+'" stroke-width=".5" stroke-linejoin="round"/><circle cy=".6" r="1.2" fill="'+ORO+'"/></g>';
     var en='';
     // el sol que sale atrás de la corona
     for(var a=-172;a<=-8;a+=20.5){var r=a*Math.PI/180,lr=Math.min(17+19*Math.abs(Math.cos(r)),15.5/Math.abs(Math.sin(r)));en+='<path d="M'+(50+11*Math.cos(r-.11)).toFixed(1)+' '+(18+11*Math.sin(r-.11)).toFixed(1)+'L'+(50+lr*Math.cos(r)).toFixed(1)+' '+(18+lr*Math.sin(r)).toFixed(1)+'L'+(50+11*Math.cos(r+.11)).toFixed(1)+' '+(18+11*Math.sin(r+.11)).toFixed(1)+'Z" fill="'+ORO+'" stroke="'+INK+'" stroke-width=".7" stroke-linejoin="round"/>';}
