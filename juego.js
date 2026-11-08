@@ -88,7 +88,7 @@ function nombreNodo(g,k){
   if(n.t==='A')return 'un vértice del Palco';
   return 'la esquina de '+n.areas.map(function(a){return nombreArea(g,a);}).join(', ');
 }
-function anotar(g,txt,solo,gp){g.nLog=(g.nLog||0)+1;var e={i:g.nLog,n:g.nTurnos,t:txt,solo:solo==null?-1:solo};if(gp)e.golpe=1;g.log.push(e);if(g.log.length>160)g.log.shift();}
+function anotar(g,txt,solo,gp){g.nLog=(g.nLog||0)+1;var e={i:g.nLog,n:g.nTurnos,j:g.turno,t:txt,solo:solo==null?-1:solo};if(gp)e.golpe=1;g.log.push(e);if(g.log.length>160)g.log.shift();}
 // Lo que le hacen a un DT: la pantalla se lo avisa en el momento
 function golpe(g,txt,id){anotar(g,txt,id,true);}
 // Las estadísticas del partido: se van sumando y al final salen las menciones
@@ -238,15 +238,16 @@ function iniciarMover(g){
 }
 function destinos(g,j){
   var p=g.jug[j],res={},mv=g.mv;if(!mv)return [];
-  if(mv.jet){NODOS.forEach(function(n){if(!ocupado(g,n.id))res[n.id]=1;});res[CENTRO]=1;return Object.keys(res).map(Number);}
-  mv.pasos.forEach(function(pasos){var hecho={};
-    (function dfs(u,q){
+  if(mv.jet){NODOS.forEach(function(n){if(!ocupado(g,n.id))res[n.id]=1;});if(gana(g,p))res[CENTRO]=1;return Object.keys(res).map(Number);}
+  var puede=gana(g,p);
+  mv.pasos.forEach(function(pasos){
+    (function dfs(u,q,ant){
       if(q===0){if(!ocupado(g,u,j))res[u]=1;return;}
-      // Al centro del Palco se entra en cualquier momento, pero solo con el último paso y desde un vértice: no es lugar de paso
-      if(q===1&&NODOS[u]&&NODOS[u].t==='A'&&!hecho[CENTRO*100+u])res[CENTRO]=1;
-      // Nunca se retrocede: no se camina al revés un tramo ya hecho. Sí se puede pasar por donde se arrancó y dar la vuelta a una pieza más de una vez.
-      (u===CENTRO?PALCO:ADJ[u]).forEach(function(v){if(hecho[v*100+u])return;if(!mv.libre&&ocupado(g,v,j))return;var c=u*100+v,ya=hecho[c];hecho[c]=1;dfs(v,q-1);hecho[c]=ya;});
-    })(p.pos,pasos);});
+      // Al centro del Palco solo entra el que ya tiene todo para ganar, con el último paso y desde un vértice: no es lugar de paso
+      if(q===1&&puede&&NODOS[u]&&NODOS[u].t==='A')res[CENTRO]=1;
+      // Nunca se pega la vuelta: no se vuelve a la esquina de la que se acaba de venir. Todo lo demás vale (pasar de nuevo por una esquina o por donde se arrancó, dar la vuelta a una pieza más de una vez).
+      (u===CENTRO?PALCO:ADJ[u]).forEach(function(v){if(v===ant)return;if(!mv.libre&&ocupado(g,v,j))return;dfs(v,q-1,u);});
+    })(p.pos,pasos,-1);});
   return Object.keys(res).map(Number);
 }
 // Desde un vértice del Palco se puede mirar uno de los dos Mercados de Pases más cercanos; los otros tres quedan demasiado lejos

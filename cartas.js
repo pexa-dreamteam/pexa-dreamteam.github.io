@@ -114,6 +114,7 @@
       '<rect x="'+(-r*1.05)+'" y="'+(r*.55)+'" width="'+(r*2.1)+'" height="'+(r*.65)+'" rx="2" fill="#2f6f5e" stroke="'+INK+'" stroke-width="2"/><ellipse cx="'+(-r*1.05)+'" cy="'+(-r*.1)+'" rx="'+(r*.42)+'" ry="'+(r*.7)+'" fill="'+GUANTE+'" stroke="'+INK+'" stroke-width="2.2"/>';
     else if(tipo==='pulgar') s+='<rect x="'+(-r*.32)+'" y="'+(-r*2)+'" width="'+(r*.75)+'" height="'+(r*1.5)+'" rx="'+(r*.37)+'" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="2.2"/><circle r="'+r+'" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="2.4"/>';
     else if(tipo==='dedo') s+='<rect x="'+(-r*.3)+'" y="'+(-r*2.3)+'" width="'+(r*.62)+'" height="'+(r*1.8)+'" rx="'+(r*.31)+'" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="2.2"/><circle r="'+r+'" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="2.4"/>';
+    else if(tipo==='oculta') s+='';
     else if(tipo==='palma') s+=[-.6,-.2,.2,.6].map(function(dx){return '<rect x="'+(dx*r-r*.2)+'" y="'+(-r*1.9)+'" width="'+(r*.42)+'" height="'+(r*1.3)+'" rx="'+(r*.21)+'" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="1.8"/>';}).join('')+
       '<ellipse rx="'+r+'" ry="'+(r*.95)+'" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="2.4"/>';
     else s+='<circle r="'+r+'" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="2.4"/><path d="M'+(-r*.55)+' '+(-r*.25)+'q'+(r*.55)+' '+(-r*.4)+' '+(r*1.1)+' 0" fill="none" stroke="'+piel[1]+'" stroke-width="1.6" stroke-linecap="round"/>';
@@ -148,7 +149,11 @@
     if(k==='fans') d='<rect x="0" y="0" width="'+n1(cx-sw*.42)+'" height="230" fill="'+CREMA+'" opacity=".9"/><rect x="'+n1(cx+sw*.42)+'" y="0" width="200" height="230" fill="'+CREMA+'" opacity=".9"/><text x="'+cx+'" y="'+n1(T+h*.72)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="13" fill="'+CREMA+'">12</text>';
     if(k==='sponsors') d='<rect x="'+(cx-19)+'" y="'+n1(T+h*.4)+'" width="38" height="11" rx="1.5" fill="'+c.c2+'"/><text x="'+cx+'" y="'+n1(T+h*.4+7.9)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="6.2" fill="#1f3a2b">LA SERENA</text>'+
       '<rect x="'+(cx-sw+7)+'" y="'+(T+8)+'" width="10" height="7" fill="'+CREMA+'"/><rect x="'+(cx+sw-17)+'" y="'+(T+8)+'" width="10" height="7" fill="'+c.c2+'"/>';
-    return '<defs><clipPath id="'+id+'"><path d="'+p+'"/></clipPath></defs><path d="'+p+'" fill="'+c.c1+'"/><g clip-path="url(#'+id+')">'+d+'<rect x="'+n1(cx+sw*.4)+'" y="'+(T-4)+'" width="'+sw+'" height="'+(h+8)+'" fill="#000" opacity=".12"/></g><path d="'+p+'" fill="none" stroke="'+INK+'" stroke-width="2.8" stroke-linejoin="round"/>';
+    var ext='';
+    if(o&&o.musculosa){ var pl=PIEL[o.piel||'clara'][0]; d+='<path d="M'+(cx-sw-4)+' '+(T-4)+'H'+(cx-11)+'Q'+(cx-14)+' '+(T+16)+' '+(cx-sw+5)+' '+(T+26)+'Z M'+(cx+sw+4)+' '+(T-4)+'H'+(cx+11)+'Q'+(cx+14)+' '+(T+16)+' '+(cx+sw-5)+' '+(T+26)+'Z" fill="'+pl+'"/>'; for(var xm=cx-wa;xm<cx+wa;xm+=5) d+='<path d="M'+xm+' '+(T+20)+'V'+W+'" stroke="#000" stroke-width=".8" opacity=".1"/>'; ext+='<path d="M'+(cx-11)+' '+(T-1)+'Q'+(cx-14)+' '+(T+16)+' '+(cx-sw+5)+' '+(T+26)+'M'+(cx+11)+' '+(T-1)+'Q'+(cx+14)+' '+(T+16)+' '+(cx+sw-5)+' '+(T+26)+'" fill="none" stroke="'+INK+'" stroke-width="2.4"/>'; }
+    if(o&&o.camisa){ for(var yb2=T+12;yb2<W-4;yb2+=10) d+='<circle cx="'+cx+'" cy="'+yb2+'" r="1.7" fill="#c9c3b6" stroke="'+INK+'" stroke-width=".8"/>'; d+='<path d="M'+cx+' '+(T+4)+'V'+W+'" stroke="#d8d2c4" stroke-width="1.4"/>'; ext+='<path d="M'+(cx-13)+' '+(T-2)+'L'+(cx-2)+' '+(T+10)+'L'+(cx-4)+' '+(T-2)+'ZM'+(cx+13)+' '+(T-2)+'L'+(cx+2)+' '+(T+10)+'L'+(cx+4)+' '+(T-2)+'Z" fill="#fff" stroke="'+INK+'" stroke-width="2" stroke-linejoin="round"/>'; }
+    if(o&&o.raya&&!o.camisa){ d+='<path d="M'+cx+' '+(T-2)+'V'+W+'" stroke="#c7ccd1" stroke-width="2"/><path d="M'+(cx-sw+3)+' '+(T+8)+'L'+(cx-wa+1)+' '+W+'M'+(cx+sw-3)+' '+(T+8)+'L'+(cx+wa-1)+' '+W+'" stroke="'+o.raya+'" stroke-width="2.4"/>'; ext+='<path d="M'+(cx-12)+' '+(T-2)+'Q'+cx+' '+(T+5)+' '+(cx+12)+' '+(T-2)+'" fill="none" stroke="'+o.raya+'" stroke-width="3"/>'; }
+    return '<defs><clipPath id="'+id+'"><path d="'+p+'"/></clipPath></defs><path d="'+p+'" fill="'+c.c1+'"/><g clip-path="url(#'+id+')">'+d+'<rect x="'+n1(cx+sw*.4)+'" y="'+(T-4)+'" width="'+sw+'" height="'+(h+8)+'" fill="#000" opacity=".12"/></g><path d="'+p+'" fill="none" stroke="'+INK+'" stroke-width="2.8" stroke-linejoin="round"/>'+ext;
   }
   function piernas(k,o,cx,W,lx,lw,piel){
     var c=C[k], s='', banda=k==='picardia'?INK:BANDA[k];
@@ -160,8 +165,9 @@
         s+='<path d="M'+n1(x-dir*(lw/2+1))+' 197Q'+n1(x-dir*(lw/2+2))+' 210 '+n1(x+dir*4)+' 210H'+n1(x+dir*(lw/2+9))+'Q'+n1(x+dir*(lw/2+12))+' 204 '+n1(x+dir*(lw/2+2))+' 199Z" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="2.2" stroke-linejoin="round"/>';
         for(var t=0;t<4;t++) s+='<circle cx="'+n1(x+dir*(lw/2+8.5-t*3.1))+'" cy="206" r="'+(t?1.5:1.9)+'" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="1"/>';
       } else {
+        if(o.pantalon){ s+='<path d="M'+x+' '+(W+6)+'V200" stroke="'+INK+'" stroke-width="'+(lw+8.5)+'" stroke-linecap="round"/><path d="M'+x+' '+(W+6)+'V200" stroke="'+o.pantalon+'" stroke-width="'+(lw+4)+'" stroke-linecap="round"/>'+(o.raya?'<path d="M'+n1(x+sg*(lw/2+.5))+' '+(W+8)+'V199" stroke="'+o.raya+'" stroke-width="1.8"/>':''); } else {
         s+='<path d="M'+x+' '+(W+10)+'V194" stroke="'+INK+'" stroke-width="'+(lw+4.5)+'" stroke-linecap="round"/><path d="M'+x+' '+(W+10)+'V194" stroke="'+piel[0]+'" stroke-width="'+lw+'" stroke-linecap="round"/>';
-        s+='<rect x="'+n1(x-lw/2-1.5)+'" y="188" width="'+(lw+3)+'" height="16" rx="2" fill="'+c.c1+'" stroke="'+INK+'" stroke-width="2"/><rect x="'+n1(x-lw/2-.5)+'" y="191" width="'+(lw+1)+'" height="3" fill="'+banda+'"/>';
+        s+='<rect x="'+n1(x-lw/2-1.5)+'" y="188" width="'+(lw+3)+'" height="16" rx="2" fill="'+c.c1+'" stroke="'+INK+'" stroke-width="2"/><rect x="'+n1(x-lw/2-.5)+'" y="191" width="'+(lw+1)+'" height="3" fill="'+banda+'"/>'; }
         s+='<path d="M'+n1(x-dir*(lw/2+2))+' 202Q'+n1(x-dir*(lw/2+3))+' 211 '+n1(x+dir*3)+' 211H'+n1(x+dir*(lw/2+11))+'Q'+n1(x+dir*(lw/2+13))+' 205 '+n1(x+dir*(lw/2+3))+' 203Z" fill="'+INK+'"/>';
         s+='<path d="M'+n1(x-dir*2)+' 211h'+(dir*3)+'M'+n1(x+dir*5)+' 211h'+(dir*3)+'" stroke="#bbb" stroke-width="1.6"/>';
       }
@@ -394,6 +400,10 @@
     var s='', ey=cy+(o.ojoY||4);
     [-1,1].forEach(function(sg){var ox=cx+sg*(w-1);s+='<ellipse cx="'+ox+'" cy="'+(ey+4)+'" rx="9" ry="12.5" fill="'+piel[0]+'" stroke="'+INK+'" stroke-width="2.8"/><path d="M'+(ox+sg*3)+' '+(ey-2)+'q'+(sg*4)+' 6 0 12" fill="none" stroke="'+piel[1]+'" stroke-width="2.4" stroke-linecap="round"/>';});
     var cab='M'+(cx-w)+' '+(cy-8)+'C'+(cx-w)+' '+(top-6)+' '+(cx+w)+' '+(top-6)+' '+(cx+w)+' '+(cy-8)+'C'+(cx+w)+' '+n1(cy+hh*.45)+' '+(cx+j)+' '+(bot-4)+' '+cx+' '+bot+'C'+(cx-j)+' '+(bot-4)+' '+(cx-w)+' '+n1(cy+hh*.45)+' '+(cx-w)+' '+(cy-8)+'Z';
+    // Formas de cara para Creá tu DT: cuadrada, pera (angosta arriba, cachetona abajo) y en punta (frente ancha, pera finita)
+    if(o.forma==='cuadrada') cab='M'+(cx-w)+' '+(cy-8)+'C'+(cx-w)+' '+(top-2)+' '+(cx+w)+' '+(top-2)+' '+(cx+w)+' '+(cy-8)+'L'+(cx+w)+' '+(bot-15)+'Q'+(cx+w)+' '+bot+' '+(cx+w-15)+' '+bot+'L'+(cx-w+15)+' '+bot+'Q'+(cx-w)+' '+bot+' '+(cx-w)+' '+(bot-15)+'Z';
+    if(o.forma==='pera') cab='M'+n1(cx-w*.74)+' '+(cy-10)+'C'+n1(cx-w*.7)+' '+(top-8)+' '+n1(cx+w*.7)+' '+(top-8)+' '+n1(cx+w*.74)+' '+(cy-10)+'C'+n1(cx+w*1.12)+' '+n1(cy+hh*.35)+' '+n1(cx+w*1.05)+' '+bot+' '+cx+' '+bot+'C'+n1(cx-w*1.05)+' '+bot+' '+n1(cx-w*1.12)+' '+n1(cy+hh*.35)+' '+n1(cx-w*.74)+' '+(cy-10)+'Z';
+    if(o.forma==='punta') cab='M'+(cx-w)+' '+(cy-12)+'C'+(cx-w-2)+' '+(top-10)+' '+(cx+w+2)+' '+(top-10)+' '+(cx+w)+' '+(cy-12)+'C'+(cx+w)+' '+n1(cy+hh*.15)+' '+(cx+12)+' '+(bot-6)+' '+cx+' '+(bot+4)+'C'+(cx-12)+' '+(bot-6)+' '+(cx-w)+' '+n1(cy+hh*.15)+' '+(cx-w)+' '+(cy-12)+'Z';
     var cid=U('cab');
     s+='<defs><clipPath id="'+cid+'"><path d="'+cab+'"/></clipPath></defs><path d="'+cab+'" fill="'+piel[0]+'"/>';
     if(sil){
@@ -538,6 +548,9 @@
       case 'oreja': ar=[[[L0,dL],null,0],[[R0,[cx+sw+18,T+4],[cx+w+12,ey+8]],'palma',-75]];
         post+='<g fill="none" stroke="'+INK+'" stroke-width="2.2" stroke-linecap="round"><path d="M'+(cx+w+26)+' '+(ey-4)+'q5 10 0 20"/><path d="M'+(cx+w+33)+' '+(ey-9)+'q8 15 0 30"/></g>'; break;
       case 'bebe': ar=[[[L0,[cx-sw-6,T+30],[cx-14,T+44]],null,0],[[R0,[cx+sw+6,T+30],[cx+14,T+44]],null,0]]; break;
+      case 'bolsillos': ar=[[[L0,[cx-sw-7,T+28],[cx-wa+1,W+5]],'oculta',0],[[R0,[cx+sw+7,T+28],[cx+wa-1,W+5]],'oculta',0]];
+        post+=[-1,1].map(function(sg){var px=cx+sg*(wa-1);return '<path d="M'+n1(px-sg*9)+' '+(W+1)+'Q'+n1(px+sg*1)+' '+(W+3)+' '+n1(px+sg*4)+' '+(W+12)+'" fill="none" stroke="'+INK+'" stroke-width="2.4" stroke-linecap="round"/><path d="M'+n1(px-sg*8)+' '+(W+3.5)+'Q'+n1(px)+' '+(W+5)+' '+n1(px+sg*2.5)+' '+(W+12)+'" fill="none" stroke="'+(SHORT[k]||INK)+'" stroke-width="5" stroke-linecap="round"/>';}).join('');
+        break;
       case 'cruzados': ar=[[[L0,[cx-sw-4,T+24],[cx+sw-4,T+22]],null,0],[[R0,[cx+sw+4,T+30],[cx-sw+4,T+30]],null,0]]; break;
       case 'señala': ar=[[[L0,dL],null,0],[[R0,[cx+sw+16,T],[cx+sw+20,T-26]],'dedo',0]]; break;
       case 'micro': ar=[[[L0,dL],'guante',0],[[R0,[cx+sw+16,T+20],[cx+22,T+6]],'guante',-25]];
@@ -599,10 +612,10 @@
     }
     var mangas='';
     function grupoBrazo(a,ia,x){return '<g class="an-br'+ia+'" style="transform-origin:'+n1(a[0][0][0])+'px '+n1(a[0][0][1])+'px">'+x+'</g>';}
-    ar.forEach(function(a,ia){ f+=grupoBrazo(a,ia,brazo(a[0],aw,piel[0])); });
+    ar.forEach(function(a,ia){ f+=grupoBrazo(a,ia,brazo(a[0],aw+(o.mangaLarga?2:0),o.mangaLarga||piel[0])+(o.raya?'<path d="M'+a[0].map(function(p){return n1(p[0])+' '+n1(p[1]);}).join('L')+'" fill="none" stroke="'+o.raya+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>':'')); });
     f+=pre;
     [L0,R0].forEach(function(p,i){mangas+='<ellipse cx="'+n1(p[0]+(i?2:-2))+'" cy="'+(p[1]-1)+'" rx="'+(aw*.5+6)+'" ry="'+(aw*.4+6)+'" fill="'+(o.remera==='mitad'&&i?PILUSO:(o.manga||c.c1))+'" stroke="'+INK+'" stroke-width="2.4"/>';});
-    f+=mangas;
+    if(!o.musculosa) f+=mangas;
     if(o.extra==='cinta') f+='<g transform="rotate(-12 '+(L0[0]-6)+' '+(L0[1]+12)+')"><rect x="'+(L0[0]-14)+'" y="'+(L0[1]+7)+'" width="17" height="10" rx="2" fill="#2f6fcf" stroke="'+INK+'" stroke-width="1.8"/><text x="'+(L0[0]-5.5)+'" y="'+(L0[1]+15.5)+'" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="8.5" fill="#fff">C</text></g>';
     ar.forEach(function(a,ia){var p=a[0][a[0].length-1]; f+=grupoBrazo(a,ia,mano(p[0],p[1],a[1]==='guante'?hr:Math.max(7,aw*.55+4.5),piel,a[1]||'puño',a[2]));});
     tent.forEach(function(t,i){ f+=mano(t[0],t[1],8.5,piel,'guante',t[2]); if(i===3) f+=pelota(t[0]+4,t[1]-16,10); });
@@ -1400,25 +1413,42 @@
   var ORD=['gol','suerte','picardia','fans','sponsors'];
   var porNombre={};BENEF.forEach(function(b,i){porNombre[b[1]]=i;});
   var DTIDS=['abuelo','mister','dona','loco','profe'];
-  // El gesto de cada personaje (la versiÃ³n digital lo anima con CSS)
+  // El gesto de cada personaje (la versión digital lo anima con CSS)
   var G_J={gol:['cejas','pisoton','si','salto'],suerte:['no','salto','lengua','no'],picardia:['si','saludo','pisoton','salto'],fans:['saludo','si','cejas','lengua'],sponsors:['si','cejas','saludo','lengua']};
   var G_DT=['no','cejas','pisoton','salto','si'];
   var G_E={capitano:'si',teo:'cejas',fer:'no',piolo:'salto',pancho:'saludo',juambo:'saludo',gaspi:'pisoton',m:'cejas',muchi:'salto',mark:'salto',sora:'lengua',tai:'cejas',golzalez:'cejas',cocho:'pisoton'};
   function conGesto(svg,g){return svg.replace('class="fig"','class="fig g-'+g+'"');}
-  // CreÃ¡ tu DT: cada rasgo es una lista de opciones que se traducen a los parÃ¡metros del dibujo
+  // Creá tu DT: cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo
   var CUS={
     pelo:{m:[{pelo:'castano',corte:'corto',vol:0},{pelo:'gris',corte:'entradas',vol:4},{pelo:'canas',corte:'pelado',vol:0},{pelo:'negro',corte:'revuelto',vol:4},{pelo:'rubio',corte:'medio',vol:4}],f:[{pelo:'negro',corte:'largo',vol:5},{pelo:'rubio',corte:'largo',vol:5},{pelo:'castano',corte:'ondas',vol:6},{pelo:'colorado',corte:'medio',vol:4},{pelo:'canas',corte:'corto',vol:2,rodete:true}]},
     ojos:[{ojo:7},{ojos:'felices',ojo:7},{ojo:8,iris:'#4f9a56'},{ojo:8,iris:'#3f7fc4'},{ojo:6,anteojos:'redondos'}],
-    cara:[{w:46,jaw:36,h:52},{w:52,jaw:50,h:46},{w:38,jaw:28,h:58},{w:48,jaw:46,h:50},{w:46,jaw:26,h:52}],
-    piel:['palida','clara','media','trigueÃ±a','oscura'],
-    ropa:[{c1:'#26272b',corbata:'#b23f3c',sh:INK},{c1:'#2f6fcf',silbato:true,sh:'#1c3f7a'},{c1:'#b23f3c',sh:'#6e2321'},{c1:'#3f7d46',sh:'#23492a'},{c1:'#8a6a45',delantal:true,sh:INK}],
-    pose:['cruzados','arriba','seÃ±ala','hombros','biceps']
+    // Caras bien distintas: ovalada, redonda, alargada, cuadrada, pera y en punta
+    cara:[{w:46,jaw:36,h:52},{w:56,jaw:56,h:46},{w:35,jaw:22,h:63},{w:50,jaw:50,h:49,forma:'cuadrada'},{w:50,jaw:46,h:52,forma:'pera'},{w:54,jaw:14,h:54,forma:'punta'}],
+    piel:['palida','clara','media','trigueña','oscura'],
+    ropa:[{c1:'#26272b',corbata:'#b23f3c',sh:INK},{c1:'#22305a',mangaLarga:'#22305a',pantalon:'#22305a',raya:'#f4f1ea',sh:'#22305a'},{c1:'#e9e4d8',musculosa:true,sh:'#3a3f4a'},{c1:'#f7f5ef',camisa:true,mangaLarga:'#f7f5ef',sh:'#2b2f37'},{c1:'#8a6a45',delantal:true,sh:INK}],
+    pose:['cruzados','festeja','bolsillos','señala','hombros','biceps']
   };
   CUS.ropa.forEach(function(x,i){C['dt_c'+i]={nombre:'DT',c1:x.c1,c2:CREMA,fondo:'#efe7d4'};SHORT['dt_c'+i]=x.sh;BANDA['dt_c'+i]=CREMA;});
-  function figuraCus(r,entero,extra){var g=r.g==='f'?'f':'m',ro=CUS.ropa[r.ropa]||CUS.ropa[0];
-    var o=Object.assign(g==='f'?{cuerpo:'flaco',bot:116,cintura:152,ceja:3,nariz:1.05,boca:10}:{ceja:4.5,nariz:1.25,boca:12},CUS.pelo[g][r.pelo]||CUS.pelo[g][0],CUS.ojos[r.ojos]||CUS.ojos[0],CUS.cara[r.cara]||CUS.cara[0],{piel:CUS.piel[r.piel]||'clara',gesto:'sonrisa',pose:CUS.pose[r.pose]||'cruzados'});
-    if(ro.corbata)o.corbata=ro.corbata;if(ro.silbato)o.silbato=true;if(ro.delantal)o.delantal=true;if(extra)Object.assign(o,extra);
-    return figura('dt_c'+(CUS.ropa.indexOf(ro)),o);}
+  var CUS_SACA={pelo:['pelo','corte','vol','rodete','flequillo'],ojos:['ojo','ojos','iris','irisMiel','anteojos'],cara:['w','jaw','h','forma'],ropa:['corbata','silbato','delantal','mangaLarga','pantalon','raya','musculosa','camisa','remera','manga'],pose:['pose','gag','globo','palitos','mancuernas']};
+  var CUS_GEN={f:{cuerpo:'flaco',bot:116,cintura:152,ceja:3,nariz:1.05,boca:10},m:{cuerpo:'normal',bot:130,cintura:166,ceja:4.5,nariz:1.25,boca:12}};
+  function cusSaca(o,k){CUS_SACA[k].forEach(function(x){delete o[x];});}
+  function cusRopa(o,ro){['corbata','silbato','delantal','mangaLarga','pantalon','raya','musculosa','camisa'].forEach(function(x){if(ro[x])o[x]=ro[x];});}
+  // Un DT propio puede partir de un DT de la liga (r.base): solo cambia lo que se tocó
+  function figuraCus(r,entero,extra){var o,club;
+    if(r.base!=null){var id=DTIDS[r.base],g=r.g||(id==='dona'?'f':'m');o=Object.assign({},DT_FIG[id].o);club='dt_'+id;
+      if(r.g){Object.assign(o,CUS_GEN[r.g]);if(r.pelo==null){cusSaca(o,'pelo');Object.assign(o,CUS.pelo[g][0]);}}
+      if(r.pelo!=null){cusSaca(o,'pelo');Object.assign(o,CUS.pelo[g][r.pelo]||CUS.pelo[g][0]);}
+      if(r.ojos!=null){cusSaca(o,'ojos');Object.assign(o,CUS.ojos[r.ojos]||CUS.ojos[0]);}
+      if(r.cara!=null){cusSaca(o,'cara');Object.assign(o,CUS.cara[r.cara]||CUS.cara[0]);}
+      if(r.piel!=null)o.piel=CUS.piel[r.piel]||'clara';
+      if(r.ropa!=null&&CUS.ropa[r.ropa]){cusSaca(o,'ropa');cusRopa(o,CUS.ropa[r.ropa]);club='dt_c'+r.ropa;}
+      if(r.pose!=null){cusSaca(o,'pose');o.pose=CUS.pose[r.pose]||'cruzados';}
+      if(!entero){o.gag=null;o.globo=null;o.palitos=false;}
+    }else{var g=r.g==='f'?'f':'m',ro=CUS.ropa[r.ropa]||CUS.ropa[0];
+      o=Object.assign({},CUS_GEN[g],CUS.pelo[g][r.pelo]||CUS.pelo[g][0],CUS.ojos[r.ojos]||CUS.ojos[0],CUS.cara[r.cara]||CUS.cara[0],{piel:CUS.piel[r.piel]||'clara',gesto:'sonrisa',pose:CUS.pose[r.pose]||'cruzados'});
+      cusRopa(o,ro);club='dt_c'+CUS.ropa.indexOf(ro);}
+    if(extra)Object.assign(o,extra);
+    return figura(club,o);}
   // Para el Certificado: sin carta y sin los chistes de cada uno, festejando con los brazos arriba
   var LIBRE={pose:'festeja',gag:null,globo:null,palitos:false,mancuernas:false,sinFondo:true};
   window.PEXA_CARTAS={
@@ -1433,7 +1463,7 @@
     dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>',G_DT[dt]);});},
     dtCustom:function(r,entero){return guardo('cus'+(entero?1:0)+JSON.stringify(r),function(){return conGesto(entero?'<svg viewBox="0 0 200 220" aria-hidden="true">'+figuraCus(r,1)+'</svg>':'<svg viewBox="45 18 110 120" aria-hidden="true">'+figuraCus(r,0)+'</svg>','si');});},
     badge:function(k){return guardo('g'+k,function(){return badge(k);});},
-    // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada BoleterÃ­a tiene su mazo de cartas encima
+    // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada Boletería tiene su mazo de cartas encima
     tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;var mazos='';for(var i=0;i<5;i++){var aF=TH[i]+36,c=P(RH,aF),cr=cartaRecurso(outer[i]);mazos+=G(c[0],c[1],aF+90)+[2,1,0].map(function(q){return cr.replace('<svg ','<svg x="'+(q-14)+'" y="'+(-21.5-q)+'" width="28" height="43" ');}).join('')+'</g>';}return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero().replace('fill="#d8c8a2"','fill="#8fc3df"')+mazos+'</svg>';},
     geo:{get RS(){return RS;},get RH(){return RH;}},
     escuelita:function(k){return guardo('x'+k,function(){return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>',G_E[k]||'salto');});},
