@@ -933,19 +933,19 @@ function limpiarModales(){document.querySelectorAll('.modal').forEach(function(m
 var QUIETOS={reglas:1,rec:1,multa:1,pieza:1,dt:1,jug:1,visto:1,mercados:1,tok:1,pos:1,usados:1};
 var CON_BOTONES={canjes:1,mercados:1,mercado:1,descarte:1,reglas:1,jug:1,rec:1,multa:1,visto:1,pieza:1,usados:1};
 // ---------- Creá tu propio DT ----------
-var RASGOS=[['pelo','Pelo',{m:['Corto','Con entradas','Pelado','Revuelto','Rubio'],f:['Largo negro','Largo rubio','Ondas','Colorado','Rodete canoso']}],['ojos','Ojos',['Comunes','Sonrientes','Verdes','Azules','Con anteojos']],['cara','Cara',['Ovalada','Redonda','Alargada','Cuadrada','Pera','En punta']],['piel','Piel',['Muy clara','Clara','Media','Trigueña','Oscura']],['g','Es',['Varón','Mujer']],['ropa','Vestimenta',['Traje','Tracksuit','Musculosa','Camisa blanca','Delantal']],['pose','Pose',['Brazos cruzados','Festejando','Manos en los bolsillos','Dedo arriba','Manos arriba','Mostrando bíceps']]];
-function rasgosGuardados(){try{var t=localStorage.getItem('pexa-midt');if(t)return JSON.parse(t);}catch(e){}return {g:'m',pelo:0,ojos:0,cara:0,piel:1,ropa:0,pose:0};}
+var RASGOS=[['pelo','Peinado',['Corto','Con entradas','Pelado','Revuelto','Medio','Largo','Ondas','Rodete']],['color','Color de pelo y barba',['Negro','Oscuro','Castaño','Claro','Rubio','Colorado','Gris','Canoso']],['barba','Barba',['Sin barba','Sombra','Barba corta','Barba larga','Candado','Chivita','Bigote','Bigote fino','Barba y bigote']],['ojos','Ojos',['Comunes','Sonrientes','Verdes','Azules','Miel']],['acc','Accesorios',['Nada','Anteojos redondos','Anteojos','Anteojos de sol','Silbato','Cresta de gallo']],['cara','Cara',['Ovalada','Redonda','Alargada','Cuadrada','Pera','En punta']],['gesto','Gesto',['Sonrisa','Sonrisa gigante','Canchero','Serio','Gritando']],['piel','Piel',['Muy clara','Clara','Media','Trigueña','Oscura']],['g','Es',['Varón','Mujer']],['ropa','Vestimenta',['Traje','Tracksuit','Musculosa','Camisa blanca','Delantal']],['pose','Pose',['Brazos cruzados','Festejando','Manos en los bolsillos','Dedo arriba','Manos arriba','Mostrando bíceps']]];
+function rasgosGuardados(){var d={g:'m',pelo:0,color:2,barba:0,ojos:0,acc:0,cara:0,gesto:0,piel:1,ropa:0,pose:0};try{var t=localStorage.getItem('pexa-midt');if(t)return Object.assign(d,JSON.parse(t));}catch(e){}return d;}
 function modalCrear(M){var r=M.r;
-  return '<h2>Creá tu propio DT</h2><div class="dt-grande chica">'+K.dtCustom(r,true)+'</div>'+RASGOS.map(function(x){var ops=x[0]==='pelo'?x[2][r.g==='f'?'f':'m']:x[2];return '<div class="cr-f"><b>'+x[1]+'</b><div class="sel">'+ops.map(function(n,i){var on=x[0]==='g'?(r.g==='f')===(i===1):r[x[0]]===i;return '<button class="chip" data-cr="'+x[0]+'" data-v="'+i+'" aria-pressed="'+on+'">'+esc(n)+'</button>';}).join('')+'</div></div>';}).join('')+'<button class="bt fuerte" id="crListo">Usar este DT</button>'+(M.habia?'<button class="bt chico" id="crSacar">Volver a un DT de la liga</button>':'');
+  return '<h2>Creá tu propio DT</h2><div class="dt-grande chica">'+K.dtCustom(r,true)+'</div>'+RASGOS.map(function(x){var ops=x[2];return '<div class="cr-f"><b>'+x[1]+'</b><div class="sel">'+ops.map(function(n,i){var on=x[0]==='g'?(r.g==='f')===(i===1):r[x[0]]===i;return '<button class="chip" data-cr="'+x[0]+'" data-v="'+i+'" aria-pressed="'+on+'">'+esc(n)+'</button>';}).join('')+'</div></div>';}).join('')+'<button class="bt fuerte" id="crListo">Usar este DT</button>'+(M.habia?'<button class="bt chico" id="crSacar">Volver a un DT de la liga</button>':'');
 }
 // La ficha de cada DT: de cuerpo entero, con su descripción, el nombre y flechitas para cambiarle cada rasgo
 function generoR(r){return r.g?r.g:(r.base!=null?(r.base===2?'f':'m'):'m');}
-function opsRasgo(x,r){return x[0]==='pelo'?x[2][generoR(r)]:x[2];}
+function opsRasgo(x,r){return x[2];}
 function modalEditDT(M){var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r;
   var fig=r?K.dtCustom(r,true):K.dtEntero(M.i);
   var izq=RASGOS.map(function(x){return '<button class="ed-fl" data-ed="'+x[0]+'" data-d="-1" aria-label="'+x[1]+': anterior">‹</button>';}).join(''),der=RASGOS.map(function(x){return '<button class="ed-fl" data-ed="'+x[0]+'" data-d="1" aria-label="'+x[1]+': siguiente">›</button>';}).join('');
   return '<input class="ent ed-nom" id="edNom" aria-label="Nombre del DT" maxlength="16" value="'+esc(M.nombre)+'">'+(r&&r.base==null?'':'<p class="ed-frase">«'+esc(pz.frase||'')+'»</p>')+
-    '<div class="ed-grid"><div class="ed-col">'+izq+'</div><div class="ed-fig">'+fig+'</div><div class="ed-col">'+der+'</div></div>'+(r&&r.base==null?'':'<p class="ed-cap">'+esc(pz.como||'')+'</p>')+
+    '<div class="ed-grid"><div class="ed-col">'+izq+'</div><div class="ed-fig">'+fig+'</div><div class="ed-col">'+der+'</div></div>'+(r?'':'<p class="ed-cap">'+esc(pz.como||'')+'</p>')+
     '<button class="bt fuerte" id="edListo">Listo</button>'+(r?'<button class="bt chico" id="edOrig">Volver a '+esc(d.nombre)+' original</button>':'');
 }function conectarEditDT(c,M){
   var n=c.querySelector('#edNom');if(n){n.oninput=function(){M.nombre=n.value;};n.onfocus=function(){n.select();};}
@@ -953,11 +953,11 @@ function modalEditDT(M){var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r;
     var x=RASGOS.filter(function(y){return y[0]===k;})[0];
     if(r.base!=null){
       // Parte del DT de la liga: cada rasgo va de "el original" (sin tocar) a las opciones, ida y vuelta
-      if(k==='g'){if(r.g)delete r.g;else r.g=r.base===2?'m':'f';delete r.pelo;}
+      if(k==='g'){if(r.g)delete r.g;else r.g=r.base===2?'m':'f';}
       else{var len=opsRasgo(x,r).length,cur=r[k]==null?-1:r[k],nx=((cur+1+dl)%(len+1)+len+1)%(len+1)-1;if(nx<0)delete r[k];else r[k]=nx;}
       if(Object.keys(r).length===1)M.r=null;
     }else{
-      if(k==='g'){r.g=r.g==='f'?'m':'f';r.pelo=0;}else{var ln=opsRasgo(x,r).length;r[k]=((r[k]||0)+dl+ln)%ln;}
+      if(k==='g'){r.g=r.g==='f'?'m':'f';}else{var ln=opsRasgo(x,r).length;r[k]=((r[k]||0)+dl+ln)%ln;}
     }
     var h=c.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;};});  var o=c.querySelector('#edOrig');if(o)o.onclick=function(){M.r=null;M.ult=null;limpiarModales();pintarModal(null,null,null);};
   var l=c.querySelector('#edListo');if(l)l.onclick=function(){conf.nombres[M.i]=(M.nombre||'').trim()||P.DTS[M.i].nombre;conf.cus=conf.cus||{};

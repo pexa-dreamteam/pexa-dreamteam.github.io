@@ -424,6 +424,7 @@
         for(var q=-3;q<=3;q++){s+='<circle cx="'+(cx+q*j/3.3)+'" cy="'+(bot+(L||14)-3-Math.abs(q)*3)+'" r="9" fill="'+pb+'"/>';}
         s+='<g fill="none" stroke="#000" stroke-width="1.6" opacity=".22" stroke-linecap="round">'+[-24,-12,0,12,24].map(function(dx){return '<path d="M'+(cx+dx)+' '+(bot-6)+'q2 8 0 16"/>';}).join('')+'</g>';
       }
+      if(o.barba==='chivita') s+='<path d="M'+(cx-7)+' '+(bot-7)+'Q'+cx+' '+(bot-3)+' '+(cx+7)+' '+(bot-7)+'L'+(cx+2.5)+' '+(bot+13)+'Q'+cx+' '+(bot+17)+' '+(cx-2.5)+' '+(bot+13)+'Z" fill="'+pb+'" stroke="'+INK+'" stroke-width="1.6" stroke-linejoin="round"/>';
       if(o.barba==='candado') s+='<path d="M'+(cx-12)+' '+(bot-12)+'Q'+cx+' '+(bot+10)+' '+(cx+12)+' '+(bot-12)+'Q'+cx+' '+(bot-5)+' '+(cx-12)+' '+(bot-12)+'Z" fill="'+pb+'" stroke="'+INK+'" stroke-width="1.6"/>';
       s+='<path d="'+cab+'" fill="none" stroke="'+INK+'" stroke-width="3.2"/>';
       if(o.barba==='llena'||o.barba==='corta') s+='<path d="M'+(cx-w+1)+' '+(cy-6)+'v12M'+(cx+w-1)+' '+(cy-6)+'v12" stroke="'+pb+'" stroke-width="7"/>';
@@ -1419,34 +1420,38 @@
   var G_E={capitano:'si',teo:'cejas',fer:'no',piolo:'salto',pancho:'saludo',juambo:'saludo',gaspi:'pisoton',m:'cejas',muchi:'salto',mark:'salto',sora:'lengua',tai:'cejas',golzalez:'cejas',cocho:'pisoton'};
   function conGesto(svg,g){return svg.replace('class="fig"','class="fig g-'+g+'"');}
   // Creá tu DT: cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo
+  // Creá tu DT: los mismos rasgos para todos los DTs. Cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo.
   var CUS={
-    pelo:{m:[{pelo:'castano',corte:'corto',vol:0},{pelo:'gris',corte:'entradas',vol:4},{pelo:'canas',corte:'pelado',vol:0},{pelo:'negro',corte:'revuelto',vol:4},{pelo:'rubio',corte:'medio',vol:4}],f:[{pelo:'negro',corte:'largo',vol:5},{pelo:'rubio',corte:'largo',vol:5},{pelo:'castano',corte:'ondas',vol:6},{pelo:'colorado',corte:'medio',vol:4},{pelo:'canas',corte:'corto',vol:2,rodete:true}]},
-    ojos:[{ojo:7},{ojos:'felices',ojo:7},{ojo:8,iris:'#4f9a56'},{ojo:8,iris:'#3f7fc4'},{ojo:6,anteojos:'redondos'}],
+    pelo:[{corte:'corto',vol:0},{corte:'entradas',vol:4},{corte:'pelado',vol:0},{corte:'revuelto',vol:4},{corte:'medio',vol:4},{corte:'largo',vol:5},{corte:'ondas',vol:6},{corte:'corto',vol:2,rodete:true}],
+    color:['negro','oscuro','castano','claro','rubio','colorado','gris','canas'],
+    barba:[{},{barba:'sombra'},{barba:'corta',largoBarba:5},{barba:'llena',largoBarba:12},{barba:'candado'},{barba:'chivita'},{bigote:'grueso'},{bigote:'fino'},{barba:'llena',largoBarba:6,bigote:'grueso'}],
+    ojos:[{ojo:7},{ojos:'felices',ojo:7},{ojo:8,iris:'#4f9a56'},{ojo:8,iris:'#3f7fc4'},{ojo:8,iris:'#8a5a2b',irisMiel:'#c8923a'}],
+    acc:[{},{anteojos:'redondos'},{anteojos:'rectos'},{lentes:true},{silbato:true},{gallo:true}],
     // Caras bien distintas: ovalada, redonda, alargada, cuadrada, pera y en punta
     cara:[{w:46,jaw:36,h:52},{w:56,jaw:56,h:46},{w:35,jaw:22,h:63},{w:50,jaw:50,h:49,forma:'cuadrada'},{w:50,jaw:46,h:52,forma:'pera'},{w:54,jaw:14,h:54,forma:'punta'}],
+    gesto:[{gesto:'sonrisa',boca:12},{gesto:'grin',boca:22},{gesto:'canchero',boca:12},{gesto:'firme',boca:10},{gesto:'grita',boca:10}],
     piel:['palida','clara','media','trigueña','oscura'],
     ropa:[{c1:'#26272b',corbata:'#b23f3c',sh:INK},{c1:'#22305a',mangaLarga:'#22305a',pantalon:'#22305a',raya:'#f4f1ea',sh:'#22305a'},{c1:'#e9e4d8',musculosa:true,sh:'#3a3f4a'},{c1:'#f7f5ef',camisa:true,mangaLarga:'#f7f5ef',sh:'#2b2f37'},{c1:'#8a6a45',delantal:true,sh:INK}],
     pose:['cruzados','festeja','bolsillos','señala','hombros','biceps']
   };
   CUS.ropa.forEach(function(x,i){C['dt_c'+i]={nombre:'DT',c1:x.c1,c2:CREMA,fondo:'#efe7d4'};SHORT['dt_c'+i]=x.sh;BANDA['dt_c'+i]=CREMA;});
-  var CUS_SACA={pelo:['pelo','corte','vol','rodete','flequillo'],ojos:['ojo','ojos','iris','irisMiel','anteojos'],cara:['w','jaw','h','forma'],ropa:['corbata','silbato','delantal','mangaLarga','pantalon','raya','musculosa','camisa','remera','manga'],pose:['pose','gag','globo','palitos','mancuernas']};
-  var CUS_GEN={f:{cuerpo:'flaco',bot:116,cintura:152,ceja:3,nariz:1.05,boca:10},m:{cuerpo:'normal',bot:130,cintura:166,ceja:4.5,nariz:1.25,boca:12}};
-  function cusSaca(o,k){CUS_SACA[k].forEach(function(x){delete o[x];});}
-  function cusRopa(o,ro){['corbata','silbato','delantal','mangaLarga','pantalon','raya','musculosa','camisa'].forEach(function(x){if(ro[x])o[x]=ro[x];});}
-  // Un DT propio puede partir de un DT de la liga (r.base): solo cambia lo que se tocó
+  var CUS_SACA={pelo:['corte','vol','rodete','flequillo'],color:['pelo','colorBarba'],barba:['barba','bigote','largoBarba','sombra'],ojos:['ojo','ojos','iris','irisMiel'],acc:['anteojos','lentes','silbato','gallo'],cara:['w','jaw','h','forma'],gesto:['gesto','boca'],ropa:['corbata','delantal','mangaLarga','pantalon','raya','musculosa','camisa','remera','manga'],pose:['pose','gag','globo','palitos','mancuernas']};
+  var CUS_GEN={f:{cuerpo:'flaco',bot:116,cintura:152,ceja:3,nariz:1.05},m:{cuerpo:'normal',bot:130,cintura:166,ceja:4.5,nariz:1.25}};
+  function cusRopa(o,ro){['corbata','delantal','mangaLarga','pantalon','raya','musculosa','camisa'].forEach(function(x){if(ro[x])o[x]=ro[x];});}
+  function cusPon(o,k,v){(CUS_SACA[k]||[]).forEach(function(x){delete o[x];});
+    if(k==='color'){var c=CUS.color[v]||'castano';o.pelo=c;o.colorBarba=c;}
+    else if(k==='piel')o.piel=CUS.piel[v]||'clara';
+    else if(k==='pose')o.pose=CUS.pose[v]||'cruzados';
+    else if(k==='ropa'){cusRopa(o,CUS.ropa[v]||CUS.ropa[0]);}
+    else Object.assign(o,CUS[k][v]||CUS[k][0]);}
+  var CUS_K=['pelo','color','barba','ojos','acc','cara','gesto','piel','ropa','pose'];
+  // Un DT propio puede partir de un DT de la liga (r.base): solo cambia lo que se tocó. Sin base, arranca de un DT "en blanco".
   function figuraCus(r,entero,extra){var o,club;
-    if(r.base!=null){var id=DTIDS[r.base],g=r.g||(id==='dona'?'f':'m');o=Object.assign({},DT_FIG[id].o);club='dt_'+id;
-      if(r.g){Object.assign(o,CUS_GEN[r.g]);if(r.pelo==null){cusSaca(o,'pelo');Object.assign(o,CUS.pelo[g][0]);}}
-      if(r.pelo!=null){cusSaca(o,'pelo');Object.assign(o,CUS.pelo[g][r.pelo]||CUS.pelo[g][0]);}
-      if(r.ojos!=null){cusSaca(o,'ojos');Object.assign(o,CUS.ojos[r.ojos]||CUS.ojos[0]);}
-      if(r.cara!=null){cusSaca(o,'cara');Object.assign(o,CUS.cara[r.cara]||CUS.cara[0]);}
-      if(r.piel!=null)o.piel=CUS.piel[r.piel]||'clara';
-      if(r.ropa!=null&&CUS.ropa[r.ropa]){cusSaca(o,'ropa');cusRopa(o,CUS.ropa[r.ropa]);club='dt_c'+r.ropa;}
-      if(r.pose!=null){cusSaca(o,'pose');o.pose=CUS.pose[r.pose]||'cruzados';}
-      if(!entero){o.gag=null;o.globo=null;o.palitos=false;}
-    }else{var g=r.g==='f'?'f':'m',ro=CUS.ropa[r.ropa]||CUS.ropa[0];
-      o=Object.assign({},CUS_GEN[g],CUS.pelo[g][r.pelo]||CUS.pelo[g][0],CUS.ojos[r.ojos]||CUS.ojos[0],CUS.cara[r.cara]||CUS.cara[0],{piel:CUS.piel[r.piel]||'clara',gesto:'sonrisa',pose:CUS.pose[r.pose]||'cruzados'});
-      cusRopa(o,ro);club='dt_c'+CUS.ropa.indexOf(ro);}
+    if(r.base!=null){var id=DTIDS[r.base];o=Object.assign({},DT_FIG[id].o);club='dt_'+id;}
+    else{o=Object.assign({},CUS_GEN.m,{pelo:'castano',colorBarba:'castano',gesto:'sonrisa',boca:12},CUS.pelo[0],CUS.ojos[0],CUS.cara[0],{piel:'clara',pose:'cruzados'});cusRopa(o,CUS.ropa[0]);club='dt_c0';}
+    if(r.g){Object.assign(o,CUS_GEN[r.g]);}
+    CUS_K.forEach(function(k){if(r[k]!=null){cusPon(o,k,r[k]);if(k==='ropa')club='dt_c'+(CUS.ropa[r[k]]?r[k]:0);}});
+    if(!entero){o.gag=null;o.globo=null;o.palitos=false;}
     if(extra)Object.assign(o,extra);
     return figura(club,o);}
   // Para el Certificado: sin carta y sin los chistes de cada uno, festejando con los brazos arriba
