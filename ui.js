@@ -13,7 +13,9 @@ var PIZ=[
   {tit:'La Pizarra del Gallo',sup:'#bfe3f1',t:'#14313d',t2:'rgba(20,49,61,.68)',marco:'#4fb8d8',frase:'¡Posición de preacción!',como:'Cresta, pico y silbato. El profe de fútbol del colegio, el más querido por todos sus alumnos: generaciones enteras todavía se paran como él les enseñó.',estilo:'Todo empieza antes de que pase algo: rodillas flexionadas, cuerpo listo y la vista en la jugada. Se para donde va a caer la tirada y cuando salen los dados ya está en posición.'}];
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 // Los nombres de los DTs, en un recuadro de su color. conDT los busca en un texto, sin tocar las etiquetas.
-function dtN(p){var c=P.DTS[p.dt];return '<span class="dtn" style="--c:'+c.color+';--t:'+c.tinta+'">'+esc(p.nombre)+'</span>';}
+// El color del cono de cada DT en el partido (se puede elegir al armarlo)
+function colJ(p){var c=p&&p.cc!=null&&P.CONOS[p.cc]?P.CONOS[p.cc]:(P.CONOS[p.dt]||P.CONOS[0]);return {color:c.c,tinta:c.t};}
+function dtN(p){var c=colJ(p);return '<span class="dtn" style="--c:'+c.color+';--t:'+c.tinta+'">'+esc(p.nombre)+'</span>';}
 function conDT(g,h){if(!g||!h)return h;var l=g.jug.slice().sort(function(a,b){return b.nombre.length-a.nombre.length;});
   return String(h).split(/(<[^>]+>)/).map(function(x,i){if(i%2)return x;l.forEach(function(p){x=x.split(esc(p.nombre)).join('\u0001'+p.id+'\u0002');});return x.replace(/\u0001(\d+)\u0002/g,function(m,id){return dtN(g.jug[+id]);});}).join('');}
 function jugActual(){return sala.g||(ui.tuto&&ui.tuto.g)||null;}
@@ -24,7 +26,8 @@ function el(html){var d=document.createElement('div');d.innerHTML=html;return d;
 function icono(r,w){return '<svg viewBox="0 0 100 100" width="'+(w||46)+'" height="'+(w||46)+'" role="img" aria-label="'+P.NOMBRE_REC[r]+'">'+K.badge(r)+'</svg>';}
 function iconoMulta(r,w){return '<svg viewBox="0 0 100 100" width="'+(w||46)+'" height="'+(w||46)+'" role="img" aria-label="'+P.MULTA[r]+'">'+I.multa(r)+'</svg>';}
 function token(t,w){return '<span class="tk" style="width:'+w+'px;height:'+w+'px" role="img" aria-label="Token de '+(t==='V'?'Victoria':'Efectivo')+'">'+(t==='V'?K.tokenV():K.tokenE())+'</span>';}
-function cono(d,w){var c=P.DTS[d];return '<svg class="cono" viewBox="0 0 24 28" width="'+(w||26)+'" height="'+((w||26)*28/24)+'" aria-hidden="true"><path d="M12 1.5L20 22H4Z" fill="'+c.color+'" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><rect x="1.5" y="21.5" width="21" height="5" rx="1.6" fill="'+c.color+'" stroke="#111" stroke-width="1.6"/></svg>';}
+// cono(jugador o número de DT, o {cc:índice de color})
+function cono(d,w){var c=typeof d==='object'?colJ(d):P.DTS[d];return '<svg class="cono" viewBox="0 0 24 28" width="'+(w||26)+'" height="'+((w||26)*28/24)+'" aria-hidden="true"><path d="M12 1.5L20 22H4Z" fill="'+c.color+'" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><rect x="1.5" y="21.5" width="21" height="5" rx="1.6" fill="'+c.color+'" stroke="#111" stroke-width="1.6"/></svg>';}
 // Precio con los dibujos de los Recursos: 2 de Gol son dos pelotas
 function precioIc(m,w){var s='';P.REC.forEach(function(r){for(var i=0;i<(m[r]||0);i++)s+=iconoCirc(r,w||24);});return '<span class="ics">'+s+'</span>';}
 function nombreMercado(g,m){return 'Mercado del '+g.num[11+m]+' · '+P.ZONA[m];}
@@ -38,12 +41,37 @@ function icoMulT(r){return icoImg('m'+r,'<svg viewBox="0 0 100 100">'+I.multa(r)
 function icoBenT(){return icoImg('ben',K.dorso('Beneficio'),'','ico-c');}
 function icoTokT(t){return icoImg('t'+t,'<svg viewBox="0 0 100 100">'+(t==='V'?K.tokenV():K.tokenE())+'</svg>','');}
 function rxE(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
-function conIco(h){if(!h)return h;
+// Las piezas del tablero en chiquito: hexágono del color del club, pentágono de Mala Fama, el Palco y la Boletería
+function icoPiezaT(forma,color,num){var k='p'+forma+color+num;
+  var pol=forma==='hex'?'50,4 90,27 90,73 50,96 10,73 10,27':'50,5 95,38 78,93 22,93 5,38';
+  var dentro=forma==='bole'?'<circle cx="50" cy="50" r="45" fill="'+color+'" stroke="'+INK+'" stroke-width="6"/><circle cx="50" cy="50" r="27" fill="#fbf8f1"/><text x="50" y="64" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="40" fill="'+INK+'">$</text>':
+    '<polygon points="'+pol+'" fill="'+color+'" stroke="'+INK+'" stroke-width="6" stroke-linejoin="round"/><text x="50" y="'+(forma==='hex'?67:69)+'" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="46" fill="#fbf8f1" stroke="'+INK+'" stroke-width="5" paint-order="stroke">'+num+'</text>';
+  return icoImg(k,'<svg viewBox="0 0 100 100">'+dentro+'</svg>','','ico-pz');}
+var _rxPz=null;
+function conPiezas(x,g,T){
+  if(!_rxPz){var nom={};P.REC.forEach(function(r){nom[esc(P.ESTADIO[r])]=['hex',COL[r],P.NUM[r]];nom[esc(P.PREDIO[r])]=['hex',COL[r],P.NUM[r]];});
+    var l=Object.keys(nom).concat(P.ZONA.map(esc)).sort(function(a,b){return b.length-a.length;}).map(rxE).join('|');
+    _rxPz={nom:nom,rx:new RegExp('Mercado del (\\d)( \\([^)]*\\))?|Boletería de ('+P.REC.map(function(r){return rxE(esc(P.PREDIO[r]));}).join('|')+'|'+P.REC.map(function(r){return rxE(P.NOMBRE_REC[r]);}).join('|')+')|('+l+')|(Palco)(?![A-Za-zÀ-ÿ])','g')};}
+  var Z=_rxPz;
+  return x.replace(Z.rx,function(m,mn,paren,bol,pz,palco){
+    if(mn)return T('Mercado del '+mn+icoPiezaT('pent','#3a3530',mn))+(paren?T(paren):'');
+    if(bol){var rb=null;P.REC.forEach(function(r){if(esc(P.PREDIO[r])===bol||P.NOMBRE_REC[r]===bol)rb=r;});return T(m+icoPiezaT('bole',COL[rb],''));}
+    if(pz){var d=Z.nom[pz];if(d)return T(pz+icoPiezaT(d[0],d[1],d[2]));var zi=P.ZONA.map(esc).indexOf(pz);return T(pz+(g&&zi>=0?icoPiezaT('pent','#3a3530',g.num[11+zi]):''));}
+    if(palco)return T('Palco'+icoPiezaT('pent','#5a5550',1));
+    return m;});
+}
+// Un ícono al principio del renglón para lo que cierra algo: un Trato, el fin del turno
+function icoRenglon(g,t){
+  if(/^¡Trato!/.test(t))return '<span class="reg-ic" aria-hidden="true">🤝</span>';
+  if(/^Termina el turno/.test(t))return '<span class="reg-ic" aria-hidden="true">🏁</span>';
+  return '';}
+function conIco(h,g){if(!h)return h;g=g||jugActual();
   if(!_rxIco){var L='A-Za-zÀ-ÿ',alt=function(o){return Object.keys(o).map(function(k){return o[k];}).sort(function(a,b){return b.length-a.length;}).map(function(s){return rxE(esc(s));}).join('|');},inv=function(o){var r={};Object.keys(o).forEach(function(k){r[esc(o[k])]=k;});return r;},bn={};Object.keys(P.BENEF).forEach(function(b){bn[b]=P.BENEF[b].n;});
     _rxIco={b:new RegExp('('+alt(bn)+'|Beneficios?)(?!['+L+'])','g'),m:new RegExp('(^|[^'+L+'])('+alt(P.MULTA)+')(?!['+L+'])','g'),mi:inv(P.MULTA),r:new RegExp('(^|[^'+L+'])('+alt(P.NOMBRE_REC)+')(?!['+L+'])','g'),ri:inv(P.NOMBRE_REC)};}
   var R=_rxIco;
   return String(h).split(/(<[^>]+>)/).map(function(x,i){if(i%2||!x)return x;var tk=[];function T(s){tk.push(s);return '\u0003'+(tk.length-1)+'\u0004';}
     x=x.replace(/(\d) \(azul\) y (\d) \(blanco\)/g,function(m,a,b){return T(dado(+a,'a',17,'dd-t'))+' y '+T(dado(+b,'b',17,'dd-t'));});
+    x=conPiezas(x,g,T);
     x=x.replace(/Tokens? de (Victoria|Efectivo)/g,function(m,k){return T(icoTokT(k==='Victoria'?'V':'E')+m);});
     x=x.replace(R.b,function(m){return T(icoBenT()+m);});
     x=x.replace(R.m,function(m,a,n){return a+T(icoMulT(R.mi[n])+n);});
@@ -51,11 +79,17 @@ function conIco(h){if(!h)return h;
     return x.replace(/\u0003(\d+)\u0004/g,function(m,n){return tk[+n];});}).join('');}
 // El registro, agrupado por turno: número de turno y DT de turno con su color
 function tabRegistro(g,yo){
-  var ls=g.log.filter(function(l){return l.solo<0||l.solo===yo;}).slice(-70).reverse(),s='',cur=null;
+  var ls=g.log.filter(function(l){return l.solo<0||l.solo===yo;}).slice(-70).reverse(),s='',cur=null,enCob=false;
   ls.forEach(function(l){var k=l.n+'|'+(l.j==null?'':l.j);
-    if(k!==cur){if(cur!==null)s+='</div>';cur=k;var p=l.j!=null&&l.n>0?g.jug[l.j]:null,c=p?P.DTS[p.dt]:null;
-      s+='<div class="reg-g"'+(c?' style="--dtc:'+c.color+';--dtt:'+c.tinta+'"':'')+'><div class="reg-h">'+(l.n>0?'<span class="reg-n">Turno '+l.n+'</span>':'<span class="reg-n">Arranque</span>')+(p?cono(p.dt,13)+dtN(p):'')+'</div>';}
-    s+='<div class="reg-l'+(l.solo>=0?' priv':'')+'">'+conDT(g,conIco(esc(l.t)))+'</div>';});
+    if(k!==cur){if(enCob){s+='</div>';enCob=false;}if(cur!==null)s+='</div>';cur=k;var p=l.j!=null&&l.n>0?g.jug[l.j]:null,c=p?colJ(p):null;
+      s+='<div class="reg-g"'+(c?' style="--dtc:'+c.color+';--dtt:'+c.tinta+'"':'')+'><div class="reg-h">'+(l.n>0?'<span class="reg-n">Turno '+l.n+'</span>':'<span class="reg-n">Arranque</span>')+(p?cono(p,13)+dtN(p):'')+'</div>';}
+    // "Qué cobró cada uno": un renglón por DT, con un ícono por cada cosa que cobró
+    if(l.cob&&!enCob){s+='<div class="reg-cob"><div class="reg-cob-t">Qué cobró cada uno</div>';enCob=true;}
+    else if(!l.cob&&enCob){s+='</div>';enCob=false;}
+    if(l.cob){var ic='';if(!l.cob.nadie){P.REC.forEach(function(r){for(var i=0;i<(l.cob.c[r]||0);i++)ic+=icoRecT(r);});l.cob.m.forEach(function(r){ic+=icoMulT(r);});}
+      s+='<div class="reg-l reg-c">'+conDT(g,esc(l.t))+(ic?'<span class="reg-ics">'+ic+'</span>':'')+'</div>';return;}
+    s+='<div class="reg-l'+(l.solo>=0?' priv':'')+'">'+conDT(g,icoRenglon(g,l.t)+conIco(esc(l.t),g))+'</div>';});
+  if(enCob)s+='</div>';
   if(cur!==null)s+='</div>';
   return '<div class="reg" aria-live="polite">'+s+'</div>';}
 
@@ -90,7 +124,7 @@ var sala={g:null,
     document.title=toca&&g.fase!=='fin'?'¡Te toca! · PEXA':'PEXA Dream Team';
     pintar();avanzarBots();}
 };
-var ui={vista:(function(){try{return localStorage.getItem('pexa-vista')||'simple';}catch(e){return 'simple';}})(),yo:null,cubierto:false,modal:null,bancoDa:null,descarte:null,verDT:null,cortes:{},tiradaVista:null,tiradaT:0,eventoVisto:null,cola:[],animando:false,logVisto:null,festejo:false,sinAnim:false,lobby:null};
+var ui={vista:'simple',yo:null,cubierto:false,modal:null,bancoDa:null,descarte:null,verDT:null,cortes:{},tiradaVista:null,tiradaT:0,eventoVisto:null,cola:[],animando:false,logVisto:null,festejo:false,sinAnim:false,lobby:null};
 try{ui.sinAnim=localStorage.getItem('pexa-sin-anim')==='1';}catch(e){}
 function humanos(g){return g.jug.filter(function(p){return !p.bot;});}
 // El reloj por turno: se dibuja solo, sin repintar la pantalla, y cuando llega a cero avisa al motor
@@ -221,7 +255,9 @@ function dibujarTablero(g,marcados,encima){
   // Marcas para tocar
   (marcados||[]).forEach(function(k){var q=XY[k],gr=P.NODOS[k]&&P.NODOS[k].t==='E',rr=gr?24:18;s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+rr+'" fill="#fff" fill-opacity=".92" stroke="#111" stroke-width="1.4" pointer-events="none"/><circle class="lat" cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+(rr-2)+'" fill="#ffd83a" stroke="#e8262a" stroke-width="4" pointer-events="none"/><circle class="lat-onda" cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+rr+'" fill="none" stroke="#ffd83a" stroke-width="4" pointer-events="none"/>';});
   // Conos
-  g.jug.forEach(function(p){if(p.pos<0)return;var q=XY[p.pos],c=P.DTS[p.dt],blanco='<path d="M0-13L9 8H-9Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><rect x="-12" y="6.6" width="24" height="6" rx="1.8" fill="#fff" stroke="#fff" stroke-width="5"/>';s+='<g transform="translate('+q[0].toFixed(1)+' '+(q[1]-11).toFixed(1)+') scale(1.75)" pointer-events="none"><ellipse cy="11" rx="13" ry="4" fill="#000" opacity=".25"/>'+blanco+'<path d="M0-13L9 8H-9Z" fill="'+c.color+'" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><rect x="-12" y="6.6" width="24" height="6" rx="1.8" fill="'+c.color+'" stroke="#111" stroke-width="1.6"/><text y="4.6" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="6.2" fill="'+c.tinta+'">10</text></g>';});
+  g.jug.forEach(function(p){if(p.pos<0)return;var q=XY[p.pos],c=colJ(p),blanco='<path d="M0-13L9 8H-9Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><rect x="-12" y="6.6" width="24" height="6" rx="1.8" fill="#fff" stroke="#fff" stroke-width="5"/>';s+='<g transform="translate('+q[0].toFixed(1)+' '+(q[1]-11).toFixed(1)+') scale(1.75)" pointer-events="none"><ellipse cy="11" rx="13" ry="4" fill="#000" opacity=".25"/>'+blanco+'<path d="M0-13L9 8H-9Z" fill="'+c.color+'" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><rect x="-12" y="6.6" width="24" height="6" rx="1.8" fill="'+c.color+'" stroke="#111" stroke-width="1.6"/><text y="4.6" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="6.2" fill="'+c.tinta+'">10</text></g>';
+    // Tarjeta Roja: queda arriba de su cono hasta que se cumple (su próximo turno sin mover)
+    if(p.roja)s+='<g transform="translate('+(q[0]+13).toFixed(1)+' '+(q[1]-48).toFixed(1)+')" pointer-events="none"><g class="roja-tab"><rect x="-10" y="-14" width="20" height="28" rx="3" fill="#d8261f" stroke="#fff" stroke-width="2.6"/><rect x="-10" y="-14" width="20" height="28" rx="3" fill="none" stroke="#111" stroke-width="1.1"/></g></g>';});
   // Cuántos Jugadores quedan en cada Mercado: arriba de todo y corrido hacia afuera, para que nada lo tape
   P.MERCADOS.forEach(function(k,m){var q=XY[k],d=Math.hypot(q[0],q[1])||1,cx=q[0]*(1+25/d),cy=q[1]*(1+25/d);s+='<g pointer-events="none"><rect x="'+(cx-15).toFixed(1)+'" y="'+(cy-9).toFixed(1)+'" width="30" height="18" rx="5" fill="#fdf3d2" stroke="#b8323a" stroke-width="2.2"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4).toFixed(1)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="11" fill="#b8323a">'+g.mercados[m].length+'/4</text></g>';});
   return s+'</svg>';
@@ -230,6 +266,11 @@ function tocarTablero(ev,marcados,fn){
   var svg=ev.currentTarget,pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;var q=pt.matrixTransform(svg.getScreenCTM().inverse());
   var mejor=null,bd=26;(marcados||[]).forEach(function(k){var d=Math.hypot(XY[k][0]-q.x,XY[k][1]-q.y);if(d<bd){bd=d;mejor=k;}});
   if(mejor!=null&&fn){fn(mejor);return;}
+  // Tocar un cono o un Barrabrava: se ve grande y con lo que hace
+  var g=jugActual(),cj=null,bc=17;if(g){g.jug.forEach(function(p){if(p.pos<0)return;var d=Math.hypot(XY[p.pos][0]-q.x,XY[p.pos][1]-11-q.y);if(d<bc){bc=d;cj=p.id;}});
+    if(cj!=null){ui.modal={tipo:'cono',j:cj};pintar();return;}
+    var kb=null,bb=16;g.barras.forEach(function(k){var d=Math.hypot(XY[k][0]-q.x,XY[k][1]-q.y);if(d<bb){bb=d;kb=k;}});
+    if(kb!=null){ui.modal={tipo:'barra'};pintar();return;}}
   var pz=piezaEn(q.x,q.y);if(pz){ui.modal={tipo:'pieza',pz:pz};pintar();}
 }
 function dentro(pt,l){var c=false;for(var i=0,j=l.length-1;i<l.length;j=i++){if(((l[i][1]>pt[1])!==(l[j][1]>pt[1]))&&(pt[0]<(l[j][0]-l[i][0])*(pt[1]-l[i][1])/(l[j][1]-l[i][1])+l[i][0]))c=!c;}return c;}
@@ -244,7 +285,7 @@ function piezaEn(x,y){
 function historial(g){
   var vistos={},l=[],s='<div class="hist" aria-label="La última tirada de cada DT"><span class="hist-t">Dados</span>';
   (g.tiradas||[]).slice().reverse().forEach(function(x){if(!vistos[x.j]){vistos[x.j]=1;l.push(x);}});
-  for(var i=0;i<g.n;i++){var x=l[i];s+=x?'<div class="ht'+(i===0?' ult':'')+'" style="border-left-color:'+P.DTS[g.jug[x.j].dt].color+'">'+dado(x.d[0],'a',17)+dado(x.d[1],'b',17)+'</div>':'<div class="ht vacio"></div>';}
+  for(var i=0;i<g.n;i++){var x=l[i];s+=x?'<div class="ht'+(i===0?' ult':'')+'" style="border-left-color:'+colJ(g.jug[x.j]).color+'">'+dado(x.d[0],'a',17)+dado(x.d[1],'b',17)+'</div>':'<div class="ht vacio"></div>';}
   return s+'</div>';
 }
 function mostrarTiro(d){
@@ -273,7 +314,7 @@ function mostrarEvento(g,e){
   if(e.t==='efecto')return mostrarEfecto(g,e);
   return 0;
 }
-function capa(html,ms){var t=el(html.replace(/<div class="fj-tit">.*?<\/div>/,function(m){return conDT(jugActual(),m);})).firstChild;document.body.appendChild(t);setTimeout(function(){t.remove();},ms);return ms;}
+function capa(html,ms){var t=el(html.replace(/<div class="fj-tit">.*?<\/div>/,function(m){return conDT(jugActual(),m);})).firstChild;t.style.animationDuration=ms+'ms';document.body.appendChild(t);setTimeout(function(){t.remove();},ms);return ms;}
 // ¡Es tu turno!
 function mostrarTuTurno(g){var p=g.jug[ui.yo];if(!p)return 0;return capa('<div class="fichaje tu-turno" aria-hidden="true"><span class="tt-cara">'+retratoJ(p)+'</span><b class="tt-txt">¡Es tu turno!</b></div>',1500);}
 // Lo que cobraste vos con la tirada: lo de los demás no se muestra acá
@@ -313,7 +354,7 @@ var COPA='<svg class="copa" viewBox="0 0 120 170" aria-hidden="true"><defs><line
 function mostrarMundial(g){
   var v=document.querySelector('.mundial');if(v)v.remove();
   var p=g.jug[g.ganador],cs=p.eq.filter(Boolean).map(function(c,i){return '<span class="mu-carta" style="animation-delay:'+(1+i*.28).toFixed(2)+'s">'+K.jugador(c.club,c.pos)+'</span>';}).join('');
-  var t=el('<div class="mundial" role="dialog" aria-modal="true" aria-label="Campeón"><canvas></canvas><div class="mu-rayos"></div><div class="mu-in"><div class="mu-est">★ ★ ★</div>'+COPA+'<h1>¡Campeón del mundo!</h1><h2>'+esc(p.nombre)+'</h2><div class="mu-cono">'+cono(p.dt,34)+'</div><p>¡Dale campeón, dale campeón! Levantó la Copa en el turno '+g.nTurnos+'.</p><div class="mu-eq">'+cs+'</div><button class="bt oro" id="muListo">Ver el certificado</button></div></div>').firstChild;
+  var t=el('<div class="mundial" role="dialog" aria-modal="true" aria-label="Campeón"><canvas></canvas><div class="mu-rayos"></div><div class="mu-in"><div class="mu-est">★ ★ ★</div>'+COPA+'<h1>¡Campeón del mundo!</h1><h2>'+esc(p.nombre)+'</h2><div class="mu-cono">'+cono(p,34)+'</div><p>¡Dale campeón, dale campeón! Levantó la Copa en el turno '+g.nTurnos+'.</p><div class="mu-eq">'+cs+'</div><button class="bt oro" id="muListo">Ver el certificado</button></div></div>').firstChild;
   document.body.appendChild(t);
   var fin=false;t.querySelector('#muListo').onclick=function(){fin=true;t.remove();var r=document.getElementById('resumen');if(r)r.scrollIntoView();};
   // Papelitos con los colores de los clubes
@@ -357,10 +398,10 @@ function resumen(g,tableroH){
 // Un intercambio de Recursos: las cartas cruzan de un DT al otro. Se ve igual cuando negocian las máquinas.
 function cartasVuelan(o,clase){var l=[];P.REC.forEach(function(r){for(var i=0;i<(o[r]||0);i++)l.push(r);});
   return l.slice(0,6).map(function(r,i){return '<span class="tq-c '+clase+'" style="animation-delay:'+(i*.13).toFixed(2)+'s">'+K.recurso(r)+'</span>';}).join('');}
-function etiquetaDT(g,j){var p=g.jug[j];return '<div class="tq-dt">'+cono(p.dt,34)+'<b>'+esc(p.nombre)+'</b></div>';}
+function etiquetaDT(g,j){var p=g.jug[j];return '<div class="tq-dt">'+cono(p,34)+'<b>'+esc(p.nombre)+'</b></div>';}
 function mostrarTrueque(g,e){
   var devuelve=e.t==='devuelve',banco=e.t==='banco'||devuelve,der=banco?'<div class="tq-dt"><span class="tq-banco">$</span><b>El Banco</b></div>':etiquetaDT(g,e.a);
-  var t=el('<div class="trueque" aria-hidden="true"><h3>'+(devuelve?'¡Salió un 1! Devuelve '+e.n:(banco?'Cambio con el Banco':'¡Trato!'))+'</h3><div class="tq-fila">'+etiquetaDT(g,e.de)+'<div class="tq-mesa">'+cartasVuelan(e.doy,'ida')+cartasVuelan(e.pido,'vuelta')+'</div>'+der+'</div></div>').firstChild;
+  var t=el('<div class="trueque" aria-hidden="true"><h3>'+(devuelve?'¡Salió un 1! '+esc(g.jug[e.de].nombre)+' devuelve '+(e.cant!=null?e.cant:P.suma(e.doy)):(banco?'Cambio con el Banco':'¡Trato!'))+'</h3><div class="tq-fila">'+etiquetaDT(g,e.de)+'<div class="tq-mesa">'+cartasVuelan(e.doy,'ida')+cartasVuelan(e.pido,'vuelta')+'</div>'+der+'</div></div>').firstChild;
   document.body.appendChild(t);setTimeout(function(){t.remove();},2100);return 2100;
 }
 // Un fichaje: la carta aparece dada vuelta y gira hasta mostrar al Jugador
@@ -381,17 +422,23 @@ function tiradaCol(g){
   Object.keys(pd).forEach(function(j){var x=pd[j],ic='';
     x.c.forEach(function(c){for(var i=0;i<c.n;i++)ic+=iconoCirc(c.r,17);});
     x.m.forEach(function(m){ic+='<span class="qt-m'+(m.fr?' fren':'')+'">'+iconoMulta(m.r,17)+'</span>';});
-    s+='<div class="qt-dt">'+cono(g.jug[j].dt,17)+'<div class="qt-ic">'+ic+'</div></div>';});
+    s+='<button class="qt-dt" data-qt="'+j+'" aria-label="Qué cobró '+esc(g.jug[j].nombre)+'">'+cono(g.jug[j],17)+'<div class="qt-ic">'+ic+'</div></button>';});
   return s+'</div>';
 }
+// Al tocar un ícono de la izquierda: qué cobró ese DT con la última tirada, en palabras
+function modalQt(g,j){
+  var u=g.ultTiro,q=g.jug[j],x=u?porDTirada(u)[j]:null,f=[];
+  if(x){x.c.forEach(function(c){f.push(filaFicha('<span class="ics">'+precioIc(pagoN(c.r,c.n),26)+'</span>',dtN(q)+' cobró '+c.n+' '+P.NOMBRE_REC[c.r],'Su cono toca una pieza de '+P.NOMBRE_REC[c.r]+' que salió con los dados'+(c.n>1&&P.hab(q,3)===c.r?', y su Delantero de '+P.NOMBRE_REC[c.r]+' cobra el doble':'')+'.'));});
+    x.m.forEach(function(m){f.push(filaFicha(iconoMulta(m.r,34),m.fr?'A '+dtN(q)+' le rebotó '+esc(P.MULTA[m.r]):dtN(q)+' se llevó una Multa de '+esc(P.MULTA[m.r]),m.fr?'Su Defensor de '+P.NOMBRE_REC[m.r]+' la frena: no le cae.':'Su cono toca una Zona de Mala Fama que salió con los dados. Traba su '+P.NOMBRE_REC[m.r]+' hasta pagarla.'));});}
+  return '<h2 class="tit-ic">'+cono(q,26)+'La última tirada</h2><div class="ej"><div class="ej-v">'+dado(u.d[0],'a',34)+dado(u.d[1],'b',34)+'</div></div><div class="qt-info">'+(f.length?f.join(''):'<p>'+dtN(q)+' no cobró nada.</p>')+'</div>';
+}
+function pagoN(r,n){var o={};o[r]=n;return o;}
 // Lo mismo, contado por El Relator
 function textoTirada(g){
   var u=g.ultTiro;if(!u||u.n!==g.nTirada||!g.dados)return '';
-  var dob=u.d[0]===u.d[1],pd=porDTirada(u),l=[];
-  Object.keys(pd).forEach(function(j){var x=pd[j],q=g.jug[j],t=x.c.map(function(c){return c.n+' de '+P.NOMBRE_REC[c.r];}),m=x.m.filter(function(y){return !y.fr;}),fr=x.m.filter(function(y){return y.fr;});
-    var f=t.length?'cobra '+t.join(' y '):'';if(m.length)f+=(f?' y ':'')+'saca '+m.map(function(y){return P.MULTA[y.r];}).join(' y ');if(fr.length)f+=(f?'. ':'')+'Le rebota '+fr.map(function(y){return P.MULTA[y.r];}).join(' y ');
-    l.push('<b>'+esc(q.nombre)+'</b> '+esc(f));});
-  var s='Salieron '+dado(u.d[0],'a',17,'dd-t')+' y '+dado(u.d[1],'b',17,'dd-t')+'. '+(l.length?l.join('. ')+'.':'No cobra nadie.');
+  // Lo que cobró cada uno ya está a la izquierda del tablero y en "Lo que fue pasando": acá solo los dados
+  var dob=u.d[0]===u.d[1];
+  var s='Salieron '+dado(u.d[0],'a',17,'dd-t')+' y '+dado(u.d[1],'b',17,'dd-t')+'.';
   if(dob)s+=' ¡Doble! Cada pieza paga dos veces y se camina la suma: '+(u.d[0]+u.d[1])+' pasos.';
   else if(u.d.indexOf(1)>=0)s+=' Salió un 1: se activa el Palco, y el que ya tenía más de 9 Recursos devuelve la mitad.';
   if(u.sinB.length)s+=' El Banco no alcanzó y nadie cobró '+u.sinB.map(function(r){return P.NOMBRE_REC[r];}).join(' ni ')+'.';
@@ -446,7 +493,7 @@ function tabReglas(g,me){
     ['Mercado de Pases','Parado en un Mercado, en tu turno, podés <b>entrar a mirar los Jugadores todas las veces que quieras</b>. Mirar es gratis. Si te falta un Token, salís, canjeás o negociás, y volvés a entrar. Se contrata uno por turno, y cambiar a uno que ya tenés cuesta 1 Token, el que quieras.'+ej('Tocás un Jugador y aparece el botón para contratarlo.',ejCarta(K.jugador('fans',2))+ejFl()+token('V',28)+token('E',28))],
     ['Qué hace cada Jugador','Cada uno tiene el Recurso de su club, y su habilidad usa ese Recurso.'+ej('<b>Arquero de Gol:</b> con Gol pagás cualquier Multa.',ic('gol')+ejFl()+iconoMulta('fans',36))+ej('<b>Defensor de Fans:</b> la Multa de Fans te rebota: no te cae.','<span class="ej-tacha">'+iconoMulta('fans',36)+'</span>')+ej('<b>Y además:</b> si un rival paga la Multa de Fans, ese pago es tuyo.',cono(1,24)+iconoMulta('fans',32)+ic('fans')+ejFl()+cono(0,24))+ej('<b>Volante de Gol:</b> cambiás 2 de Gol por 1 cualquiera, donde estés. En la Boletería de Gol, 1 por 1.',ic('gol')+ic('gol')+ejFl()+ic('sponsors'))+ej('<b>Delantero de Gol:</b> cuando cobrás Gol, levantás el doble.',ic('gol')+ejFl()+ic('gol')+ic('gol'))],
     ['Beneficios','Se usan desde tu próximo turno, uno por turno.'+ej('Un Beneficio es una sorpresa del mazo.',pr(P.PRECIO.B)+ejFl()+ejCarta(K.dorso('Beneficio')))+ej('Con 3 usados, cuando quieras, los entregás por 1 Recurso a elección.',ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejFl()+ic('suerte'))],
-    ['Cambiar con el Banco','Con el Banco se cambia en cualquier lugar. En una <b>Boletería</b> sale más barato: se usa desde las 3 esquinas de la punta del predio.'+ej('En cualquier lugar: 4 iguales por 1.',ic('gol',22)+ic('gol',22)+ic('gol',22)+ic('gol',22)+ejFl()+ic('suerte'))+ej('En la Boletería de Gol: das 2 de Gol y te llevás 1 del que quieras.',ic('gol')+ic('gol')+ejFl()+ic('picardia'))],
+    ['Cambiar con el Banco','Con el Banco se cambia en cualquier lugar. En una <b>Boletería</b> sale más barato: se usa desde las 3 esquinas de la punta del predio. Y si tenés el Volante de ese Recurso, ahí cambiás 1 por 1.'+ej('En cualquier lugar: 4 iguales por 1.',ic('gol',22)+ic('gol',22)+ic('gol',22)+ic('gol',22)+ejFl()+ic('suerte'))+ej('En la Boletería de Gol: das 2 de Gol y te llevás 1 del que quieras.',ic('gol')+ic('gol')+ejFl()+ic('picardia'))],
     ['Negociar','En tu turno, después de mover, podés ofrecer un trato a un DT o a todos. Cuando es el turno de otro, también podés ofrecerle a él. Una oferta a todos se la lleva el primero que acepte.'+ej('Das lo que te sobra, pedís lo que te falta.',cono(0,24)+ic('fans')+'<i class="ej-fl">⇄</i>'+ic('gol')+cono(1,24))],
     ['El Palco','Desde un vértice podés espiar <b>uno solo</b> de los dos Mercados de Pases más cercanos: vos elegís cuál. Al centro solo se entra con todo listo para levantar la Copa (los Recursos de la mano, descontando lo que pagás de Multas), con el último paso: no es lugar de paso.'+ej('Mirás uno de los dos, no los dos.',icoBinoculares(38)+ejFl()+ejCarta(K.dorso('Jugador'))+'<b>o</b>'+ejCarta(K.dorso('Jugador')))],
     ['Barrabravas','Después de que movés tu cono, cada Barrabrava avanza <b>solo</b> una intersección en sentido horario, por su recorrido. Nadie puede pasar ni pararse donde hay un Barrabrava.'+ejCalle(['n','',''],1,'Si está libre, avanza uno.')+ejCalle(['n','c',''],2,'Si hay un cono, lo salta.')+ejCalle(['n','n',''],0,'Si hay otro Barrabrava, se queda donde está.')]
@@ -472,7 +519,7 @@ function fichaPieza(g,pz){
   if(pz.t==='area'){var a=pz.a,r=g.rec[a],n=g.num[a];f.quien=tocan(a);f.num=n;
     if(a===0){f.tit='El Palco';f.sup='El centro de la isla';f.color='#22305a';
       f.filas=[filaFicha(dado(1,'b',30),'Con cada 1','El que esté parado en un vértice se lleva una Multa.'),filaFicha(icoBinoculares(30),'Desde el Palco se ve todo','Desde cada vértice podés espiar uno solo de los dos Mercados de Pases más cercanos.'),filaFicha('<span class="ff-copa">★</span>','Acá se levanta la Copa','Al centro se entra por el pasillo, con el último paso del dado blanco. Si tenés todo lo necesario, levantás la Copa; si no, quedás adentro y el 1 también te toca.')];}
-    else if(r){var est=a<=5;f.tit=est?P.ESTADIO[r]:P.PREDIO[r];f.sup=(est?'Estadio':'Predio')+' de '+P.CLUB[r];f.color=COL[r];
+    else if(r){var est=a<=5;f.tit=est?(/^Estadio /.test(P.ESTADIO[r])?'':'Estadio ')+P.ESTADIO[r]:P.PREDIO[r];f.sup=(est?'Estadio':'Predio')+' de '+P.CLUB[r];f.color=COL[r];
       f.filas=[filaFicha(iconoCirc(r,34),'Cobrás '+P.NOMBRE_REC[r],'Cuando sale un <b>'+n+'</b>, cada cono que toque esta pieza se lleva 1.'),filaFicha('<span class="ff-pos">DEL</span>','Con su Delantero','El Delantero de '+P.NOMBRE_REC[r]+' cobra el doble.')];
       if(!est)f.filas.push(filaFicha('<span class="ff-pos">$</span>','Boletería','En su punta está la Boletería de '+P.NOMBRE_REC[r]+'.'));}
     else{var z=a-11;f.tit=P.ZONA[z];f.sup='Zona de Mala Fama';f.color='#2b2620';f.lore=ZONA_TXT[z];
@@ -480,25 +527,58 @@ function fichaPieza(g,pz){
   } else if(pz.t==='mercado'){var mm=g.mercados[pz.i];f.tit='Mercado de Pases';f.sup=P.ZONA[pz.i];f.color='#b8323a';f.quien=g.jug.filter(function(p){return p.pos===P.MERCADOS[pz.i];});
     f.filas=[filaFicha('<span class="ff-pos">'+mm.length+'/4</span>','Jugadores','Quedan <b>'+mm.length+' de 4</b> en este Mercado.'),filaFicha(token('V',28)+token('E',28),'Para contratar','Parate acá. Un Jugador '+costoJugador(g)+'.'),filaFicha(icoBinoculares(30),'Mirar es gratis','En tu turno, todas las veces que quieras. Si ninguno te sirve, no pagás nada.')];}
   else{var b=g.rec[6+pz.i];f.tit='Boletería de '+P.NOMBRE_REC[b];f.sup=P.PREDIO[b];f.color=COL[b];
-    f.filas=[filaFicha(iconoCirc(b,34),'Das 2 y elegís','Das 2 de '+P.NOMBRE_REC[b]+' y te llevás 1 del que quieras.'),filaFicha('<span class="ff-pos">3</span>','Desde dónde','Desde cualquiera de las 3 esquinas de la punta de su predio, cuando canjeás.'),filaFicha('<span class="ff-pos">4:1</span>','Afuera','Lejos de la Boletería, el Banco te pide 4 iguales por 1.')];}
+    f.filas=[filaFicha(iconoCirc(b,34),'Das 2 y elegís','Das 2 de '+P.NOMBRE_REC[b]+' y te llevás 1 del que quieras.'),filaFicha('<span class="ff-pos">3</span>','Las 3 esquinas son Boletería','La punta del predio y las dos esquinas de al lado: parado en cualquiera de las 3, canjeás como en la Boletería.'),filaFicha('<span class="ff-pos">1:1</span>','Con su Volante, 1 por 1','Si tenés el Volante de '+P.NOMBRE_REC[b]+', acá das 1 de '+P.NOMBRE_REC[b]+' y te llevás 1 del que quieras.'),filaFicha('<span class="ff-pos">4:1</span>','Afuera','Lejos de la Boletería, el Banco te pide 4 iguales por 1.')];}
   return f;
 }
-function modalPieza(g,pz){
-  var f=fichaPieza(g,pz),url=pedirArte(g),me=ui.yo!=null?g.jug[ui.yo]:null,vis=pz.t==='mercado'&&me?me.conoce[pz.i]:null;
-  var vh=vis?'<div class="ficha-vistos"><b>'+icoBinoculares(26)+'Lo que viste en el turno '+vis.t+'</b>'+(vis.c.length?'<div class="pz-eq">'+vis.c.map(function(x){return '<button class="cartita" data-vercarta="'+x.club+'-'+x.pos+'" aria-label="Ver a '+esc(P.nombreCarta(x))+'">'+K.jugador(x.club,x.pos)+'</button>';}).join('')+'</div>':'<span>Estaba vacío.</span>')+'</div>':'';
-  return '<div class="ficha" style="--fc:'+f.color+'"><div class="ficha-img">'+(url?cortePieza(pz,url):'<div class="pieza-cargando">Dibujando…</div>')+(f.num!=null?'<span class="ficha-num">'+f.num+'</span>':'')+'</div><div class="ficha-cab"><small>'+esc(f.sup)+'</small><h2>'+esc(f.tit)+'</h2></div>'+(f.lore?'<p class="ficha-lore">'+esc(f.lore)+'</p>':'')+vh+'<div class="ficha-filas">'+f.filas.join('')+'</div>'+(f.quien.length?'<div class="ficha-quien"><b>Acá están:</b>'+f.quien.map(function(q){return '<span>'+cono(q.dt,16)+' '+esc(q.nombre)+'</span>';}).join('')+'</div>':'')+'</div>';
+// La pieza en versión simple, con su nombre escrito: como en el tablero simplificado, pero grande
+function piezaSimple(g,pz,f){
+  var W=300,H=210,s='<svg class="pieza-g" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(f.tit)+'"><rect width="'+W+'" height="'+H+'" rx="12" fill="#8fc3df"/>';
+  function poli(n,r,cx,cy,rot){var p=[];for(var i=0;i<n;i++){var a=(rot+i*360/n)*Math.PI/180;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));}return p.join(' ');}
+  function numero(x,y,n,col){return '<circle cx="'+x+'" cy="'+y+'" r="22" fill="#fbf8f1" stroke="'+INK+'" stroke-width="2"/><circle cx="'+x+'" cy="'+y+'" r="18" fill="'+col+'"/><text x="'+x+'" y="'+(y+10)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="28" fill="#fbf8f1" stroke="'+INK+'" stroke-width="2.4" paint-order="stroke">'+n+'</text>';}
+  function cartel(t){var fs=Math.min(24,Math.floor(470/(t.length+2)));return '<rect x="14" y="'+(H-46)+'" width="'+(W-28)+'" height="36" rx="9" fill="#fbf8f1" stroke="'+INK+'" stroke-width="2.5"/><text x="'+W/2+'" y="'+(H-28+fs*.36).toFixed(1)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="'+fs+'" fill="'+INK+'">'+esc(t)+'</text>';}
+  var cx=W/2,cy=82;
+  if(pz.t==='area'){var a=pz.a,r=g.rec[a],hex=a>=1&&a<=10,col=r?COL[r]:(a===0?'#5a5550':'#3a3530');
+    s+='<polygon points="'+poli(hex?6:5,76,cx,cy,hex?30:-90)+'" fill="'+col+'" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/>';
+    if(r)s+='<g transform="translate('+(cx-62)+' '+(cy-40)+') scale(.5)">'+K.badge(r)+'</g>'+numero(cx+28,cy+6,g.num[a],col);
+    else if(a===0)s+=COPA.replace('<svg ','<svg x="'+(cx-24)+'" y="'+(cy-66)+'" width="48" height="68" ')+numero(cx,cy+26,1,'#111');
+    else s+='<g transform="translate('+(cx-24)+' '+(cy-64)+') scale(.48)">'+I.multa('fans')+'</g>'+numero(cx,cy+24,g.num[a],'#111');
+    s+=cartel(f.tit);}
+  else if(pz.t==='mercado'){var n=g.mercados[pz.i].length;
+    s+='<rect x="'+(cx-80)+'" y="'+(cy-58)+'" width="160" height="112" rx="10" fill="#b8323a" stroke="'+INK+'" stroke-width="3.5"/><rect x="'+(cx-68)+'" y="'+(cy-46)+'" width="136" height="88" rx="6" fill="#fdf3d2"/>';
+    for(var k=0;k<4;k++)s+='<rect x="'+(cx-58+k*30)+'" y="'+(cy-32)+'" width="26" height="40" rx="3" fill="'+(k<n?'#22305a':'none')+'" stroke="'+(k<n?INK:'#c9b98f')+'" stroke-width="2" stroke-dasharray="'+(k<n?'0':'4 3')+'"/>';
+    // El texto va en tinta y adentro de lo crema: antes era rojo y se pisaba con el borde rojo
+    s+='<text x="'+cx+'" y="'+(cy+32)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="17" fill="'+INK+'">'+n+' de 4</text>'+numero(cx+76,cy-52,g.num[11+pz.i],'#111')+cartel('Mercado del '+g.num[11+pz.i]);}
+  else{var b=g.rec[6+pz.i],cb=COL[b],L=[70,102],T=[cx,46],R=[230,102];
+    // La Boletería son las 3 esquinas de la punta del predio: las dos de los costados y la punta
+    function esq(q,rr){return '<circle cx="'+q[0]+'" cy="'+q[1]+'" r="'+rr+'" fill="'+cb+'" stroke="'+INK+'" stroke-width="3"/><circle cx="'+q[0]+'" cy="'+q[1]+'" r="'+(rr*.45).toFixed(1)+'" fill="#fbf8f1" stroke="'+INK+'" stroke-width="1.5"/>';}
+    s+='<polygon points="'+L+' '+T+' '+R+' 230,170 70,170" fill="'+cb+'" opacity=".35"/><path d="M'+L+' L'+T+' L'+R+'" fill="none" stroke="#fbf8f1" stroke-width="13" stroke-linejoin="round"/><path d="M'+L+' L'+T+' L'+R+'" fill="none" stroke="'+INK+'" stroke-width="2.5" stroke-dasharray="7 5"/>'+esq(L,17)+esq(R,17)+'<circle cx="'+T[0]+'" cy="'+T[1]+'" r="30" fill="'+cb+'" stroke="'+INK+'" stroke-width="3.5"/><circle cx="'+T[0]+'" cy="'+T[1]+'" r="19" fill="#fbf8f1" stroke="'+INK+'" stroke-width="2"/><text x="'+T[0]+'" y="'+(T[1]+10)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="27" fill="'+INK+'">$</text>';
+    [[L,'1',-1],[T,'2',0],[R,'3',1]].forEach(function(z){var x=z[0][0]+(z[2]?z[2]*24:30),y=z[0][1]+(z[2]?-20:-16);s+='<circle cx="'+x+'" cy="'+y+'" r="10" fill="#ffd83a" stroke="'+INK+'" stroke-width="2"/><text x="'+x+'" y="'+(y+4.5)+'" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="13" fill="'+INK+'">'+z[1]+'</text>';});
+    s+='<rect x="'+(cx-72)+'" y="118" width="144" height="26" rx="13" fill="#fbf8f1" stroke="'+INK+'" stroke-width="2"/><text x="'+cx+'" y="136" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="14" fill="'+INK+'">Las 3 esquinas</text>'+cartel('Boletería de '+P.NOMBRE_REC[b]);}
+  return s+'</svg>';
 }
+function modalPieza(g,pz){
+  var f=fichaPieza(g,pz),me=ui.yo!=null?g.jug[ui.yo]:null,vis=pz.t==='mercado'&&me?me.conoce[pz.i]:null;
+  var vh=vis?'<div class="ficha-vistos"><b>'+icoBinoculares(26)+'Lo que viste en el turno '+vis.t+'</b>'+(vis.c.length?'<div class="pz-eq">'+vis.c.map(function(x){return '<button class="cartita" data-vercarta="'+x.club+'-'+x.pos+'" aria-label="Ver a '+esc(P.nombreCarta(x))+'">'+K.jugador(x.club,x.pos)+'</button>';}).join('')+'</div>':'<span>Estaba vacío.</span>')+'</div>':'';
+  return '<div class="ficha" style="--fc:'+f.color+'"><div class="ficha-img">'+piezaSimple(g,pz,f)+'</div><div class="ficha-cab"><small>'+esc(f.sup)+'</small><h2>'+esc(f.tit)+'</h2></div>'+(f.lore?'<p class="ficha-lore">'+esc(f.lore)+'</p>':'')+vh+'<div class="ficha-filas">'+f.filas.join('')+'</div>'+(f.quien.length?'<div class="ficha-quien"><b>Acá están:</b>'+f.quien.map(function(q){return '<span>'+cono(q,16)+' '+esc(q.nombre)+'</span>';}).join('')+'</div>':'')+'</div>';
+}
+function icoBarra(s){return '<svg viewBox="-15 -11 30 22" width="'+s+'" height="'+Math.round(s*22/30)+'" aria-hidden="true"><ellipse rx="11" ry="8" fill="#dcb98a" stroke="'+INK+'" stroke-width="1.2"/><path d="M-6-5q1.6 5 0 10M-2-6.6q1.6 6.6 0 13.2M2-6.6q1.6 6.6 0 13.2M6-5q1.6 5 0 10" fill="none" stroke="#a9825c" stroke-width="1"/></svg>';}
 function icoBinoculares(s){return '<svg class="ic-bino" viewBox="0 0 48 34" width="'+s+'" height="'+Math.round(s*34/48)+'" aria-hidden="true"><g fill="#fbf8f1" stroke="#2b2620" stroke-width="2.4" stroke-linejoin="round"><path d="M9 6c1-3 7-3 8 0l3 8h8l3-8c1-3 7-3 8 0l4 12H5Z" fill="#3a3f4a"/><circle cx="13" cy="22" r="10" fill="#3a3f4a"/><circle cx="35" cy="22" r="10" fill="#3a3f4a"/><circle cx="13" cy="22" r="6.2" fill="#9fd3ea"/><circle cx="35" cy="22" r="6.2" fill="#9fd3ea"/><rect x="20" y="15" width="8" height="9" fill="#3a3f4a"/></g><path d="M10 19.5q2-2 4.5-1.8M32 19.5q2-2 4.5-1.8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>';}
 function icoAnim(apagada){return '<svg viewBox="0 0 48 48" width="36" height="36" aria-hidden="true"><rect x="6" y="9" width="36" height="30" rx="4" fill="#fff8d6" stroke="#2b2620" stroke-width="2.6"/><path d="M6 16h36M6 32h36" stroke="#2b2620" stroke-width="2"/><path d="M12 9v7M20 9v7M28 9v7M36 9v7M12 32v7M20 32v7M28 32v7M36 32v7" stroke="#2b2620" stroke-width="2"/><path d="M20 19l10 5-10 5Z" fill="#b8323a" stroke="#2b2620" stroke-width="1.6" stroke-linejoin="round"/>'+(apagada?'<path d="M5 5L43 43M43 5L5 43" stroke="#fff" stroke-width="9" stroke-linecap="round"/><path d="M5 5L43 43M43 5L5 43" stroke="#d8261f" stroke-width="5.5" stroke-linecap="round"/>':'')+'</svg>';}
+function icoReglas(){return '<svg viewBox="0 0 48 48" width="36" height="36" aria-hidden="true"><path d="M7 9q8-4 17 1v31q-9-5-17-1Z" fill="#fff8d6" stroke="#2b2620" stroke-width="2.6" stroke-linejoin="round"/><path d="M41 9q-8-4-17 1v31q9-5 17-1Z" fill="#fff8d6" stroke="#2b2620" stroke-width="2.6" stroke-linejoin="round"/><path d="M11 16q5-2 9 0M11 22q5-2 9 0M11 28q5-2 9 0M28 16q5-2 9 0M28 22q5-2 9 0M28 28q5-2 9 0" fill="none" stroke="#8a7f6e" stroke-width="2" stroke-linecap="round"/><circle cx="35" cy="36" r="8" fill="#ffd83a" stroke="#2b2620" stroke-width="2.4"/><text x="35" y="40.5" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="12" fill="#2b2620">?</text></svg>';}
 function icoSalir(){return '<svg viewBox="0 0 48 48" width="36" height="36" aria-hidden="true"><path d="M8 5h22v38H8Z" fill="#fff8d6" stroke="#2b2620" stroke-width="2.6" stroke-linejoin="round"/><path d="M8 5l13 6v38L8 43Z" fill="#c9a26a" stroke="#2b2620" stroke-width="2.4" stroke-linejoin="round"/><circle cx="17" cy="27" r="1.8" fill="#2b2620"/><path d="M27 24h15M36 17l7 7-7 7" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 24h15M36 17l7 7-7 7" fill="none" stroke="#2b2620" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
 // ---------- Animaciones que explican qué pasó ----------
 function nombreRec(r,n){return (n>1?n+' de ':'1 de ')+P.NOMBRE_REC[r];}
-function caraDT(g,j){var p=g.jug[j];return '<div class="ef-dt"><span class="ef-cara">'+K.retrato(p.dt)+'</span><b>'+esc(p.nombre)+'</b></div>';}
+function caraDT(g,j){var p=g.jug[j];return '<div class="ef-dt"><span class="ef-cara">'+retratoJ(p)+'</span><b>'+esc(p.nombre)+'</b></div>';}
+// El penal: no se ve el dado. Hay suspenso (el arquero se mueve, el pateador toma carrera) y lo que dice si cobra es la pelota.
 function mostrarPenal(g,e){
-  var p=g.jug[e.j],mark=e.b==='penal',gol=e.ok;
-  var svg='<svg class="pn-cancha" viewBox="0 0 300 170" aria-hidden="true"><rect width="300" height="170" fill="#4d8a3f"/><path d="M0 130H300" stroke="#fff" stroke-width="3"/><path d="M60 130V36H240V130" fill="none" stroke="#fff" stroke-width="7"/><g stroke="#fff" stroke-width="1" opacity=".5"><path d="M80 36V130M100 36V130M120 36V130M140 36V130M160 36V130M180 36V130M200 36V130M220 36V130M60 56H240M60 76H240M60 96H240M60 116H240"/></g><g class="pn-arq'+(gol?'':' ataja')+'"><circle cx="150" cy="84" r="10" fill="#e8b68f" stroke="#111" stroke-width="2"/><rect x="138" y="94" width="24" height="26" rx="5" fill="#d9a61c" stroke="#111" stroke-width="2"/><path d="M138 100L120 88M162 100L180 88" stroke="#d9a61c" stroke-width="7" stroke-linecap="round"/></g><g class="pn-pelota '+(gol?'adentro':'afuera')+'"><circle r="11" fill="#fff" stroke="#111" stroke-width="2"/><path d="M0-5l4.7 3.4-1.8 5.6h-5.8l-1.8-5.6z" fill="#111"/></g></svg>';
+  var p=g.jug[e.j],mark=e.b==='penal',gol=e.ok,lado=e.lado||(e.dado%2?-1:1),ld=lado<0?'izq':'der',cj=colJ(p),tk=e.tk==='V'?'Victoria':'Efectivo';
+  var red='<g class="pn-red'+(gol?' sacude':'')+'" stroke="#fff" stroke-width="1" opacity=".5"><path d="M80 36V130M100 36V130M120 36V130M140 36V130M160 36V130M180 36V130M200 36V130M220 36V130M60 56H240M60 76H240M60 96H240M60 116H240"/></g>';
+  var arq='<g class="pn-arq '+(gol?'vuela-'+(lado<0?'der':'izq'):'vuela-'+ld)+'"><g class="pn-arq-bal"><circle cx="150" cy="84" r="10" fill="#e8b68f" stroke="#111" stroke-width="2"/><rect x="138" y="94" width="24" height="26" rx="5" fill="#d9a61c" stroke="#111" stroke-width="2"/><path d="M138 100L120 88M162 100L180 88" stroke="#d9a61c" stroke-width="7" stroke-linecap="round"/><path d="M143 120v10M157 120v10" stroke="#111" stroke-width="5" stroke-linecap="round"/></g></g>';
+  var pat='<g class="pn-pat"><circle cx="0" cy="-30" r="8" fill="#e8b68f" stroke="#111" stroke-width="2"/><rect x="-9" y="-22" width="18" height="20" rx="4" fill="'+cj.color+'" stroke="#111" stroke-width="2"/><path d="M-4-2l-5 12M4-2l7 10" stroke="#111" stroke-width="4" stroke-linecap="round"/></g>';
+  var svg='<svg class="pn-cancha" viewBox="0 0 300 170" aria-hidden="true"><rect width="300" height="170" fill="#4d8a3f"/><path d="M0 130H300" stroke="#fff" stroke-width="3"/>'+red+'<path d="M60 130V36H240V130" fill="none" stroke="#fff" stroke-width="7"/>'+arq+pat+'<g class="pn-pelota '+(gol?'gol-':'ataja-')+ld+'"><circle r="11" fill="#fff" stroke="#111" stroke-width="2"/><path d="M0-5l4.7 3.4-1.8 5.6h-5.8l-1.8-5.6z" fill="#111"/></g></svg>';
   var fest=gol&&mark?'<span class="pn-fest">'+K.escuelita('mark')+'</span>':'';
-  return capa('<div class="fichaje corto penal" aria-hidden="true"><div class="fj-tit"><b>'+esc(p.nombre)+' patea un '+esc(P.BENEF[e.b].n)+'</b><span>Tira el dado: con 4 o más, es gol.</span></div><div class="pn-dado">'+dado(e.dado,'b',64,'rueda')+'</div><div class="pn-marco">'+svg+fest+'</div><div class="pn-res '+(gol?'si':'no')+'">'+(gol?'¡Adentro! Se lleva un Token de '+(e.tk==='V'?'Victoria':'Efectivo'):'¡Lo atajaron! No se lleva nada')+'</div></div>',3900);
+  var premio='<span class="pn-tk">'+token(e.tk,56)+'</span>';
+  return capa('<div class="fichaje penal" aria-hidden="true"><div class="fj-tit"><b>'+esc(p.nombre)+' patea un '+esc(P.BENEF[e.b].n)+'</b><span>Si entra, se lleva un Token de '+tk+'.</span></div><div class="pn-marco">'+svg+fest+'</div><div class="pn-pie"><div class="pn-sus">¿Entra o no entra?</div><div class="pn-res '+(gol?'si':'no')+'">'+(gol?'¡GOOOL!'+premio+'<small>Se lleva un Token de '+tk+'</small>':'¡LO ATAJÓ!<small>No se lleva nada</small>')+'</div></div></div>',5000);
 }
 function mostrarEfecto(g,e){
   if(e.b==='penal'||e.b==='dudoso')return mostrarPenal(g,e);
@@ -507,19 +587,21 @@ function mostrarEfecto(g,e){
   function flecha(izq,mid,der){return '<div class="ef-fila">'+izq+'<div class="ef-mid">'+mid+'<i>➜</i></div>'+der+'</div>';}
   function cartas(r,n){var s='';for(var i=0;i<Math.min(n,5);i++)s+='<span class="ef-c" style="animation-delay:'+(i*.12).toFixed(2)+'s">'+K.recurso(r)+'</span>';return s;}
   switch(e.b){
-    case 'barrida':tit='¡'+p.nombre+' le barre '+nombreRec(e.r,e.n)+' a '+q.nombre+'!';sub=e.n?'Se lleva todos los de ese tipo.':'No tenía ninguno: la Barrida se perdió.';cuerpo=flecha(caraDT(g,e.q),cartas(e.r,e.n),caraDT(g,e.j));ms=2800;break;
+    case 'barrida':tit='¡'+p.nombre+' le barre '+nombreRec(e.r,e.cant)+' a '+q.nombre+'!';sub=e.cant?'Se lleva todos los de ese tipo.':'No tenía ninguno: la Barrida se perdió.';cuerpo=flecha(caraDT(g,e.q),cartas(e.r,e.cant),caraDT(g,e.j));ms=2800;break;
     case 'asistencia':tit=p.nombre+' le saca 1 Recurso a cada DT';cuerpo='<div class="ef-lista">'+e.rob.map(function(x){return flecha(caraDT(g,x.q),cartas(x.r,1),caraDT(g,e.j));}).join('')+'</div>';ms=2800;break;
     case 'adentro':tit=p.nombre+' le pasa sus Multas a '+q.nombre;sub=e.mul.length?e.mul.length+' Multa'+(e.mul.length>1?'s':'')+' cambian de dueño.':'';cuerpo=flecha(caraDT(g,e.j),e.mul.slice(0,5).map(function(r){return '<span class="ef-c">'+iconoMulta(r,46)+'</span>';}).join(''),caraDT(g,e.q));ms=2800;break;
     case 'dame':tit=p.nombre+' le roba un Beneficio a '+q.nombre;sub=mir?P.BENEF[e.rb].n:'Cuál fue, queda en secreto.';cuerpo=flecha(caraDT(g,e.q),'<span class="ef-c ef-ben">'+(mir?K.beneficio(P.BENEF[e.rb].n):K.dorso('Beneficio'))+'</span>',caraDT(g,e.j));ms=2800;break;
     case 'roja':tit='¡Tarjeta Roja para '+q.nombre+'!';sub='En su próximo turno no mueve el cono.';cuerpo='<div class="ef-fila">'+caraDT(g,e.q)+'<span class="ef-roja"></span></div>';ms=2600;break;
     case 'figuritas':tit=p.nombre+' y '+q.nombre+' se cambian las figuritas';sub=P.nombreCarta(e.c1)+' por '+P.nombreCarta(e.c2)+'.';cuerpo='<div class="ef-fila"><span class="ef-c ef-ben">'+K.jugador(e.c1.club,e.c1.pos)+'</span><i class="ef-cruz">⇄</i><span class="ef-c ef-ben">'+K.jugador(e.c2.club,e.c2.pos)+'</span></div>';ms=2800;break;
     case 'intervalores':tit=p.nombre+' le cambia un Token a '+q.nombre;cuerpo='<div class="ef-fila">'+caraDT(g,e.j)+token(e.da,52)+'<i class="ef-cruz">⇄</i>'+token(e.tk,52)+caraDT(g,e.q)+'</div>';break;
-    case 'descuento':tit=p.nombre+' juega el Alargue';sub=e.cob?'Toca ese número: levanta '+e.cob+' Recursos.':'No toca ese número: no cobra nada.';cuerpo='<div class="pn-dado">'+dado(e.dado,'a',76,'rueda')+'</div>';break;
+    case 'descuento':{tit=p.nombre+' juega el Alargue';var gn=e.gan||{},lc='';P.REC.forEach(function(r){for(var i=0;i<Math.min(gn[r]||0,6);i++)lc+='<span class="ef-c" style="animation-delay:'+(1.1+lc.length%9*.04+i*.12).toFixed(2)+'s">'+K.recurso(r)+'</span>';});
+      sub=e.cob?'Toca un hexágono con el '+e.dado+': cobra el doble, '+P.textoOferta(gn)+'.':'Ningún hexágono con el '+e.dado+' toca su cono: no cobra nada.';
+      cuerpo='<div class="al-dado">'+dado(e.dado,'a',76,'rueda')+'</div><div class="al-res">'+(e.cob?lc:'<div class="al-nada">Su mano queda igual<i class="sello">¡Nada!</i></div>')+'</div>';ms=3200;break;}
     case 'extra':tit=p.nombre+' se lleva un Recurso del Banco';cuerpo='<div class="ef-fila">'+cartas(e.gana[0],1)+'</div>';break;
     case 'uno':tit=p.nombre+' cambia 1 Recurso por 2';cuerpo='<div class="ef-fila">'+cartas(e.da,1)+'<i class="ef-cruz">➜</i>'+cartas(e.gana[0],1)+cartas(e.gana[1],1)+'</div>';break;
     case 'mano':case 'petro':tit=p.nombre+' se lleva un Token de '+(e.tk==='V'?'Victoria':'Efectivo');cuerpo='<div class="ef-fila">'+token(e.tk,84)+'</div>';break;
     case 'valor':tit=p.nombre+' cambia un Token con el Banco';cuerpo='<div class="ef-fila">'+token(e.da,64)+'<i class="ef-cruz">➜</i>'+token(e.tk,64)+'</div>';break;
-    case 'exento':tit=p.nombre+' se saca de encima '+e.n+' Multa'+(e.n===1?'':'s');sub='Vuelven a la bolsa.';break;
+    case 'exento':tit=p.nombre+' se saca de encima '+e.cant+' Multa'+(e.cant===1?'':'s');sub='Vuelven a la bolsa.';break;
     default:return 0;
   }
   return capa('<div class="fichaje corto efecto" aria-hidden="true"><div class="fj-tit"><b>'+esc(tit)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div>'+cuerpo+'</div>',ms);
@@ -613,7 +695,7 @@ function pantallaInicio(){
     var filas='';
     for(var i=0;i<5;i++){var d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0,nom=conf.nombres[i]||d.nombre;
       filas+='<div class="dtelige'+(on?' on':'')+'"><button class="dt-add" data-togdt="'+i+'" aria-pressed="'+on+'" aria-label="'+(on?'Sacar a ':'Sumar a ')+esc(nom)+'">'+(on?'✓':'+')+'</button><div class="dt-cara"><button class="dt-tog" data-edit="'+i+'" aria-label="Ver y editar a '+esc(nom)+'">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-lapiz" data-edit="'+i+'" aria-label="Editar a '+esc(nom)+'">'+LAPIZ+'</button></div>'+
-        '<div class="dt-dat dt-lin"><b>'+esc(nom)+'</b>'+(on?'<button class="dt-quien'+(h?' per':'')+'" data-h="'+i+'" data-v="'+(h?0:1)+'" aria-label="Lo juega '+(h?'una persona':'la Máquina')+'. Tocá para cambiar">'+(h?'Persona':'Máquina')+'</button>':'<span class="nota">No juega</span>')+'</div>'+cono(i,22)+'</div>';}
+        '<div class="dt-dat dt-lin"><b>'+esc(nom)+'</b>'+(on?'<button class="dt-quien'+(h?' per':'')+'" data-h="'+i+'" data-v="'+(h?0:1)+'" aria-label="Lo juega '+(h?'una persona':'la Máquina')+'. Tocá para cambiar">'+(h?'Persona':'Máquina')+'</button>':'<span class="nota">No juega</span>')+'</div>'+cono({cc:ccLocal(i)},22)+'</div>';}
     s+='<section class="caja"><h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><button class="bt oro" id="empezar">Empezar el partido</button>';
   }
   s+='</div></div>';
@@ -624,7 +706,7 @@ function pantallaInicio(){
   app.querySelectorAll('[data-caja]').forEach(function(x){x.ontoggle=function(){ui.cajas[x.dataset.caja]=x.open;};});
   app.querySelectorAll('[data-itab]').forEach(function(x){x.onclick=function(){guardarNombreInput();leerNombres();ui.iniTab=x.dataset.itab;pantallaInicio();};});
   if(redOk&&ui.iniTab==='online')conectarAmigos(salaGuardada);
-  app.querySelectorAll('[data-edit]').forEach(function(x){x.onclick=function(){var i3=+x.dataset.edit;ui.modal={tipo:'editDT',i:i3,r:conf.cus&&conf.cus[i3]?JSON.parse(JSON.stringify(conf.cus[i3])):null,nombre:conf.nombres[i3]||P.DTS[i3].nombre};pintarModal(null,null,null);};});
+  app.querySelectorAll('[data-edit]').forEach(function(x){x.onclick=function(){var i3=+x.dataset.edit;ui.modal={tipo:'editDT',i:i3,r:conf.cus&&conf.cus[i3]?JSON.parse(JSON.stringify(conf.cus[i3])):null,nombre:conf.nombres[i3]||P.DTS[i3].nombre,cc:ccLocal(i3),tomados:conf.sel.filter(function(q){return q!==i3;}).map(ccLocal)};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-cuantos]').forEach(function(x){x.onclick=function(){leerNombres();var n=+x.dataset.cuantos,i2;
     while(conf.sel.length<n){for(i2=0;i2<5;i2++)if(conf.sel.indexOf(i2)<0){conf.sel.push(i2);break;}}
     while(conf.sel.length>n){var maq=conf.sel.filter(function(q){return !conf.filas[q].h;});conf.sel.splice(conf.sel.indexOf(maq.length?maq[maq.length-1]:conf.sel[conf.sel.length-1]),1);}
@@ -635,9 +717,10 @@ function pantallaInicio(){
   app.querySelectorAll('[data-h]').forEach(function(x){x.onclick=function(){leerNombres();conf.filas[+x.dataset.h].h=x.dataset.v==='1';pantallaInicio();};});
   app.querySelectorAll('[data-nom]').forEach(function(x){x.onfocus=function(){x.select();};});
   var em=document.getElementById('empezar');if(em)em.onclick=function(){leerNombres();
-    var d=conf.sel.map(function(i){return {dt:i,nombre:conf.nombres[i].trim()||P.DTS[i].nombre,bot:!conf.filas[i].h,cus:conf.cus&&conf.cus[i]||null};});
+    var d=conf.sel.map(function(i){return {dt:i,nombre:conf.nombres[i].trim()||P.DTS[i].nombre,bot:!conf.filas[i].h,cus:conf.cus&&conf.cus[i]||null,cc:conf.cc&&conf.cc[i]!=null?conf.cc[i]:null};});
     sala.g=P.nuevaPartida({dts:d,modo:conf.modo,limite:conf.limite,semilla:Math.floor(Math.random()*1e9),t0:Date.now()});ui.yo=null;reiniciarVista();ui.verDT=null;sala.guardar();actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
 }
+function ccLocal(i){return conf.cc&&conf.cc[i]!=null?conf.cc[i]:i;}
 function guardarNombreInput(){var x=document.getElementById('miNombre');if(x){try{localStorage.setItem('pexa-nombre',x.value.trim());}catch(e){}}}
 function reiniciarVista(){ui.certAb=false;ui.pausa=false;ui.mercSel=null;ui.manoI=0;ui.turnoVisto=null;ui.resAb=null;ui.barrasAntes=null;ui.ofertaK=null;ui.tiradaVista=null;ui.eventoVisto=null;ui.cola=[];ui.animando=false;ui.logVisto=null;ui.festejo=false;ui.faseVista=null;}
 function leerNombres(){app.querySelectorAll('[data-nom]').forEach(function(x){conf.nombres[+x.dataset.nom]=x.value;});}
@@ -662,8 +745,8 @@ function pintar(){
   if(!ui.modal&&g.fase==='mercado'&&yo===g.turno&&!g.oferta)ui.modal={tipo:'mercado'};
   if(!ui.modal&&g.fase==='descarte'&&yo!=null&&g.descartes[yo]!=null)ui.modal={tipo:'descarte'};
   var h='',turno=g.fase==='ubicar'?g.jug[g.faltaUbicar[0]]:g.fase==='barraIni'?g.jug[deben[0]]:g.jug[g.turno];
-  var esFin=g.fase==='fin';confeti(esFin);var tabVista='<button class="vista-tab" id="vistaTab">'+(ui.vista==='det'?(ui.arteHaciendo?'Armando el tablero…':'Ver tablero simplificado'):'Ver tablero detallado')+'</button>';
-  h+=esFin?'<div class="juego es-fin"><span id="reloj" hidden></span>':'<div class="juego"><div class="barra barra-dt" style="--dtc:'+P.DTS[turno.dt].color+';--dtt:'+P.DTS[turno.dt].tinta+'"><span class="barra-cono">'+cono(turno.dt,24)+'</span><div class="q"><b>'+esc(turno.nombre)+'</b><span>'+(g.nTurnos?'Turno '+g.nTurnos+' · ':'')+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span></div>';
+  var esFin=g.fase==='fin';confeti(esFin);var tabVista='',cT=colJ(turno);
+  h+=esFin?'<div class="juego es-fin"><span id="reloj" hidden></span>':'<div class="juego"><div class="barra barra-dt" style="--dtc:'+cT.color+';--dtt:'+cT.tinta+'"><button class="barra-cara" data-verdtj="'+turno.id+'" aria-label="Ver a '+esc(turno.nombre)+'">'+retratoJ(turno)+'</button><div class="q"><b>'+esc(turno.nombre)+'</b><span>'+(g.nTurnos?'Turno '+g.nTurnos+' · ':'')+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span></div>';
   // Al final: el Certificado arriba de todo y el tablero, plegado
   var finH=esFin?resumen(g,'<div class="mesa mesa-fin">'+dibujarTablero(g,[])+tabVista+'</div>'):'';
   // qué se puede tocar
@@ -677,7 +760,7 @@ function pintar(){
     if(ui.modal&&ui.modal.tipo==='gas'){marcados=P.NODOS.map(function(n){return n.id;}).filter(function(k){return P.enRecorrido(k)&&!P.ocupado(g,k)&&ui.modal.nodos.indexOf(k)<0;});tap=function(k){ui.modal.nodos.push(k);if(ui.modal.nodos.length===g.barras.length){var nd=ui.modal.nodos;ui.modal=null;sala.enviar(yo,{t:'usar',b:'gas',nodos:nd});}else pintar();};}
     if(ui.modal&&ui.modal.tipo==='tocarMercado'){marcados=[0,1,2,3,4].filter(function(m){return g.mercados[m].length;}).map(function(m){return P.MERCADOS[m];});tap=function(k){var m=P.MERCADOS.indexOf(k);ui.modal=null;sala.enviar(yo,{t:'usar',b:'espionaje',m:m},function(){ui.modal={tipo:'visto',m:m};});};}
   }
-  var cDT=P.DTS[turno.dt],pa=panelAccion(g,yo,me,miTurno),tt=g.fase!=='fin'?textoTirada(g):'';
+  var cDT=colJ(turno),pa=panelAccion(g,yo,me,miTurno),tt=g.fase!=='fin'?textoTirada(g):'';
   if(!esFin)h+='<div class="col-mesa">'+conDT(g,'<div class="relator" id="relator" style="--dtc:'+cDT.color+';--dtt:'+cDT.tinta+'"><span class="rel-tag">El Relator</span><b class="rel-tit">'+pa.tit+'</b><div class="rel-x">'+conIco(pa.txt)+'</div>'+(tt?'<div class="rel-t">'+conIco(tt)+'</div>':'')+(g.oferta&&me?panelOferta(g,yo):'')+'</div>');
   if(!esFin)h+='<div class="mesa">'+tiradaCol(g)+dibujarTablero(g,marcados)+historial(g)+tabVista+'</div></div>';
   h+='<div class="col-der">'+finH;
@@ -689,7 +772,7 @@ function pintar(){
   if(ui.faseVista!==g.fase){ui.faseVista=g.fase;if(['tirar','mover','ubicar','espiar'].indexOf(g.fase)>=0)window.scrollTo(0,0);}
   if(ui.modal&&ui.modal.tipo!=='gas'&&ui.modal.tipo!=='tocarMercado'&&!modalQuieto())pintarModal(g,yo,me);
   if(!ui.animando){if(ui.cola.length)jugarCola();else festejarSiToca();}
-  if(ui.cubierto&&me&&humanos(g).length>1&&g.fase!=='fin'){var c=el('<div class="cubre"><div style="transform:scale(2.2);margin-bottom:14px">'+cono(me.dt,30)+'</div><h2>Pasale el celu a '+esc(me.nombre)+'</h2><p>Lo que sigue es solo para sus ojos.</p><button class="bt oro" id="ya">Soy '+esc(me.nombre)+'</button></div>').firstChild;document.body.appendChild(c);document.getElementById('ya').onclick=function(){ui.cubierto=false;c.remove();};}
+  if(ui.cubierto&&me&&humanos(g).length>1&&g.fase!=='fin'){var c=el('<div class="cubre"><div style="transform:scale(2.2);margin-bottom:14px">'+cono(me,30)+'</div><h2>Pasale el celu a '+esc(me.nombre)+'</h2><p>Lo que sigue es solo para sus ojos.</p><button class="bt oro" id="ya">Soy '+esc(me.nombre)+'</button></div>').firstChild;document.body.appendChild(c);document.getElementById('ya').onclick=function(){ui.cubierto=false;c.remove();};}
 }
 function textoFase(g,yo){
   var mio=yo!=null&&yo===g.turno;
@@ -735,11 +818,10 @@ function acciones(g,yo,me,miTurno,pa){
   s+='<div class="acc">';
   if(me)s+='<button class="bt gr c-canje'+(hayCanje(g,yo,me)?' llama':'')+'" id="abrCanjes">Canjear</button>';
   if(me)s+='<button class="bt gr c-mer" id="abrMercados">'+icoBinoculares(30)+'<span>Mercados vistos</span></button>';
-  s+='<button class="bt gr c-reg ancho" id="abrReglas">Reglas</button>';
   return s+'</div>';
 }
 function pieDePagina(g,yo){
-  return '<div class="pie"><details class="registro" id="registro"'+(ui.regAbierto?' open':'')+'><summary>Lo que fue pasando <span class="reg-sum">· Turno '+g.nTurnos+'</span></summary>'+tabRegistro(g,yo)+'</details><div class="cuads"><button class="cuad c-anim'+(ui.sinAnim?' off':'')+'" id="animTog" title="'+(ui.sinAnim?'Animaciones apagadas: tocá para prenderlas':'Animaciones prendidas: tocá para apagarlas')+'" aria-label="'+(ui.sinAnim?'Prender las animaciones':'Apagar las animaciones')+'" aria-pressed="'+(!ui.sinAnim)+'">'+icoAnim(ui.sinAnim)+'<small>Animaciones</small></button><button class="cuad c-salir" id="salir" title="Salir: el partido queda guardado" aria-label="Salir. El partido queda guardado">'+icoSalir()+'<small>Salir</small></button></div></div>';
+  return '<div class="pie"><details class="registro" id="registro"'+(ui.regAbierto?' open':'')+'><summary>Lo que fue pasando <span class="reg-sum">· Turno '+g.nTurnos+'</span></summary>'+tabRegistro(g,yo)+'</details><div class="cuads"><button class="cuad c-reglas" id="abrReglas" title="Las reglas del juego" aria-label="Ver las reglas">'+icoReglas()+'<small>Reglas</small></button><button class="cuad c-anim'+(ui.sinAnim?' off':'')+'" id="animTog" title="'+(ui.sinAnim?'Animaciones apagadas: tocá para prenderlas':'Animaciones prendidas: tocá para apagarlas')+'" aria-label="'+(ui.sinAnim?'Prender las animaciones':'Apagar las animaciones')+'" aria-pressed="'+(!ui.sinAnim)+'">'+icoAnim(ui.sinAnim)+'<small>Animaciones</small></button><button class="cuad c-salir" id="salir" title="Salir: el partido queda guardado" aria-label="Salir. El partido queda guardado">'+icoSalir()+'<small>Salir</small></button></div></div>';
 }
 function panelDescarte(g,yo,me){
   var c=g.descartes[yo];if(!ui.descarte)ui.descarte=P.vacio();var d=ui.descarte,t=P.suma(d);
@@ -749,9 +831,10 @@ function panelOferta(g,yo){
   var o=g.oferta,de=g.jug[o.de],abierta=o.a<0,yoContesto=P.esperan(o).indexOf(yo)>=0,me=yo!=null?g.jug[yo]:null;
   var puede=yoContesto&&P.REC.every(function(k){return o.pido[k]<=0||(me.mano[k]>=o.pido[k]&&P.usable(me,k));});
   var plegada=ui.ofPlegada===claveOferta(o);
-  var s='<div class="of'+(plegada?' plegada':'')+'"><div class="of-cuerpo"><div class="of-t">'+cono(de.dt,24)+'<b>'+esc(de.nombre)+(abierta?' les ofrece a todos':' le ofrece a '+esc(g.jug[o.a].nombre))+'</b></div><div class="of-trato"><div><small>'+(yoContesto?'Te da':'Da')+'</small>'+precioIc(o.doy,34)+'</div><span class="of-fl">⇄</span><div><small>'+(yoContesto?'Te pide':'Pide')+'</small>'+precioIc(o.pido,34)+'</div></div>';
+  var s='<div class="of'+(plegada?' plegada':'')+'"><div class="of-cuerpo"><div class="of-t">'+cono(de,24)+'<b>'+esc(de.nombre)+(abierta?' les ofrece a todos':' le ofrece a '+esc(g.jug[o.a].nombre))+'</b></div><div class="of-trato"><div><small>'+(yoContesto?'Te da':'Da')+'</small>'+precioIc(o.doy,34)+'</div><span class="of-fl">⇄</span><div><small>'+(yoContesto?'Te pide':'Pide')+'</small>'+precioIc(o.pido,34)+'</div></div>';
   if(abierta)s+='<div class="nota of-n">Se lo lleva el primero que acepte.</div>';
   var barra='';if(abierta&&yoContesto&&de.bot){if(ui.ofertaK!==claveOferta(o)){ui.ofertaK=claveOferta(o);ui.ofertaT=Date.now();}var ya=Date.now()-(ui.ofertaT||Date.now());if(ya<ESPERA_OFERTA)barra='<div class="of-barra" aria-hidden="true"><i style="animation-duration:'+ESPERA_OFERTA+'ms;animation-delay:-'+ya+'ms"></i></div>';}
+  if(yoContesto&&!puede)s+='<div class="nota of-n">No tenés lo que te piden (o lo tenés trabado por una Multa). Podés rechazarla o contraofertar: el otro no se entera de qué tenés.</div>';
   if(yoContesto)s+='<div class="of-bts"><button class="bt of-si" data-resp="1"'+(puede?'':' disabled')+'>ACEPTAR</button><button class="bt of-no" data-resp="0">RECHAZAR</button><button class="bt of-contra" id="contraof">CONTRAOFERTAR</button></div>';
   else if(o.de===yo)s+='<div class="nota of-n">Esperando la respuesta…</div><button class="bt chico" data-resp="0">Retirar la oferta</button>';
   // El asa de abajo: se arrastra o se toca para plegar la oferta y espiar el tablero, sin cerrarla
@@ -797,10 +880,10 @@ function abanico(cartas,w,ancho){
 // Todas las manos, una al lado de la otra: se desliza entre la tuya y las de los rivales. La de un rival se ve con las cartas al revés.
 function manoPanel(g,yo,q,verTodo){
   var mia=q.id===yo,abierta=mia||verTodo,ancho=(window.innerWidth>=1000?440:Math.min(window.innerWidth,520))-48,rs=[],bs=[],ml=[];
-  P.REC.forEach(function(r){for(var i=0;i<q.mano[r];i++)rs.push(abierta?{html:K.recurso(r),cls:q.multas[r]?'trabada':'',data:'data-verrec="'+r+'"',label:'Ver la carta de '+P.NOMBRE_REC[r]}:{html:K.dorso('Recurso')});for(var j=0;j<q.multas[r];j++)ml.push(r);});
-  q.benef.forEach(function(b){bs.push(abierta?{peso:2,html:K.beneficio(P.BENEF[b].n),data:'data-verb="'+b+'"'+(mia?'':' data-solo="1"'),label:'Ver '+P.BENEF[b].n}:{peso:1,html:K.dorso('Beneficio')});});
-  q.nuevos.forEach(function(b){bs.push(abierta?{peso:2,html:K.beneficio(P.BENEF[b].n)+'<i class="nuevo">Nuevo</i>',data:'data-verb="'+b+'"'+(mia?' data-nuevo="1"':' data-solo="1"'),label:'Ver '+P.BENEF[b].n+', recién comprado'}:{peso:1,html:K.dorso('Beneficio')});});
-  var nr=rs.length,riesgo=nr>9,s='<div class="mano-p"><div class="mano-t"><button class="mp-cara" data-verdtj="'+q.id+'" aria-label="Ver a '+esc(q.nombre)+'">'+retratoJ(q)+'</button><h3>'+(mia?'Tu mano':dtN(q))+(q.roja?' <em class="mp-roja" title="Tarjeta Roja"></em>':'')+'</h3><span class="mp-rec'+(riesgo?' riesgo':'')+'">'+nr+' Recurso'+(nr===1?'':'s')+'</span></div>';
+  P.REC.forEach(function(r){for(var i=0;i<q.mano[r];i++)rs.push(abierta?{html:K.recurso(r),cls:q.multas[r]?'trabada':'',data:'data-verrec="'+r+'"',label:'Ver la carta de '+P.NOMBRE_REC[r]}:{html:K.dorso('Recurso'),data:'data-verdorso="Recurso"',label:'Ver el dorso de una carta de Recurso'});for(var j=0;j<q.multas[r];j++)ml.push(r);});
+  q.benef.forEach(function(b){bs.push(abierta?{peso:2,html:K.beneficio(P.BENEF[b].n),data:'data-verb="'+b+'"'+(mia?'':' data-solo="1"'),label:'Ver '+P.BENEF[b].n}:{peso:1,html:K.dorso('Beneficio'),data:'data-verdorso="Beneficio"',label:'Ver el dorso de una carta de Beneficio'});});
+  q.nuevos.forEach(function(b){bs.push(abierta?{peso:2,html:K.beneficio(P.BENEF[b].n)+'<i class="nuevo">Nuevo</i>',data:'data-verb="'+b+'"'+(mia?' data-nuevo="1"':' data-solo="1"'),label:'Ver '+P.BENEF[b].n+', recién comprado'}:{peso:1,html:K.dorso('Beneficio'),data:'data-verdorso="Beneficio"',label:'Ver el dorso de una carta de Beneficio'});});
+  var nr=rs.length,riesgo=nr>9,cq=colJ(q),s='<div class="mano-p" style="--dtc:'+cq.color+';--dtt:'+cq.tinta+'"><div class="mano-t"><button class="mp-cara" data-verdtj="'+q.id+'" aria-label="Ver a '+esc(q.nombre)+'">'+retratoJ(q)+'</button><h3>'+(mia?'Tu mano':dtN(q))+(q.roja?' <em class="mp-roja" title="Tarjeta Roja"></em>':'')+'</h3><span class="mp-rec'+(riesgo?' riesgo':'')+'">'+nr+' Recurso'+(nr===1?'':'s')+'</span></div>';
   if(riesgo)s+='<div class="mp-alerta" role="status">⚠ '+(mia?'Tenés más de 9: si en la próxima tirada sale un 1, devolvés la mitad (redondeando para abajo).':'Tiene más de 9: si en la próxima tirada sale un 1, devuelve la mitad (redondeando para abajo).')+'</div>';
   s+=nr+bs.length?abanico(rs.concat(bs),window.innerWidth>=1000?100:78,ancho):'<div class="nota mano-vacia">'+(mia?'Tenés la mano vacía.':'No tiene cartas.')+'</div>';
   s+='<div class="mp"><div class="mp-eq">'+['ARQ','DEF','VOL','DEL'].map(function(n,i){var c=q.eq[i];return c?'<button class="cartita" data-vercarta="'+c.club+'-'+c.pos+'" aria-label="Ver a '+esc(P.nombreCarta(c))+'">'+K.jugador(c.club,c.pos)+'</button>':'<button class="mp-v" data-verpos="'+i+'" aria-label="Qué hace el '+P.POS[i]+'">'+n+'</button>';}).join('')+'</div><div class="mp-dat"><div class="mp-fila"><button class="mp-t'+(q.V?'':' apag')+'" data-vertk="V" aria-label="Ver el Token de Victoria">'+token('V',26)+'<b>'+q.V+'</b></button><button class="mp-t'+(q.E?'':' apag')+'" data-vertk="E" aria-label="Ver el Token de Efectivo">'+token('E',26)+'<b>'+q.E+'</b></button><button class="mp-t" data-verusados="'+q.id+'" aria-label="Ver los Beneficios usados"><span class="ben-d mp-ben">'+K.dorso('Beneficio')+'</span><b>'+q.usados.length+'/3</b></button></div><div class="mp-mul" aria-label="Multas">';
@@ -811,7 +894,7 @@ function manos(g,yo,verTodo){
   var l=[];if(yo!=null)l.push(g.jug[yo]);g.jug.forEach(function(q){if(q.id!==yo)l.push(q);});
   if(verTodo){l=g.jug.slice();}
   var ver=Math.min(ui.manoI||0,l.length-1);
-  return '<div class="p-mano"><div class="manos-nav" role="tablist" aria-label="Ver la mano de">'+l.map(function(q,i){return '<button role="tab" data-irmano="'+i+'" aria-selected="'+(i===ver)+'">'+cono(q.dt,16)+'<span>'+(q.id===yo?'Vos':esc(q.nombre))+'</span></button>';}).join('')+'</div><div class="manos" id="manos">'+l.map(function(q){return manoPanel(g,yo,q,verTodo);}).join('')+'</div></div>';
+  return '<div class="p-mano"><div class="manos-nav" role="tablist" aria-label="Ver la mano de">'+l.map(function(q,i){var cq=colJ(q);return '<button role="tab" data-irmano="'+i+'" aria-selected="'+(i===ver)+'" style="--dtc:'+cq.color+';--dtt:'+cq.tinta+'">'+cono(q,16)+'<span>'+(q.id===yo?'Vos':esc(q.nombre))+'</span></button>';}).join('')+'</div><div class="manos" id="manos">'+l.map(function(q){return manoPanel(g,yo,q,verTodo);}).join('')+'</div></div>';
 }
 function conectarManos(){
   var m=document.getElementById('manos');if(!m)return;
@@ -823,7 +906,7 @@ function conectarManos(){
 }
 // Partido entre máquinas: se ve todo de todos
 function espectador(g,pa){
-  return '<div class="acc-prim">'+pa.prim+'</div>'+manos(g,null,true)+'<div class="acc"><button class="bt gr c-reg ancho" id="abrReglas">Reglas</button></div>';
+  return '<div class="acc-prim">'+pa.prim+'</div>'+manos(g,null,true);
 }
 function tabCanjes(g,yo,me){
   var mio=yo===g.turno&&(g.fase==='canje'||g.fase==='mercado')&&!g.oferta,s='';
@@ -882,6 +965,10 @@ function pintarModal(g,yo,me){
   if(M.tipo==='rec'){var rr=M.r;s='<div class="grande">'+K.recurso(rr)+'</div><h2 style="margin:0">'+P.NOMBRE_REC[rr]+'</h2><p style="margin:0">El Recurso de <b>'+esc(P.CLUB[rr])+'</b>. Se cobra cuando sale el <b>'+P.NUM[rr]+'</b> y tu cono toca su estadio o su predio.'+(me&&me.multas[rr]?' <b>Ahora está trabado por una Multa:</b> pagala para poder usarlo.':'')+'</p>';}
   if(M.tipo==='multa'){var mr=M.r;s='<div class="multa-g">'+iconoMulta(mr,210)+'</div><h2 style="margin:0">'+esc(P.MULTA[mr])+'</h2><p style="margin:0">Traba tus cartas de <b>'+P.NOMBRE_REC[mr]+'</b>: no las podés usar hasta pagarla. Se paga en Canjes, con 1 de '+P.NOMBRE_REC[mr]+'. Si un rival tiene al Defensor de '+P.NOMBRE_REC[mr]+', ese pago es para él.</p>';}
   if(M.tipo==='pieza')s=modalPieza(g,M.pz);
+  if(M.tipo==='qt')s=modalQt(g,M.j);
+  if(M.tipo==='dorso'){var esR=M.k==='Recurso';s='<div class="grande">'+K.dorso(M.k)+'</div><h2 style="margin:0">Carta de '+M.k+', boca abajo</h2><p style="margin:0">'+(esR?'Así ven los demás tus Recursos: saben cuántos tenés, pero no de qué club son. Los Recursos se cobran con los dados y se usan para comprar, canjear y pagar Multas.':'Así ven los demás tus Beneficios: saben cuántos tenés, pero no cuáles. Cada uno es una sorpresa del mazo; se usa desde el turno siguiente a comprarlo, uno por turno.')+'</p>';}
+  if(M.tipo==='cono'){var pc=g.jug[M.j];s='<div class="multa-g">'+cono(pc,110)+'</div><h2 style="margin:0">El cono de '+dtN(pc)+'</h2><p style="margin:0">Es la ficha de '+esc(pc.nombre)+' en la isla: se mueve por las calles con el dado. Cuando sale un número, cobra de cada pieza con ese número que toque su esquina: Recursos de los Estadios y Predios, y Multas de las Zonas de Mala Fama.</p><p style="margin:0">Ahora está en <b>'+esc(P.nombreNodo(g,pc.pos))+'</b>.'+(pc.roja?' Tiene <b>Tarjeta Roja</b>: en su próximo turno no mueve el cono.':'')+'</p>';}
+  if(M.tipo==='barra')s='<div class="multa-g">'+icoBarra(150)+'</div><h2 style="margin:0">Barrabrava</h2><p style="margin:0">Después de que movés tu cono, cada Barrabrava avanza <b>solo</b> una intersección en sentido horario, por su recorrido. Si adelante hay un cono, lo salta; si hay otro Barrabrava, se queda donde está.</p><p style="margin:0">Nadie puede pasar ni pararse donde hay un Barrabrava.</p>';
 
   if(M.tipo==='dt'){var zd=PIZ[M.dt],dd=P.DTS[M.dt];s=M.cus?'<div class="dt-grande">'+K.dtCustom(M.cus,true)+'</div><h2 style="margin:0">'+esc(M.nom||dd.nombre)+'</h2><p class="dt-frase">Un DT hecho a medida.</p>':'<div class="dt-grande">'+K.dtEntero(M.dt)+'</div><h2 style="margin:0">'+esc(dd.nombre)+'</h2><p class="dt-frase">"'+esc(zd.frase)+'"</p><p style="margin:0">'+esc(zd.como)+'</p><p style="margin:0"><b>Cómo juega.</b> '+esc(zd.estilo)+'</p>';}
   if(M.tipo==='jug'){var c={club:M.club,pos:M.pos};s='<div class="grande">'+K.jugador(c.club,c.pos)+'</div><p style="margin:0"><b>'+P.POS[c.pos]+' de '+P.NOMBRE_REC[c.club]+'.</b> '+habilidadCarta(c)+'</p>';}
@@ -889,7 +976,7 @@ function pintarModal(g,yo,me){
     s='<div class="grande">'+K.beneficio(P.BENEF[M.b].n)+'</div>';
     if(!M.solo)s+=M.nuevo?'<p class="nota" style="margin:0">Recién comprado: se usa desde tu próximo turno.</p>':(ok?'':'<p class="nota" style="margin:0">'+esc(me.usoB&&yo===g.turno?'Ya usaste un Beneficio en este turno.':(yo!==g.turno?'Se usa en tu turno.':(P.BENEF[M.b].g==='mov'?'Se usa cuando te toca mover.':'Ahora no se puede usar.')))+'</p>');
     s+='<div class="fila">'+(ok?'<button class="bt fuerte" id="usarB">Usar</button>':'')+'</div>';}
-  if(M.tipo==='visto'){var cs=g.mercados[M.m];s='<h2>'+esc(nombreMercado(g,M.m))+'</h2><div class="pz-eq">'+cs.map(function(x){return '<div class="cartita">'+K.jugador(x.club,x.pos)+'</div>';}).join('')+'</div><p class="nota" style="margin:0">Queda anotado en Mercados vistos: los demás no lo ven.</p>';}
+  if(M.tipo==='visto'){var cs=g.mercados[M.m];s='<h2>'+esc(nombreMercado(g,M.m))+'</h2><div class="pz-eq">'+cs.map(function(x){return '<button class="cartita" data-vercarta="'+x.club+'-'+x.pos+'" aria-label="Ver a '+esc(P.nombreCarta(x))+'">'+K.jugador(x.club,x.pos)+'</button>';}).join('')+'</div><p class="nota" style="margin:0">Tocá un Jugador para verlo en grande. Queda anotado en Mercados vistos: los demás no lo ven.</p>';}
   if(M.tipo==='usar'){var B=P.BENEF[M.b],ps=B.p||[];s='<h2>'+esc(B.n)+'</h2><p style="margin:0">'+esc(B.t)+'</p>';
     ps.forEach(function(p){
       if(p==='r'||p==='r2'||p==='da'){s+='<div class="nota" style="font-weight:700">'+(p==='da'?'Devolvés:':(p==='r2'?'Y también:':(M.b==='barrida'?'Recurso:':'Tomás:')))+'</div><div class="sel">'+P.REC.map(function(r){var dis=p==='da'&&(me.mano[r]<1||!P.usable(me,r));return '<button class="chip ic" data-par="'+p+'" data-val="'+r+'" aria-label="'+P.NOMBRE_REC[r]+'" aria-pressed="'+(M.a[p]===r)+'"'+(dis?' disabled':'')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';}
@@ -930,7 +1017,7 @@ function manoNego(me){
 }
 function limpiarModales(){document.querySelectorAll('.modal').forEach(function(m){var h=m.querySelector('.hoja');if(h){ui.hojaDe=m._m;ui.hojaTop=h.scrollTop;}m.remove();});}
 // Las ventanas que no cambian con el estado no se redibujan: así no pierden el lugar ni lo que abriste
-var QUIETOS={reglas:1,rec:1,multa:1,pieza:1,dt:1,jug:1,visto:1,mercados:1,tok:1,pos:1,usados:1};
+var QUIETOS={reglas:1,rec:1,multa:1,pieza:1,dt:1,jug:1,visto:1,mercados:1,tok:1,pos:1,usados:1,qt:1,dorso:1,cono:1,barra:1};
 var CON_BOTONES={canjes:1,mercados:1,mercado:1,descarte:1,reglas:1,jug:1,rec:1,multa:1,visto:1,pieza:1,usados:1};
 // ---------- Creá tu propio DT ----------
 var RASGOS=[['pelo','Peinado',['Corto','Con entradas','Pelado','Revuelto','Medio','Largo','Ondas','Rodete']],['color','Color de pelo y barba',['Negro','Oscuro','Castaño','Claro','Rubio','Colorado','Gris','Canoso']],['barba','Barba',['Sin barba','Sombra','Barba corta','Barba larga','Candado','Chivita','Bigote','Bigote fino','Barba y bigote']],['ojos','Ojos',['Comunes','Sonrientes','Verdes','Azules','Miel']],['acc','Accesorios',['Nada','Anteojos redondos','Anteojos','Anteojos de sol','Silbato','Cresta de gallo']],['cara','Cara',['Ovalada','Redonda','Alargada','Cuadrada','Pera','En punta']],['gesto','Gesto',['Sonrisa','Sonrisa gigante','Canchero','Serio','Gritando']],['piel','Piel',['Muy clara','Clara','Media','Trigueña','Oscura']],['g','Es',['Varón','Mujer']],['ropa','Vestimenta',['Traje','Tracksuit','Musculosa','Camisa blanca','Delantal']],['pose','Pose',['Brazos cruzados','Festejando','Manos en los bolsillos','Dedo arriba','Manos arriba','Mostrando bíceps']]];
@@ -941,28 +1028,33 @@ function modalCrear(M){var r=M.r;
 // La ficha de cada DT: de cuerpo entero, con su descripción, el nombre y flechitas para cambiarle cada rasgo
 function generoR(r){return r.g?r.g:(r.base!=null?(r.base===2?'f':'m'):'m');}
 function opsRasgo(x,r){return x[2];}
-function modalEditDT(M){var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r;
+// La ficha de cada DT: una flecha a cada lado. Cada toque muestra otra combinación de rasgos al azar;
+// las que ya se vieron quedan en fila, así que ir y volver respeta la combinación que estaba. El original es el punto de partida.
+function comboAzar(base){var r={base:base};RASGOS.forEach(function(x){if(x[0]==='g')r.g=Math.random()<.5?'m':'f';else r[x[0]]=Math.floor(Math.random()*x[2].length);});return r;}
+function prepEditDT(M){if(!M.hist){M.hist=[M.r||null];M.hi=0;}if(M.cc==null)M.cc=M.i;return M;}
+function modalEditDT(M){prepEditDT(M);var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r,tom=M.tomados||[];
   var fig=r?K.dtCustom(r,true):K.dtEntero(M.i);
-  var izq=RASGOS.map(function(x){return '<button class="ed-fl" data-ed="'+x[0]+'" data-d="-1" aria-label="'+x[1]+': anterior">‹</button>';}).join(''),der=RASGOS.map(function(x){return '<button class="ed-fl" data-ed="'+x[0]+'" data-d="1" aria-label="'+x[1]+': siguiente">›</button>';}).join('');
-  return '<input class="ent ed-nom" id="edNom" aria-label="Nombre del DT" maxlength="16" value="'+esc(M.nombre)+'">'+(r&&r.base==null?'':'<p class="ed-frase">«'+esc(pz.frase||'')+'»</p>')+
-    '<div class="ed-grid"><div class="ed-col">'+izq+'</div><div class="ed-fig">'+fig+'</div><div class="ed-col">'+der+'</div></div>'+(r?'':'<p class="ed-cap">'+esc(pz.como||'')+'</p>')+
+  var colores='<div class="ed-cono"><b>Color del cono</b><div class="ed-cols" role="group" aria-label="Color del cono">'+P.CONOS.map(function(c,i){var ocu=tom.indexOf(i)>=0&&i!==M.cc;return '<button class="ed-cc" data-cc="'+i+'" aria-pressed="'+(M.cc===i)+'" aria-label="Cono '+c.n+(ocu?', lo usa otro DT':'')+'"'+(ocu?' disabled':'')+'>'+cono({cc:i},26)+'</button>';}).join('')+'</div></div>';
+  return '<input class="ent ed-nom" id="edNom" aria-label="Nombre del DT" maxlength="16" value="'+esc(M.nombre)+'">'+(r?'':'<p class="ed-frase">«'+esc(pz.frase||'')+'»</p>')+
+    '<div class="ed-grid"><button class="ed-fl ed-fl-g" data-ed="-1" aria-label="Combinación anterior">‹</button><div class="ed-fig">'+fig+'</div><button class="ed-fl ed-fl-g" data-ed="1" aria-label="Otra combinación">›</button></div>'+
+    '<p class="ed-cap">'+(r?'Combinación '+(M.hi+1)+'. Las flechas muestran otras; volviendo para atrás encontrás las que ya viste.':esc(pz.como||''))+'</p>'+colores+
     '<button class="bt fuerte" id="edListo">Listo</button>'+(r?'<button class="bt chico" id="edOrig">Volver a '+esc(d.nombre)+' original</button>':'');
 }function conectarEditDT(c,M){
   var n=c.querySelector('#edNom');if(n){n.oninput=function(){M.nombre=n.value;};n.onfocus=function(){n.select();};}
-  c.querySelectorAll('[data-ed]').forEach(function(b){b.onclick=function(){var k=b.dataset.ed,dl=+b.dataset.d;if(!M.r)M.r={base:M.i};var r=M.r;
-    var x=RASGOS.filter(function(y){return y[0]===k;})[0];
-    if(r.base!=null){
-      // Parte del DT de la liga: cada rasgo va de "el original" (sin tocar) a las opciones, ida y vuelta
-      if(k==='g'){if(r.g)delete r.g;else r.g=r.base===2?'m':'f';}
-      else{var len=opsRasgo(x,r).length,cur=r[k]==null?-1:r[k],nx=((cur+1+dl)%(len+1)+len+1)%(len+1)-1;if(nx<0)delete r[k];else r[k]=nx;}
-      if(Object.keys(r).length===1)M.r=null;
-    }else{
-      if(k==='g'){r.g=r.g==='f'?'m':'f';}else{var ln=opsRasgo(x,r).length;r[k]=((r[k]||0)+dl+ln)%ln;}
-    }
-    var h=c.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;};});  var o=c.querySelector('#edOrig');if(o)o.onclick=function(){M.r=null;M.ult=null;limpiarModales();pintarModal(null,null,null);};
-  var l=c.querySelector('#edListo');if(l)l.onclick=function(){conf.nombres[M.i]=(M.nombre||'').trim()||P.DTS[M.i].nombre;conf.cus=conf.cus||{};
-    if(M.r){conf.cus[M.i]=M.r;if(M.r.base==null)try{localStorage.setItem('pexa-midt',JSON.stringify(M.r));}catch(e){}}else delete conf.cus[M.i];
-    limpiarModales();ui.modal=null;pantallaInicio();};
+  function repinta(){var h=c.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;}
+  c.querySelectorAll('[data-ed]').forEach(function(b){b.onclick=function(){var dl=+b.dataset.ed;
+    if(dl>0){if(M.hi<M.hist.length-1)M.hi++;else{M.hist.push(comboAzar(M.i));M.hi=M.hist.length-1;}}
+    else{if(M.hi>0)M.hi--;else M.hist.unshift(comboAzar(M.i));}
+    M.r=M.hist[M.hi]?JSON.parse(JSON.stringify(M.hist[M.hi])):null;repinta();};});
+  c.querySelectorAll('[data-cc]').forEach(function(b){b.onclick=function(){M.cc=+b.dataset.cc;repinta();};});
+  var o=c.querySelector('#edOrig');if(o)o.onclick=function(){M.r=null;var k=M.hist.indexOf(null);if(k<0){M.hist.unshift(null);k=0;}M.hi=k;repinta();};
+  var l=c.querySelector('#edListo');if(l)l.onclick=function(){var nom=(M.nombre||'').trim();limpiarModales();ui.modal=null;
+    if(M.online){var id=idCliente();sala.red.transaccion('lobby',function(cur){if(cur==null)return null;var x=JSON.parse(cur);x.a.forEach(function(q){if(q&&q.id===id){if(M.r)q.cus=M.r;else delete q.cus;q.cc=M.cc;if(nom)q.nom=nom;}});return JSON.stringify(x);},function(){});
+      if(nom)try{localStorage.setItem('pexa-nombre',nom);}catch(e){}if(ui.lobby)pantallaLobby();return;}
+    conf.nombres[M.i]=nom||P.DTS[M.i].nombre;conf.cus=conf.cus||{};conf.cc=conf.cc||{};
+    if(M.r)conf.cus[M.i]=M.r;else delete conf.cus[M.i];
+    if(M.cc!==M.i)conf.cc[M.i]=M.cc;else delete conf.cc[M.i];
+    pantallaInicio();};
 }
 function conectarCrear(c,M){
   c.querySelectorAll('[data-cr]').forEach(function(b){b.onclick=function(){var k=b.dataset.cr,v=+b.dataset.v;if(k==='g')M.r.g=v===1?'f':'m';else M.r[k]=v;var h=c.querySelector('.hoja'),top=h.scrollTop;limpiarModales();pintarModal(null,null,null);var n=document.querySelector('.modal .hoja');if(n)n.scrollTop=top;};});
@@ -996,6 +1088,7 @@ function conectarEn(raiz,g,yo,me){
   on('abrReglas',function(){ui.modal={tipo:'reglas'};pintar();});
   todos('[data-mercsel]',function(x){ui.mercSel=+x.dataset.mercsel;pintar();});
   todos('[data-verdtj]',function(x){var q=g.jug[+x.dataset.verdtj];ui.modal={tipo:'dt',dt:q.dt,cus:q.cus,nom:q.nombre};pintar();});
+  todos('[data-qt]',function(x){ui.modal={tipo:'qt',j:+x.dataset.qt};pintar();});
   todos('[data-verpos]',function(x){ui.modal={tipo:'pos',i:+x.dataset.verpos};pintar();});
   todos('[data-vertk]',function(x){ui.modal={tipo:'tok',tk:x.dataset.vertk};pintar();});
   todos('[data-verusados]',function(x){ui.modal={tipo:'usados',q:+x.dataset.verusados};pintar();});
@@ -1021,6 +1114,7 @@ function conectarEn(raiz,g,yo,me){
   // Ver una carta desde otra ventana: al cerrarla se vuelve a la que estaba
   todos('[data-verficha]',function(x){ui.modal={tipo:'dt',dt:+x.dataset.verficha,volver:ui.modal};pintar();});
   todos('[data-vercarta]',function(x){var q=x.dataset.vercarta.split('-');ui.modal={tipo:'jug',club:q[0],pos:+q[1],volver:ui.modal};pintar();});
+  todos('[data-verdorso]',function(x){ui.modal={tipo:'dorso',k:x.dataset.verdorso,volver:ui.modal};pintar();});
   todos('[data-verrec]',function(x){ui.modal={tipo:'rec',r:x.dataset.verrec,volver:ui.modal};pintar();});
   todos('[data-vermulta]',function(x){ui.modal={tipo:'multa',r:x.dataset.vermulta,volver:ui.modal};pintar();});
   todos('[data-verb]',function(x){ui.modal={tipo:'ben',b:x.dataset.verb,nuevo:x.dataset.nuevo==='1',solo:x.dataset.solo==='1',volver:ui.modal};pintar();});
@@ -1088,19 +1182,21 @@ function pantallaLobby(){
   if(host)s+=cajaCuantos(l.n,'data-ln')+botonesJuego(l.modo,l.limite||0,'data-lm','data-ll');
   else s+='<p class="nota" style="margin:0">'+l.n+' DTs · '+(l.modo==='rapido'?'Partido rápido (Jugadores a 1 Token)':'Partido completo (Jugadores a 2 Tokens)')+' · '+(l.limite?'reloj de '+l.limite+' s por turno':'sin límite de tiempo')+'.</p>';
   // Un solo lugar para elegir o cambiar de DT: cada DT aparece una vez
-  var filas='<p class="nota" style="margin:0">Tocá la cara del DT que querés y el + para conocerlo.</p>',miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
+  var filas='<p class="nota" style="margin:0">Tocá la cara del DT que querés y el + para conocerlo. Con el lápiz le cambiás la cara, el nombre y el color del cono.</p>',miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
   var lugarLibre=false,hayBot=false;for(i=0;i<l.n;i++){if(!l.a[i])lugarLibre=true;else if(l.a[i].bot)hayBot=true;}
   for(var v=0;v<5;v++){var ix=dts.indexOf(v),en=ix<l.n,a=en?l.a[ix]:null,mio=a&&a.id===id,gente=a&&!a.bot,est=mio?esc(a.nom||'Vos')+' (vos)':(a?(a.bot?'La Máquina':esc(a.nom||'Otro DT')+(a.id===l.host?' · armó la sala':'')):(en||lugarLibre?'Libre':'No juega'));
-    filas+='<div class="dtelige'+(a?' on':'')+(mio?' mio':'')+'"><div class="dt-cara"><button class="dt-tog" data-lpick="'+v+'" aria-label="Elegir a '+P.DTS[v].nombre+'" aria-pressed="'+(!!mio)+'"'+((gente&&!mio)||miSi<0?' disabled':'')+'>'+(a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v))+'</button><button class="dt-mas" data-verficha="'+v+'" aria-label="Conocer a '+P.DTS[v].nombre+'">+</button></div><div class="dt-dat"><b>'+P.DTS[v].nombre+'</b><span class="nota">'+est+'</span></div>'+(host&&en&&(!a||a.bot)?'<button class="bt chico lb-maq" data-lb="'+ix+'">'+(a?'Dejar lugar':'Máquina')+'</button>':(host&&!en&&(lugarLibre||hayBot)?'<button class="bt chico lb-maq" data-lfuera="'+v+'">Máquina</button>':cono(v,22)))+'</div>';}
+    filas+='<div class="dtelige'+(a?' on':'')+(mio?' mio':'')+'"><div class="dt-cara"><button class="dt-tog" data-lpick="'+v+'" aria-label="Elegir a '+P.DTS[v].nombre+'" aria-pressed="'+(!!mio)+'"'+((gente&&!mio)||miSi<0?' disabled':'')+'>'+(a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v))+'</button>'+(mio?'<button class="dt-lapiz" data-ledit="'+v+'" aria-label="Editar mi DT">'+LAPIZ+'</button>':'<button class="dt-mas" data-verficha="'+v+'" aria-label="Conocer a '+P.DTS[v].nombre+'">+</button>')+'</div><div class="dt-dat"><b>'+P.DTS[v].nombre+'</b><span class="nota">'+est+'</span></div>'+(host&&en&&(!a||a.bot)?'<button class="bt chico lb-maq" data-lb="'+ix+'">'+(a?'Dejar lugar':'Máquina')+'</button>':(host&&!en&&(lugarLibre||hayBot)?'<button class="bt chico lb-maq" data-lfuera="'+v+'">Máquina</button>':cono({cc:a&&a.cc!=null?a.cc:v},22)))+'</div>';}
   var miCus=miSi>=0&&l.a[miSi]&&l.a[miSi].cus;
-  filas='<button class="bt chico crea" id="crearDT">'+(miCus?'Cambiar mi propio DT':'Creá tu propio DT')+'</button>'+filas;
   s+=caja('Elegí a tu DT',filas);
   if(host)s+='<button class="bt oro" id="arrancar"'+(listos?'':' disabled')+'>'+(listos?'¡Arrancar el partido!':'Faltan lugares por completar')+'</button>';
   else s+='<div class="aviso"><b>Ya estás adentro</b>Esperá a que arranque el que armó la sala.</div>';
   s+='<button class="bt chico" id="dejarLobby">Salir de la sala</button></div>';
   app.innerHTML=s;
   function lob(fn){sala.red.transaccion('lobby',function(cur){if(cur==null)return null;var x=JSON.parse(cur);fn(x);x.t=Date.now();return JSON.stringify(x);},function(){});}
-  var cdtl=document.getElementById('crearDT');if(cdtl)cdtl.onclick=function(){ui.modal={tipo:'crear',r:miCus?JSON.parse(JSON.stringify(miCus)):rasgosGuardados(),habia:!!miCus};pintarModal(null,null,null);};
+  // Mi DT se edita igual que en el juego local: flechas, nombre y color del cono
+  app.querySelectorAll('[data-ledit]').forEach(function(x){x.onclick=function(){var v4=+x.dataset.ledit,yoA=l.a[miSi]||{},tom=[];
+    for(var k4=0;k4<l.n;k4++)if(k4!==miSi&&l.a[k4])tom.push(l.a[k4].cc!=null?l.a[k4].cc:dts[k4]);
+    ui.modal={tipo:'editDT',online:true,i:v4,r:miCus?JSON.parse(JSON.stringify(miCus)):null,nombre:yoA.nom||miNombre()||P.DTS[v4].nombre,cc:yoA.cc!=null?yoA.cc:v4,tomados:tom};pintarModal(null,null,null);};});
   document.getElementById('copiarLink').onclick=function(){try{navigator.clipboard.writeText(link).then(function(){mostrarAviso('Link copiado.');},function(){mostrarAviso(link);});}catch(e){mostrarAviso(link);}};
   document.getElementById('dejarLobby').onclick=function(){if(!host)lob(function(x){x.a=x.a.map(function(q){return q&&q.id===id?null:q;});});dejarSala(true);pantallaInicio();};
   app.querySelectorAll('[data-ln]').forEach(function(x){x.onclick=function(){var n=+x.dataset.ln;lob(function(y){for(var k=n;k<5;k++)if(y.a[k]&&!y.a[k].bot)return;for(var k2=n;k2<5;k2++)y.a[k2]=null;y.n=n;});};});
@@ -1113,7 +1209,7 @@ function pantallaLobby(){
   app.querySelectorAll('[data-lb]').forEach(
 function(x){x.onclick=function(){var k=+x.dataset.lb;lob(function(y){if(y.a[k]&&!y.a[k].bot)return;y.a[k]=y.a[k]?null:{bot:true};});};});
   var ar=document.getElementById('arrancar');if(ar)ar.onclick=function(){
-    var d=[];for(var i2=0;i2<l.n;i2++){var q=l.a[i2],dq2=dts[i2];d.push({dt:dq2,nombre:q.bot?P.DTS[dq2].nombre:(q.nom||P.DTS[dq2].nombre),bot:!!q.bot,cid:q.id||null,cus:q.cus||null});}
+    var d=[];for(var i2=0;i2<l.n;i2++){var q=l.a[i2],dq2=dts[i2];d.push({dt:dq2,nombre:q.bot?P.DTS[dq2].nombre:(q.nom||P.DTS[dq2].nombre),bot:!!q.bot,cid:q.id||null,cus:q.cus||null,cc:q.cc!=null?q.cc:null});}
     var txt=JSON.stringify(P.nuevaPartida({dts:d,modo:l.modo,limite:l.limite||0,semilla:Math.floor(Math.random()*1e9),t0:Date.now(),host:l.host}));
     sala.red.transaccion('partida',function(cur){if(cur)return;return txt;},function(ok){if(ok)lob(function(y){y.empezo=true;});});};
 }

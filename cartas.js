@@ -158,7 +158,7 @@
   function piernas(k,o,cx,W,lx,lw,piel){
     var c=C[k], s='', banda=k==='picardia'?INK:BANDA[k];
     [-1,1].forEach(function(sg){
-      var x=cx+sg*lx, dir=o.gag==='izq'?-1:sg;
+      var x=cx+sg*lx, dir=o.zancada?1:(o.gag==='izq'?-1:sg), antes=s; s='';
       if(o.descalzo){
         // En patas, como buen brasileño
         s+='<path d="M'+x+' '+(W+10)+'V200" stroke="'+INK+'" stroke-width="'+(lw+4.5)+'" stroke-linecap="round"/><path d="M'+x+' '+(W+10)+'V200" stroke="'+piel[0]+'" stroke-width="'+lw+'" stroke-linecap="round"/>';
@@ -176,6 +176,8 @@
       var rod=o.rodillera;
       if(rod==='dos'||(rod==='izq'&&sg<0)||(rod==='der'&&sg>0)) s+='<rect x="'+n1(x-lw/2-3)+'" y="179" width="'+(lw+6)+'" height="9.5" rx="3" fill="#25272c" stroke="'+INK+'" stroke-width="1.6"/><ellipse cx="'+x+'" cy="184" rx="'+n1(lw*.28+1.2)+'" ry="2.4" fill="none" stroke="#7a8089" stroke-width="1.4"/>';
       if(o.gag==='patadas') s+=curita(x,180+sg*4,sg*35);
+      // Para el video: zancada de carrera (una pierna adelante y la otra atrás), las dos puntas de pie para el mismo lado
+      s=antes+(o.zancada?'<g transform="rotate('+(-sg*o.zancada*27)+' '+x+' '+(W+6)+')">'+s+'</g>':s);
     });
     return s;
   }
@@ -640,8 +642,8 @@
         d:'Brazos cruzados delante de una pared y la pelota que le rebota en la frente: no pierde ni una por arriba. Rodillera en la izquierda, la del LCA, ya recuperada.'},
       {n:'Nano',a:'El Anestesista',o:{piel:'clara',pelo:'claro',w:48,jaw:34,h:50,ojo:8.5,ceja:2.4,nariz:.9,gesto:'sonrisa',boca:9,gorro:true,corte:'corto',barbijo:true,pose:'jeringa',gag:'zzz'},
         d:'Cara de nene y ojos enormes. Vende anestesia y la controla en el quirófano: barbijo colgando, la jeringa en alto y, alrededor, todos dormidos. Arma el juego y le pega a los tiros libres.'},
-      {n:'Cocho',a:'El Lindo',o:{piel:'clara',pelo:'castano',w:42,jaw:36,h:46,bot:112,ojo:6,ceja:5,cejaEnojo:4,nariz:1.35,barba:'llena',largoBarba:10,bigote:'grueso',corte:'medio',gesto:'grita',boca:11,extra:'trebol',cuerpo:'grandote',pose:'espada',pintura:true,kilt:true,rodillera:'dos'},
-        d:'Le dicen El Lindo, y ahí lo tenés: guerrero escocés con pintura azul, pollera a cuadros, la espada en alto y la pelota bajo el brazo. Barba más corta y una rodillera en cada pierna: las dos rodillas operadas de LCA, recuperadas.'}],
+      {n:'Cocho',a:'El Falso Nueve',o:{piel:'clara',pelo:'castano',w:42,jaw:36,h:46,bot:112,ojo:6,ceja:5,cejaEnojo:4,nariz:1.35,barba:'llena',largoBarba:10,bigote:'grueso',corte:'medio',gesto:'grita',boca:11,extra:'trebol',cuerpo:'grandote',pose:'espada',pintura:true,kilt:true,rodillera:'dos'},
+        d:'Le dicen El Falso Nueve, y ahí lo tenés: guerrero escocés con pintura azul, pollera a cuadros, la espada en alto y la pelota bajo el brazo. Barba más corta y una rodillera en cada pierna: las dos rodillas operadas de LCA, recuperadas.'}],
     suerte:[
       {n:'Caba',a:'El Pulpo',o:{arquero:true,piel:'media',pelo:'negro',w:42,jaw:26,h:58,ojos:'ciego',ceja:4,nariz:1.45,barba:'candado',sombra:true,bigote:'fino',gorro:true,gorroY:12,gesto:'grin',boca:11,pose:'arriba',tentaculos:true,gag:'pulpo'},
         d:'Sin anteojos no ve nada, y aun así ataja todo: parece que tuviera ocho brazos. Los anteojos, colgados de la camiseta; los tentáculos, con guantes.'},
