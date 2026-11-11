@@ -664,7 +664,9 @@ var MODOS=[['completo','Partido completo','Cada DT arma un equipo de 4 Jugadores
 // Modo de juego y tiempo por turno: dos botones de color, uno al lado del otro; cada toque pasa a la opción siguiente
 var LAPIZ='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-5L15.5 4.5a2.1 2.1 0 0 1 3 0l1 1a2.1 2.1 0 0 1 0 3L9 19z" fill="#fff8d6" stroke="#2b2620" stroke-width="2" stroke-linejoin="round"/><path d="M13.5 6.5l4 4M4 20l5-1" stroke="#2b2620" stroke-width="2"/></svg>';
 function botonesJuego(m,lim,attrM,attrL){var il=0;LIMITES.forEach(function(l,i){if(l[0]===lim)il=i;});
-  return '<div class="ini-bts"><button class="bt-op modo-'+m+'" '+attrM+'="'+(m==='rapido'?'completo':'rapido')+'" aria-label="Modo de juego: '+(m==='rapido'?'partido rápido':'partido completo')+'. Tocá para cambiarlo"><small>Modo de juego</small><b>'+(m==='rapido'?'Partido rápido':'Partido completo')+'</b><span>'+(m==='rapido'?'Jugadores a 1 Token':'Jugadores a 2 Tokens')+'</span></button><button class="bt-op tiempo" '+attrL+'="'+LIMITES[(il+1)%LIMITES.length][0]+'" aria-label="Tiempo por turno: '+LIMITES[il][1]+'. Tocá para cambiarlo"><small>Tiempo por turno</small><b>'+LIMITES[il][1]+'</b><span>'+(lim?'Después sigue solo':'Sin apuro')+'</span></button></div>';}
+  var exM=m==='rapido'?'Cada Jugador cuesta 1 solo Token: el equipo se arma antes y el partido dura menos.':'El juego entero: cada Jugador cuesta 2 Tokens. Unos 30 a 45 min.';
+  var exL=lim?'Cada DT tiene '+LIMITES[il][1]+' para jugar. Si se pasa, el juego sigue solo.':'Cada DT juega a su ritmo, sin reloj.';
+  return '<div class="ini-bts"><button class="bt-op modo-'+m+'" '+attrM+'="'+(m==='rapido'?'completo':'rapido')+'" aria-label="Modo de juego: '+(m==='rapido'?'partido rápido':'partido completo')+'. '+exM+' Tocá para cambiarlo"><small>Modo de juego <i aria-hidden="true">⇄</i></small><b>'+(m==='rapido'?'Partido rápido':'Partido completo')+'</b><em>'+exM+'</em></button><button class="bt-op tiempo" '+attrL+'="'+LIMITES[(il+1)%LIMITES.length][0]+'" aria-label="Tiempo por turno: '+LIMITES[il][1]+'. '+exL+' Tocá para cambiarlo"><small>Tiempo por turno <i aria-hidden="true">⇄</i></small><b>'+LIMITES[il][1]+'</b><em>'+exL+'</em></button></div>';}
 function cajaModo(m,attr,plega){return caja('Modo de juego','<div class="modos" role="group" aria-label="Modo de juego">'+MODOS.map(function(x){var on=m===x[0];return '<button class="modo" '+attr+'="'+x[0]+'" aria-pressed="'+on+'"><b>'+x[1]+'</b>'+(on?'<span>'+x[2]+'</span>':'')+'</button>';}).join('')+'</div>',plega?'modo':null,m==='rapido'?'Partido rápido':'Partido completo');}
 function selectorLimite(actual,attr,plega){return caja('Tiempo por turno','<div class="sel" role="group" aria-label="Tiempo por turno">'+LIMITES.map(function(l){return '<button class="chip" '+attr+'="'+l[0]+'" aria-pressed="'+(actual===l[0])+'">'+l[1]+'</button>';}).join('')+'</div><p class="nota" style="margin:0">Si se acaba, el juego sigue por el colgado sin gastarle nada. Se frena mientras hay una oferta.</p>',plega?'tiempo':null,(LIMITES.filter(function(l){return l[0]===actual;})[0]||LIMITES[0])[1]);}
 // Papelitos por toda la pantalla en el final del partido: viven fuera de #app para que no se reinicien con cada repintada
@@ -695,7 +697,7 @@ function pantallaInicio(){
     var filas='';
     for(var i=0;i<5;i++){var d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0,nom=conf.nombres[i]||d.nombre;
       filas+='<div class="dtelige'+(on?' on':'')+'"><button class="dt-add" data-togdt="'+i+'" aria-pressed="'+on+'" aria-label="'+(on?'Sacar a ':'Sumar a ')+esc(nom)+'">'+(on?'✓':'+')+'</button><div class="dt-cara"><button class="dt-tog" data-edit="'+i+'" aria-label="Ver y editar a '+esc(nom)+'">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-lapiz" data-edit="'+i+'" aria-label="Editar a '+esc(nom)+'">'+LAPIZ+'</button></div>'+
-        '<div class="dt-dat dt-lin"><b>'+esc(nom)+'</b>'+(on?'<button class="dt-quien'+(h?' per':'')+'" data-h="'+i+'" data-v="'+(h?0:1)+'" aria-label="Lo juega '+(h?'una persona':'la Máquina')+'. Tocá para cambiar">'+(h?'Persona':'Máquina')+'</button>':'<span class="nota">No juega</span>')+'</div>'+cono({cc:ccLocal(i)},22)+'</div>';}
+        '<div class="dt-dat dt-lin"><b>'+esc(nom)+'</b>'+(on?'<button class="dt-quien'+(h?' per':'')+'" data-h="'+i+'" data-v="'+(h?0:1)+'" aria-label="Lo juega '+(h?'una persona':'la Máquina')+'. Tocá para cambiar">'+(h?'Persona':'Máquina')+'</button>':'<span class="nota">No juega</span>')+'</div><button class="dt-cono" data-ccdt="'+i+'" aria-label="Color del cono de '+esc(nom)+': '+P.CONOS[ccLocal(i)].n+'. Tocá para cambiarlo">'+cono({cc:ccLocal(i)},24)+'</button></div>';}
     s+='<section class="caja"><h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><button class="bt oro" id="empezar">Empezar el partido</button>';
   }
   s+='</div></div>';
@@ -707,6 +709,7 @@ function pantallaInicio(){
   app.querySelectorAll('[data-itab]').forEach(function(x){x.onclick=function(){guardarNombreInput();leerNombres();ui.iniTab=x.dataset.itab;pantallaInicio();};});
   if(redOk&&ui.iniTab==='online')conectarAmigos(salaGuardada);
   app.querySelectorAll('[data-edit]').forEach(function(x){x.onclick=function(){var i3=+x.dataset.edit;ui.modal={tipo:'editDT',i:i3,r:conf.cus&&conf.cus[i3]?JSON.parse(JSON.stringify(conf.cus[i3])):null,nombre:conf.nombres[i3]||P.DTS[i3].nombre,cc:ccLocal(i3),tomados:conf.sel.filter(function(q){return q!==i3;}).map(ccLocal)};pintarModal(null,null,null);};});
+  app.querySelectorAll('[data-ccdt]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.ccdt;ui.modal={tipo:'colorCono',i:i3,nombre:conf.nombres[i3]||P.DTS[i3].nombre,cc:ccLocal(i3),tomados:conf.sel.filter(function(q){return q!==i3;}).map(ccLocal)};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-cuantos]').forEach(function(x){x.onclick=function(){leerNombres();var n=+x.dataset.cuantos,i2;
     while(conf.sel.length<n){for(i2=0;i2<5;i2++)if(conf.sel.indexOf(i2)<0){conf.sel.push(i2);break;}}
     while(conf.sel.length>n){var maq=conf.sel.filter(function(q){return !conf.filas[q].h;});conf.sel.splice(conf.sel.indexOf(maq.length?maq[maq.length-1]:conf.sel[conf.sel.length-1]),1);}
@@ -954,6 +957,7 @@ function pintarModal(g,yo,me){
   if(M.tipo==='canjes')s='<h2>Canjear</h2>'+tabCanjes(g,yo,me)+'';
   if(M.tipo==='crear')s=modalCrear(M);
   if(M.tipo==='editDT')s=modalEditDT(M);
+  if(M.tipo==='colorCono')s=modalColorCono(M);
   if(M.tipo==='tok'){var tkV=M.tk==='V';s='<div class="multa-g">'+token(M.tk,150)+'</div><h2 style="margin:0">Token de '+(tkV?'Victoria':'Efectivo')+'</h2><div class="ej"><div class="ej-v">'+precioIc(P.PRECIO[M.tk],28)+ejFl()+token(M.tk,40)+'</div><small>Se canjea en tu turno.</small></div><p style="margin:0">Con Tokens se contratan los Jugadores, parado en un Mercado de Pases. '+(g&&g.modo==='rapido'&&g.meta===4?(tkV?'En este partido, el de Victoria paga a tu Arquero y a tu Defensor.':'En este partido, el de Efectivo paga a tu Volante y a tu Delantero.'):'Cada Jugador cuesta uno de Victoria y uno de Efectivo.')+' Cambiar a uno que ya tenés cuesta 1 Token.</p>';}
   if(M.tipo==='pos'){var PD=[['Arquero','Con su Recurso pagás cualquier Multa.'],['Defensor','La Multa de su Recurso te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.'],['Volante','En cualquier lugar cambiás 2 de su Recurso por 1 a elección. En la Boletería de su Recurso, 1 por 1.'],['Delantero','Cuando cobrás su Recurso, levantás el doble.']][M.i];s='<div class="grande chica">'+K.dorso('Jugador')+'</div><h2 style="margin:0">'+PD[0]+'</h2><p style="margin:0"><b>Qué hace:</b> '+PD[1]+'</p><p class="nota" style="margin:0">Hay un '+PD[0]+' por cada club, y su habilidad usa el Recurso de ese club. Se contrata en un Mercado de Pases.</p>';}
   if(M.tipo==='usados'){var qu=g.jug[M.q];s='<h2>Beneficios usados</h2><p style="margin:0">'+dtN(qu)+' lleva <b>'+qu.usados.length+'</b>. Con 3 usados, cuando quiera, los entrega por 1 Recurso a elección.</p>'+(qu.usados.length?'<div class="pz-eq">'+qu.usados.map(function(b){return '<button class="cartita" data-verb="'+b+'" data-solo="1" aria-label="Ver '+esc(P.BENEF[b].n)+'">'+K.beneficio(P.BENEF[b].n)+'</button>';}).join('')+'</div>':'<p class="nota" style="margin:0">Todavía no usó ninguno.</p>');
@@ -1003,6 +1007,7 @@ function pintarModal(g,yo,me){
   c2.querySelectorAll('[data-cerrar]').forEach(function(x){x.onclick=cierra;});
   if(M.tipo==='crear')conectarCrear(c2,M);
   if(M.tipo==='editDT')conectarEditDT(c2,M);
+  if(M.tipo==='colorCono')conectarColorCono(c2,M);
   var ub=c2.querySelector('#usarB');if(ub)ub.onclick=function(){limpiarModales();usarBen(g,yo,M.b);};
   c2.querySelectorAll('[data-par]').forEach(function(x){x.onclick=function(){var v=x.dataset.val;if(x.dataset.par==='dt'||x.dataset.par==='pos')v=+v;M.a[x.dataset.par]=v;limpiarModales();pintarModal(g,yo,me);};});
   var cb=c2.querySelector('#confirmarB');if(cb)cb.onclick=function(){var a=Object.assign({t:'usar',b:M.b},M.a);limpiarModales();ui.modal=null;sala.enviar(yo,a);};
@@ -1034,10 +1039,9 @@ function comboAzar(base){var r={base:base};RASGOS.forEach(function(x){if(x[0]===
 function prepEditDT(M){if(!M.hist){M.hist=[M.r||null];M.hi=0;}if(M.cc==null)M.cc=M.i;return M;}
 function modalEditDT(M){prepEditDT(M);var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r,tom=M.tomados||[];
   var fig=r?K.dtCustom(r,true):K.dtEntero(M.i);
-  var colores='<div class="ed-cono"><b>Color del cono</b><div class="ed-cols" role="group" aria-label="Color del cono">'+P.CONOS.map(function(c,i){var ocu=tom.indexOf(i)>=0&&i!==M.cc;return '<button class="ed-cc" data-cc="'+i+'" aria-pressed="'+(M.cc===i)+'" aria-label="Cono '+c.n+(ocu?', lo usa otro DT':'')+'"'+(ocu?' disabled':'')+'>'+cono({cc:i},26)+'</button>';}).join('')+'</div></div>';
-  return '<input class="ent ed-nom" id="edNom" aria-label="Nombre del DT" maxlength="16" value="'+esc(M.nombre)+'">'+(r?'':'<p class="ed-frase">«'+esc(pz.frase||'')+'»</p>')+
+  return '<label class="ed-nomw"><input class="ent ed-nom" id="edNom" aria-label="Nombre del DT. Tocá para cambiarlo" maxlength="16" value="'+esc(M.nombre)+'"><span class="ed-lapiz" aria-hidden="true">'+LAPIZ+'</span></label><p class="ed-pista">Tocá el nombre para cambiarlo</p>'+(r?'':'<p class="ed-frase">«'+esc(pz.frase||'')+'»</p>')+
     '<div class="ed-grid"><button class="ed-fl ed-fl-g" data-ed="-1" aria-label="Combinación anterior">‹</button><div class="ed-fig">'+fig+'</div><button class="ed-fl ed-fl-g" data-ed="1" aria-label="Otra combinación">›</button></div>'+
-    '<p class="ed-cap">'+(r?'Combinación '+(M.hi+1)+'. Las flechas muestran otras; volviendo para atrás encontrás las que ya viste.':esc(pz.como||''))+'</p>'+colores+
+    '<p class="ed-cap">'+(r?'Combinación '+(M.hi+1)+'. Las flechas muestran otras; volviendo para atrás encontrás las que ya viste.':esc(pz.como||''))+'</p>'+
     '<button class="bt fuerte" id="edListo">Listo</button>'+(r?'<button class="bt chico" id="edOrig">Volver a '+esc(d.nombre)+' original</button>':'');
 }function conectarEditDT(c,M){
   var n=c.querySelector('#edNom');if(n){n.oninput=function(){M.nombre=n.value;};n.onfocus=function(){n.select();};}
@@ -1046,7 +1050,6 @@ function modalEditDT(M){prepEditDT(M);var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r,tom
     if(dl>0){if(M.hi<M.hist.length-1)M.hi++;else{M.hist.push(comboAzar(M.i));M.hi=M.hist.length-1;}}
     else{if(M.hi>0)M.hi--;else M.hist.unshift(comboAzar(M.i));}
     M.r=M.hist[M.hi]?JSON.parse(JSON.stringify(M.hist[M.hi])):null;repinta();};});
-  c.querySelectorAll('[data-cc]').forEach(function(b){b.onclick=function(){M.cc=+b.dataset.cc;repinta();};});
   var o=c.querySelector('#edOrig');if(o)o.onclick=function(){M.r=null;var k=M.hist.indexOf(null);if(k<0){M.hist.unshift(null);k=0;}M.hi=k;repinta();};
   var l=c.querySelector('#edListo');if(l)l.onclick=function(){var nom=(M.nombre||'').trim();limpiarModales();ui.modal=null;
     if(M.online){var id=idCliente();sala.red.transaccion('lobby',function(cur){if(cur==null)return null;var x=JSON.parse(cur);x.a.forEach(function(q){if(q&&q.id===id){if(M.r)q.cus=M.r;else delete q.cus;q.cc=M.cc;if(nom)q.nom=nom;}});return JSON.stringify(x);},function(){});
@@ -1055,6 +1058,14 @@ function modalEditDT(M){prepEditDT(M);var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r,tom
     if(M.r)conf.cus[M.i]=M.r;else delete conf.cus[M.i];
     if(M.cc!==M.i)conf.cc[M.i]=M.cc;else delete conf.cc[M.i];
     pantallaInicio();};
+}
+// El color del cono se elige tocando el cono de cada DT: se ven los cinco y los que ya usa otro DT aparecen apagados
+function modalColorCono(M){var tom=M.tomados||[];
+  return '<div class="multa-g">'+cono({cc:M.cc},90)+'</div><h2 style="margin:0">El cono de '+esc(M.nombre)+'</h2><p style="margin:0">Elegí de qué color va a ser su ficha en la isla.</p><div class="ed-cols cc-grande" role="group" aria-label="Color del cono">'+P.CONOS.map(function(c,i){var ocu=tom.indexOf(i)>=0&&i!==M.cc;return '<button class="ed-cc" data-cc="'+i+'" aria-pressed="'+(M.cc===i)+'" aria-label="Cono '+c.n+(ocu?', lo usa otro DT':'')+'"'+(ocu?' disabled':'')+'>'+cono({cc:i},34)+'<small>'+esc(c.n)+'</small></button>';}).join('')+'</div>'+(tom.length?'<p class="nota" style="margin:0">Los apagados ya los usa otro DT.</p>':'');}
+function conectarColorCono(c,M){
+  c.querySelectorAll('[data-cc]').forEach(function(b){b.onclick=function(){var v=+b.dataset.cc;limpiarModales();ui.modal=null;
+    if(M.online){var id=idCliente();sala.red.transaccion('lobby',function(cur){if(cur==null)return null;var x=JSON.parse(cur);x.a.forEach(function(q){if(q&&q.id===id)q.cc=v;});return JSON.stringify(x);},function(){});if(ui.lobby)pantallaLobby();return;}
+    conf.cc=conf.cc||{};if(v!==M.i)conf.cc[M.i]=v;else delete conf.cc[M.i];pantallaInicio();};});
 }
 function conectarCrear(c,M){
   c.querySelectorAll('[data-cr]').forEach(function(b){b.onclick=function(){var k=b.dataset.cr,v=+b.dataset.v;if(k==='g')M.r.g=v===1?'f':'m';else M.r[k]=v;var h=c.querySelector('.hoja'),top=h.scrollTop;limpiarModales();pintarModal(null,null,null);var n=document.querySelector('.modal .hoja');if(n)n.scrollTop=top;};});
@@ -1182,10 +1193,10 @@ function pantallaLobby(){
   if(host)s+=cajaCuantos(l.n,'data-ln')+botonesJuego(l.modo,l.limite||0,'data-lm','data-ll');
   else s+='<p class="nota" style="margin:0">'+l.n+' DTs · '+(l.modo==='rapido'?'Partido rápido (Jugadores a 1 Token)':'Partido completo (Jugadores a 2 Tokens)')+' · '+(l.limite?'reloj de '+l.limite+' s por turno':'sin límite de tiempo')+'.</p>';
   // Un solo lugar para elegir o cambiar de DT: cada DT aparece una vez
-  var filas='<p class="nota" style="margin:0">Tocá la cara del DT que querés y el + para conocerlo. Con el lápiz le cambiás la cara, el nombre y el color del cono.</p>',miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
+  var filas='<p class="nota" style="margin:0">Tocá la cara del DT que querés y el + para conocerlo. Con el lápiz le cambiás la cara y el nombre; tocando tu cono, el color.</p>',miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
   var lugarLibre=false,hayBot=false;for(i=0;i<l.n;i++){if(!l.a[i])lugarLibre=true;else if(l.a[i].bot)hayBot=true;}
   for(var v=0;v<5;v++){var ix=dts.indexOf(v),en=ix<l.n,a=en?l.a[ix]:null,mio=a&&a.id===id,gente=a&&!a.bot,est=mio?esc(a.nom||'Vos')+' (vos)':(a?(a.bot?'La Máquina':esc(a.nom||'Otro DT')+(a.id===l.host?' · armó la sala':'')):(en||lugarLibre?'Libre':'No juega'));
-    filas+='<div class="dtelige'+(a?' on':'')+(mio?' mio':'')+'"><div class="dt-cara"><button class="dt-tog" data-lpick="'+v+'" aria-label="Elegir a '+P.DTS[v].nombre+'" aria-pressed="'+(!!mio)+'"'+((gente&&!mio)||miSi<0?' disabled':'')+'>'+(a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v))+'</button>'+(mio?'<button class="dt-lapiz" data-ledit="'+v+'" aria-label="Editar mi DT">'+LAPIZ+'</button>':'<button class="dt-mas" data-verficha="'+v+'" aria-label="Conocer a '+P.DTS[v].nombre+'">+</button>')+'</div><div class="dt-dat"><b>'+P.DTS[v].nombre+'</b><span class="nota">'+est+'</span></div>'+(host&&en&&(!a||a.bot)?'<button class="bt chico lb-maq" data-lb="'+ix+'">'+(a?'Dejar lugar':'Máquina')+'</button>':(host&&!en&&(lugarLibre||hayBot)?'<button class="bt chico lb-maq" data-lfuera="'+v+'">Máquina</button>':cono({cc:a&&a.cc!=null?a.cc:v},22)))+'</div>';}
+    filas+='<div class="dtelige'+(a?' on':'')+(mio?' mio':'')+'"><div class="dt-cara"><button class="dt-tog" data-lpick="'+v+'" aria-label="Elegir a '+P.DTS[v].nombre+'" aria-pressed="'+(!!mio)+'"'+((gente&&!mio)||miSi<0?' disabled':'')+'>'+(a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v))+'</button>'+(mio?'<button class="dt-lapiz" data-ledit="'+v+'" aria-label="Editar mi DT">'+LAPIZ+'</button>':'<button class="dt-mas" data-verficha="'+v+'" aria-label="Conocer a '+P.DTS[v].nombre+'">+</button>')+'</div><div class="dt-dat"><b>'+P.DTS[v].nombre+'</b><span class="nota">'+est+'</span></div>'+(host&&en&&(!a||a.bot)?'<button class="bt chico lb-maq" data-lb="'+ix+'">'+(a?'Dejar lugar':'Máquina')+'</button>':(host&&!en&&(lugarLibre||hayBot)?'<button class="bt chico lb-maq" data-lfuera="'+v+'">Máquina</button>':(mio?'<button class="dt-cono" data-lcc="'+v+'" aria-label="Color de tu cono. Tocá para cambiarlo">'+cono({cc:a.cc!=null?a.cc:v},24)+'</button>':cono({cc:a&&a.cc!=null?a.cc:v},22))))+'</div>';}
   var miCus=miSi>=0&&l.a[miSi]&&l.a[miSi].cus;
   s+=caja('Elegí a tu DT',filas);
   if(host)s+='<button class="bt oro" id="arrancar"'+(listos?'':' disabled')+'>'+(listos?'¡Arrancar el partido!':'Faltan lugares por completar')+'</button>';
@@ -1197,6 +1208,9 @@ function pantallaLobby(){
   app.querySelectorAll('[data-ledit]').forEach(function(x){x.onclick=function(){var v4=+x.dataset.ledit,yoA=l.a[miSi]||{},tom=[];
     for(var k4=0;k4<l.n;k4++)if(k4!==miSi&&l.a[k4])tom.push(l.a[k4].cc!=null?l.a[k4].cc:dts[k4]);
     ui.modal={tipo:'editDT',online:true,i:v4,r:miCus?JSON.parse(JSON.stringify(miCus)):null,nombre:yoA.nom||miNombre()||P.DTS[v4].nombre,cc:yoA.cc!=null?yoA.cc:v4,tomados:tom};pintarModal(null,null,null);};});
+  app.querySelectorAll('[data-lcc]').forEach(function(x){x.onclick=function(){var v4=+x.dataset.lcc,yoA=l.a[miSi]||{},tom=[];
+    for(var k4=0;k4<l.n;k4++)if(k4!==miSi&&l.a[k4])tom.push(l.a[k4].cc!=null?l.a[k4].cc:dts[k4]);
+    ui.modal={tipo:'colorCono',online:true,i:v4,nombre:yoA.nom||miNombre()||P.DTS[v4].nombre,cc:yoA.cc!=null?yoA.cc:v4,tomados:tom};pintarModal(null,null,null);};});
   document.getElementById('copiarLink').onclick=function(){try{navigator.clipboard.writeText(link).then(function(){mostrarAviso('Link copiado.');},function(){mostrarAviso(link);});}catch(e){mostrarAviso(link);}};
   document.getElementById('dejarLobby').onclick=function(){if(!host)lob(function(x){x.a=x.a.map(function(q){return q&&q.id===id?null:q;});});dejarSala(true);pantallaInicio();};
   app.querySelectorAll('[data-ln]').forEach(function(x){x.onclick=function(){var n=+x.dataset.ln;lob(function(y){for(var k=n;k<5;k++)if(y.a[k]&&!y.a[k].bot)return;for(var k2=n;k2<5;k2++)y.a[k2]=null;y.n=n;});};});
