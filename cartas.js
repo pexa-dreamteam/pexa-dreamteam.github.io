@@ -1416,14 +1416,14 @@
   var ORD=['gol','suerte','picardia','fans','sponsors'];
   var porNombre={};BENEF.forEach(function(b,i){porNombre[b[1]]=i;});
   var DTIDS=['abuelo','mister','dona','loco','profe'];
-  // El gesto de cada personaje (la versiÃ³n digital lo anima con CSS)
+  // El gesto de cada personaje (la versión digital lo anima con CSS)
   var G_J={gol:['cejas','festejo','baile','salto'],suerte:['no','trompo','lengua','festejo'],picardia:['si','saludo','baile','trompo'],fans:['saludo','pisoton','cejas','festejo'],sponsors:['baile','cejas','trompo','salto']};
   var G_DT=['no','cejas','pisoton','salto','si'];
   var G_CUS=['baile','salto','festejo','pisoton','saludo','no','cejas','lengua','trompo'];
   var G_E={capitano:'baile',teo:'cejas',fer:'trompo',piolo:'festejo',pancho:'saludo',juambo:'baile',gaspi:'pisoton',m:'no',muchi:'salto',mark:'festejo',sora:'lengua',tai:'trompo',golzalez:'cejas',cocho:'pisoton'};
   function conGesto(svg,g){return svg.replace('class="fig"','class="fig g-'+g+'"');}
-  // CreÃ¡ tu DT: cada rasgo es una lista de opciones que se traducen a los parÃ¡metros del dibujo
-  // CreÃ¡ tu DT: los mismos rasgos para todos los DTs. Cada rasgo es una lista de opciones que se traducen a los parÃ¡metros del dibujo.
+  // Creá tu DT: cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo
+  // Creá tu DT: los mismos rasgos para todos los DTs. Cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo.
   var CUS={
     pelo:[{corte:'corto',vol:0},{corte:'entradas',vol:4},{corte:'pelado',vol:0},{corte:'revuelto',vol:4},{corte:'medio',vol:4},{corte:'largo',vol:5},{corte:'ondas',vol:6},{corte:'corto',vol:2,rodete:true}],
     color:['negro','oscuro','castano','claro','rubio','colorado','gris','canas'],
@@ -1433,9 +1433,9 @@
     // Caras bien distintas: ovalada, redonda, alargada, cuadrada, pera y en punta
     cara:[{w:46,jaw:36,h:52},{w:56,jaw:56,h:46},{w:35,jaw:22,h:63},{w:50,jaw:50,h:49,forma:'cuadrada'},{w:50,jaw:46,h:52,forma:'pera'},{w:54,jaw:14,h:54,forma:'punta'}],
     gesto:[{gesto:'sonrisa',boca:12},{gesto:'grin',boca:22},{gesto:'canchero',boca:12},{gesto:'firme',boca:10},{gesto:'grita',boca:10}],
-    piel:['palida','clara','media','trigueÃ±a','oscura'],
+    piel:['palida','clara','media','trigueña','oscura'],
     ropa:[{c1:'#26272b',corbata:'#b23f3c',sh:INK},{c1:'#22305a',mangaLarga:'#22305a',pantalon:'#22305a',raya:'#f4f1ea',sh:'#22305a'},{c1:'#e9e4d8',musculosa:true,sh:'#3a3f4a'},{c1:'#f7f5ef',camisa:true,mangaLarga:'#f7f5ef',sh:'#2b2f37'},{c1:'#8a6a45',delantal:true,sh:INK}],
-    pose:['cruzados','festeja','bolsillos','seÃ±ala','hombros','biceps']
+    pose:['cruzados','festeja','bolsillos','señala','hombros','biceps']
   };
   CUS.ropa.forEach(function(x,i){C['dt_c'+i]={nombre:'DT',c1:x.c1,c2:CREMA,fondo:'#efe7d4'};SHORT['dt_c'+i]=x.sh;BANDA['dt_c'+i]=CREMA;});
   var CUS_SACA={pelo:['corte','vol','rodete','flequillo'],color:['pelo','colorBarba'],barba:['barba','bigote','largoBarba','sombra'],ojos:['ojo','ojos','iris','irisMiel'],acc:['anteojos','lentes','silbato','gallo'],cara:['w','jaw','h','forma'],gesto:['gesto','boca'],ropa:['corbata','delantal','mangaLarga','pantalon','raya','musculosa','camisa','remera','manga'],pose:['pose','gag','globo','palitos','mancuernas']};
@@ -1448,7 +1448,7 @@
     else if(k==='ropa'){cusRopa(o,CUS.ropa[v]||CUS.ropa[0]);}
     else Object.assign(o,CUS[k][v]||CUS[k][0]);}
   var CUS_K=['pelo','color','barba','ojos','acc','cara','gesto','piel','ropa','pose'];
-  // Un DT propio puede partir de un DT de la liga (r.base): solo cambia lo que se tocÃ³. Sin base, arranca de un DT "en blanco".
+  // Un DT propio puede partir de un DT de la liga (r.base): solo cambia lo que se tocó. Sin base, arranca de un DT "en blanco".
   function figuraCus(r,entero,extra){var o,club;
     if(r.base!=null){var id=DTIDS[r.base];o=Object.assign({},DT_FIG[id].o);club='dt_'+id;}
     else{o=Object.assign({},CUS_GEN.m,{pelo:'castano',colorBarba:'castano',gesto:'sonrisa',boca:12},CUS.pelo[0],CUS.ojos[0],CUS.cara[0],{piel:'clara',pose:'cruzados'});cusRopa(o,CUS.ropa[0]);club='dt_c0';}
@@ -1469,10 +1469,10 @@
     dorso:function(t){return guardo('d'+t,function(){return dorso(t);});},
     retrato:function(dt){return guardo('t'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="45 18 110 120" aria-hidden="true">'+figura('dt_'+id,Object.assign({},DT_FIG[id].o,{gag:null,globo:null,palitos:false}))+'</svg>',G_DT[dt]);});},
     dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>',G_DT[dt]);});},
-    // El DT propio tambiÃ©n elige su movimiento (r.anim); si no tiene, baila
+    // El DT propio también elige su movimiento (r.anim); si no tiene, baila
     dtCustom:function(r,entero){return guardo('cus'+(entero?1:0)+JSON.stringify(r),function(){return conGesto(entero?'<svg viewBox="0 0 200 220" aria-hidden="true">'+figuraCus(r,1)+'</svg>':'<svg viewBox="45 18 110 120" aria-hidden="true">'+figuraCus(r,0)+'</svg>',G_CUS[r.anim]||'baile');});},
     badge:function(k){return guardo('g'+k,function(){return badge(k);});},
-    // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada BoleterÃ­a tiene su mazo de cartas encima
+    // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada Boletería tiene su mazo de cartas encima
     tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;var mazos='';for(var i=0;i<5;i++){var aF=TH[i]+36,c=P(RH,aF),cr=cartaRecurso(outer[i]);mazos+=G(c[0],c[1],aF+90)+[2,1,0].map(function(q){return cr.replace('<svg ','<svg x="'+(q-14)+'" y="'+(-21.5-q)+'" width="28" height="43" ');}).join('')+'</g>';}return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero().replace('fill="#d8c8a2"','fill="#8fc3df"')+mazos+'</svg>';},
     geo:{get RS(){return RS;},get RH(){return RH;}},
     escuelita:function(k){return guardo('x'+k,function(){return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>',G_E[k]||'salto');});},

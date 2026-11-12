@@ -36,27 +36,27 @@ function cabala(k,F,halo,diez){
     if(!halo){var hw=function(y){return 2.6+(y+13)*6.4/20;};[[-11.2,-10],[-8.8,-7.6],[-6.4,-5.2],[-4,-2.8]].forEach(function(b){s+='<path d="M'+(-hw(b[0])+.5).toFixed(2)+' '+b[0]+'H'+(hw(b[0])-.5).toFixed(2)+'L'+(hw(b[1])-.5).toFixed(2)+' '+b[1]+'H'+(-hw(b[1])+.5).toFixed(2)+'Z" fill="'+W+'"/>';});
       if(diez)s+='<text y="4.4" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="6.2" fill="'+W+'">10</text>';}}
   if(k==='piluso'){
-    s+=p('M-7.4 4C-8-4-6.2-11.6 0-11.6S8-4 7.4 4Z',F2)+p('M-12.2 8.4C-11 2.6-6 2.2 0 2.2S11 2.6 12.2 8.4C8.6 11.6-8.6 11.6-12.2 8.4Z',F2);
-    if(!halo)s+='<path d="M-6.6 1.2C-6.8-4-5-9.6 0-9.6S6.8-4 6.6 1.2M0-11.6V2.2M-10.4 7.6C-6 5.4 6 5.4 10.4 7.6" fill="none" stroke="'+W+'" stroke-width=".7" stroke-dasharray="1.2 1" opacity=".9"/><path d="M-7.3 2.6C-3 3.6 3 3.6 7.3 2.6" fill="none" stroke="'+K+'" stroke-width="1.1"/>';}
+    // Un piluso de verdad (bucket hat): copa de lados rectos con la tapa plana, cinta, y el ala que cae alrededor con sus costuras
+    s+=p('M-5.4-8.4C-5.2-10.6 5.2-10.6 5.4-8.4L6.6 2.2H-6.6Z',F2)+p('M-6.6 1.4C-2.2.6 2.2.6 6.6 1.4L11.2 7.4Q0 10.6-11.2 7.4Z',F2);
+    if(!halo)s+='<path d="M-6-.4H6" stroke="#000" stroke-width="1.6" opacity=".22"/><path d="M-2-10.1L-2.5 1.2M2-10.1L2.5 1.2M-8.6 3.8Q0 5.6 8.6 3.8M-9.9 5.9Q0 8.2 9.9 5.9M-4.5-8Q0-8.9 4.5-8" fill="none" stroke="'+W+'" stroke-width=".7" stroke-dasharray="1.1 .9" opacity=".9"/><circle cx="-4.3" cy="-4.4" r=".7" fill="none" stroke="'+W+'" stroke-width=".55"/><circle cx="4.3" cy="-4.4" r=".7" fill="none" stroke="'+W+'" stroke-width=".55"/>';}
   if(k==='muleta'){
-    // Maciza, para que no se rompa: el marco es una sola pieza con las ventanas en bajorrelieve, pata gruesa, regatón y base ancha
-    s+='<rect x="-9.2" y="9.4" width="18.4" height="3.6" rx="1.8" fill="'+F2+'" stroke="'+K+'" stroke-width="'+sw(1.3)+'"/>';
-    s+='<rect x="-2.8" y="6.2" width="5.6" height="4" rx="1" fill="'+(halo?'#fff':'#5a5550')+'" stroke="'+K+'" stroke-width="'+sw(1.2)+'"/>';
-    s+='<rect x="-2.4" y="-1.8" width="4.8" height="8.6" rx="1" fill="'+F2+'" stroke="'+K+'" stroke-width="'+sw(1.3)+'"/>';
-    s+=p('M-6.8-10.8H6.8L3-.8H-3Z',F2);
-    s+='<rect x="-8.2" y="-14" width="16.4" height="4.6" rx="2.3" fill="'+F2+'" stroke="'+K+'" stroke-width="'+sw(1.3)+'"/>';
-    if(!halo)s+='<path d="M-4.7-8.7H4.7L3.4-5.7H-3.4ZM-2.9-3.6H2.9L2.2-2H-2.2Z" fill="#000" opacity=".45"/><rect x="-4.3" y="-5.6" width="8.6" height="1.9" rx=".95" fill="#6e6862" stroke="'+K+'" stroke-width=".6"/><circle cy="1.4" r=".6" fill="'+W+'"/><circle cy="3.8" r=".6" fill="'+W+'"/><path d="M-6.2-11.7H6.2" stroke="'+W+'" stroke-width=".6" stroke-dasharray="1.1 .9" opacity=".7"/><path d="M-7 10.6H7" stroke="'+W+'" stroke-width=".5" opacity=".35"/>';}
+    // Pata para arriba: la almohadilla de la axila hace de base ancha y firme, el marco va de una sola pieza (ventanas en bajorrelieve), la pata y el regatón arriba
+    s+='<rect x="-9.4" y="8.8" width="18.8" height="4.6" rx="2.3" fill="'+F2+'" stroke="'+K+'" stroke-width="'+sw(1.3)+'"/>';
+    s+=p('M-7 9.2H7L3.2-.8H-3.2Z',F2);
+    s+='<rect x="-2.4" y="-9.4" width="4.8" height="9.2" rx="1" fill="'+F2+'" stroke="'+K+'" stroke-width="'+sw(1.3)+'"/>';
+    s+='<rect x="-2.9" y="-13.8" width="5.8" height="5" rx="1.8" fill="'+(halo?'#fff':'#5a5550')+'" stroke="'+K+'" stroke-width="'+sw(1.2)+'"/>';
+    if(!halo)s+='<path d="M-2.9 1.6H2.9L3.6 3.4H-3.6ZM-4.9 6H4.9L5.9 8.4H-5.9Z" fill="#000" opacity=".45"/><rect x="-4.6" y="3.9" width="9.2" height="1.8" rx=".9" fill="#6e6862" stroke="'+K+'" stroke-width=".6"/><circle cy="-6.6" r=".6" fill="'+W+'"/><circle cy="-4" r=".6" fill="'+W+'"/><path d="M-7.6 11.1H7.6" stroke="'+W+'" stroke-width=".6" stroke-dasharray="1.1 .9" opacity=".7"/>';}
   if(k==='guante'){
     [[-7.2,-11.6,3.3],[-3.7,-13.6,3.3],[-.2,-13,3.3],[3.3,-10.8,3.1]].forEach(function(f){s+='<rect x="'+f[0]+'" y="'+f[1]+'" width="'+f[2]+'" height="'+(-f[1]+1)+'" rx="1.65" fill="'+F2+'" stroke="'+K+'" stroke-width="'+sw(1.3)+'"/>';});
     s+='<rect x="-9.8" y="-5.6" width="3.6" height="9.4" rx="1.8" transform="rotate(-30 -8 3)" fill="'+F2+'" stroke="'+K+'" stroke-width="'+sw(1.3)+'"/>';
     s+=p('M-7.4-1.5H6.6V5.6C6.6 7 5.6 7.6 4.6 7.6H-5.6C-6.6 7.6-7.4 7-7.4 5.6Z',F2);
     s+='<rect x="-7" y="6.4" width="13.4" height="6.4" rx="1.8" fill="'+F2+'" stroke="'+K+'" stroke-width="'+sw(1.4)+'"/>';
     if(!halo)s+='<rect x="-7" y="8.3" width="13.4" height="2.2" fill="'+W+'"/><rect x="-7" y="6.4" width="13.4" height="6.4" rx="1.8" fill="none" stroke="'+K+'" stroke-width="1.4"/><path d="M-5.6.6H4.8M-5.6 3.2H4.8" stroke="'+W+'" stroke-width=".7" opacity=".7"/>';}
-  if(k==='botin'){
+  if(k==='botin'){var s0=s;s='';
     s+=p('M-9.4-12.6C-8-13.6-5.4-13.4-4.6-11.4L-3.4-7.2L3-4.4C8-3 11.6 0 12 4.4C12.3 6.8 11.4 8.4 9.4 8.4H-10C-11.4 8.4-12 7-11.8 4C-11.5-2-10.6-8-9.4-12.6Z',F2);
     s+='<rect x="-11.8" y="8" width="23.6" height="2.4" rx="1.1" fill="'+(halo?'#fff':'#1d1b19')+'" stroke="'+K+'" stroke-width="'+sw(1.1)+'"/>';
     [-9.4,-6,1.6,5,8.4].forEach(function(x){s+='<rect x="'+(x-1)+'" y="10" width="2" height="2.8" rx=".6" fill="'+(halo?'#fff':'#1d1b19')+'" stroke="'+(halo?'#fff':'none')+'" stroke-width="'+(halo?3.6:0)+'"/>';});
-    if(!halo)s+='<path d="M-3.8-9.6L-1.4-9.2M-3.1-7.6L-.4-7M-2.2-5.6L.8-5" stroke="'+W+'" stroke-width="1" stroke-linecap="round"/><path d="M-7.6 3.4C-2.4.6 3.4.4 9.4 3.6" fill="none" stroke="'+W+'" stroke-width="1.7" stroke-linecap="round"/>';}
+    if(!halo)s+='<path d="M-3.8-9.6L-1.4-9.2M-3.1-7.6L-.4-7M-2.2-5.6L.8-5" stroke="'+W+'" stroke-width="1" stroke-linecap="round"/><path d="M-7.6 3.4C-2.4.6 3.4.4 9.4 3.6" fill="none" stroke="'+W+'" stroke-width="1.7" stroke-linecap="round"/>';s=s0+'<g transform="scale(.76 1)">'+s+'</g>';}
   return s;
 }
 root.PEXA_ICONOS={C:C,INK:INK,CREMA:CREMA,badge:badge,cabala:cabala,multa:function(k){return '<rect x="2" y="2" width="96" height="96" rx="10" fill="'+INK+'"/><rect x="6" y="6" width="88" height="88" rx="7" fill="none" stroke="'+C[k].c1+'" stroke-width="2.6" stroke-dasharray="5 3"/>'+MULTA[k][1](C[k].c1);}};

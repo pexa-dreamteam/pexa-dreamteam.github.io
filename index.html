@@ -964,6 +964,51 @@ g.fig{transform-box:fill-box;transform-origin:50% 100%}
 @keyframes aySello{from{transform:translateX(-50%) scale(2.4) rotate(-14deg);opacity:0}to{transform:translateX(-50%) rotate(-4deg);opacity:1}}
 @keyframes ayCarta{from{transform:translateY(30px) scale(.5);opacity:0}to{transform:none;opacity:1}}
 @keyframes ayRebota{0%{transform:translate(-160px,-120px) rotate(-30deg);opacity:0}15%{opacity:1}45%{transform:translate(0,0) rotate(0)}60%{transform:translate(0,0) scale(1.12,.86)}100%{transform:translate(180px,-200px) rotate(40deg);opacity:0}}
+/* ===== Ronda 46 ===== */
+/* Íconos en los textos del inicio y la sala */
+.ic-i{flex:none;display:inline-block;vertical-align:-4px}
+.bt-ic{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.hero-bts .bt-ic{display:flex}
+.ini-tabs [data-itab] span{display:flex;align-items:center;justify-content:center;gap:5px}
+.ini-tabs [data-itab] span .ic-i{width:22px;height:22px}
+.bt-op small{display:flex;align-items:center;gap:5px}.bt-op small .ic-i{width:17px;height:17px}
+.dt-quien,.lb-maq{display:inline-flex;align-items:center;gap:3px}.dt-quien{padding:3px 7px}.dt-lin b{white-space:normal;line-height:1.05;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.dt-quien .ic-i,.lb-maq .ic-i{width:16px;height:16px}
+.dtelige .nota .ic-i{width:15px;height:15px;vertical-align:-3px}
+.ent-ic{position:relative;display:block}.ent-ic .ic-i{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:24px;height:24px;pointer-events:none}.ent-ic .ent{padding-left:44px;width:100%}
+/* Jugadores escondidos en el inicio */
+.ini{overflow-x:clip}
+.ini-cab,.ini-tabs,.lj-cama{position:relative}
+.lj{position:absolute;pointer-events:none;z-index:2}
+.lj svg{display:block;width:100%;height:auto}
+.lj-asoma{right:-26px;top:-4px;width:70px;transform-origin:100% 100%;animation:ljAsoma 7s ease-in-out infinite}
+@keyframes ljAsoma{0%,18%,100%{transform:translateX(52px) rotate(-8deg)}30%,62%{transform:translateX(0) rotate(-24deg)}40%{transform:translateX(0) rotate(-16deg)}50%{transform:translateX(0) rotate(-26deg)}72%{transform:translateX(52px) rotate(-8deg)}}
+.lj-jueguito{left:-8px;top:-10px;width:46px;height:80px}
+.lj-jueguito .lj-fig{position:absolute;bottom:0;left:0;width:46px;animation:ljPatea 1.1s ease-in-out infinite;transform-origin:50% 100%}
+.lj-pelota{position:absolute;left:14px;top:-6px;width:17px;height:17px;animation:ljPelota 1.1s cubic-bezier(.3,0,.7,1) infinite}.lj-pelota svg{width:17px;height:17px}
+@keyframes ljPelota{0%,100%{transform:translateY(46px) rotate(0)}50%{transform:translateY(0) rotate(200deg)}}
+@keyframes ljPatea{0%,100%{transform:rotate(-4deg) scale(1,.96)}50%{transform:rotate(4deg)}}
+.ini-com .lj-jueguito{display:block}
+.lj-colgado{right:10px;top:calc(100% - 4px);width:46px;transform-origin:50% 0;animation:ljHamaca 3.2s ease-in-out infinite}
+.lj-soga{display:block;width:3px;height:14px;margin:0 auto;background:#8a6a45;border-radius:2px}
+.lj-colgado .lj-fig{display:block;transform:rotate(180deg);margin-top:-6px}
+@keyframes ljHamaca{0%,100%{transform:rotate(14deg)}50%{transform:rotate(-14deg)}}
+.lj-siesta{left:14px;top:-25px;width:66px;height:30px;z-index:3}
+.lj-siesta .lj-fig{position:absolute;left:8px;top:-15px;width:42px;transform:rotate(-90deg);animation:ljRespira 3s ease-in-out infinite}
+@keyframes ljRespira{0%,100%{transform:rotate(-90deg) scale(1)}50%{transform:rotate(-90deg) scale(1.05,1.08)}}
+.lj-z{position:absolute;left:52px;top:-18px;font:400 15px var(--d);color:#3f6aa6}
+.lj-z,.lj-z i{animation:ljZ 2.6s ease-out infinite}
+.lj-z i{display:inline-block;font-style:normal;font-size:.8em;animation-delay:.4s}.lj-z i+i{animation-delay:.8s}
+@keyframes ljZ{0%{opacity:0;transform:translate(0,6px)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-14px)}}
+.lj-cama{display:grid;margin-top:6px}
+.lj-caja{position:relative}
+.lj-espia{right:70px;top:-34px;width:44px;height:34px;overflow:hidden;z-index:1}
+.lj-espia .lj-fig{position:absolute;left:0;top:0;width:44px;animation:ljEspia 5s ease-in-out infinite}
+@keyframes ljEspia{0%,20%,100%{transform:translateY(36px)}32%,58%{transform:translateY(2px) rotate(-4deg)}45%{transform:translateY(2px) rotate(5deg)}70%{transform:translateY(36px)}}
+@media (prefers-reduced-motion:reduce){.lj,.lj *{animation:none!important}}
+/* Costo de contratar en el lugar vacío */
+.pos-costo{display:grid;gap:6px;background:#fff8e1;border:2px solid #b8862b;border-radius:12px;padding:8px 10px}.pos-costo>b{font:400 15px var(--d);color:#8a5a00}
+.pc-fila{display:flex;align-items:center;justify-content:center;gap:10px}.pc-tk{display:grid;justify-items:center;gap:2px}.pc-tk small{font-size:12px;font-weight:700}.pc-mas{font-style:normal;font:400 22px var(--d)}
+.pc-precios{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;font-size:13px}.pc-precios span{display:inline-flex;align-items:center;gap:4px}
 /* Revolear los dados */
 .revoleo{position:fixed;inset:0;z-index:46;pointer-events:none}
 .rv-d{position:absolute;left:0;top:0;width:52px;height:52px;will-change:transform;filter:drop-shadow(0 7px 5px rgba(0,0,0,.4))}
