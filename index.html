@@ -539,14 +539,24 @@ svg.dd.dd-t{display:inline-block;vertical-align:-.28em;margin:0 .08em}
 :is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) .g-lengua .an-len{animation:anLengua 4.2s ease-in-out infinite}
 :is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) .g-pisoton{animation:anPisa 3.4s ease-in infinite}
 :is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) .g-salto{animation:anSalto 3.8s ease-in-out infinite}
+/* Ronda 43: movimientos nuevos para los DTs propios (Baile, Festejo y Trompo) */
+g.fig{transform-box:fill-box;transform-origin:50% 100%}
+:is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l,.ar-cara,.barra-cara,.mp-cara) .g-baile{animation:anBaile 2.4s ease-in-out infinite}
+:is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) .g-baile .an-br1{animation:anSaludo 2.4s ease-in-out infinite}
+:is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) .g-festejo{animation:anFestejo 3.2s ease-in-out infinite}
+:is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) .g-festejo .an-len{animation:anLengua 3.2s ease-in-out infinite}
+:is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) .g-trompo{animation:anTrompo 3.6s ease-in-out infinite}
+@keyframes anBaile{0%,100%{transform:rotate(0)}12%{transform:rotate(-9deg) translateY(-6px)}25%{transform:rotate(0) translateY(0) scale(1.04,.95)}37%{transform:rotate(9deg) translateY(-6px)}50%{transform:rotate(0) scale(1.04,.95)}62%{transform:rotate(-9deg) translateY(-6px)}75%{transform:none}87%{transform:rotate(9deg) translateY(-6px)}}
+@keyframes anFestejo{0%,38%,100%{transform:none}44%{transform:scale(1.1,.86)}54%{transform:translateY(-42px) rotate(-10deg)}62%{transform:translateY(-42px) rotate(10deg)}72%{transform:scale(1.12,.86)}80%{transform:translateY(-14px)}88%{transform:none}}
+@keyframes anTrompo{0%,40%,100%{transform:none}46%{transform:scale(1.06,.92)}55%{transform:translateY(-20px) scaleX(-1)}64%{transform:translateY(-20px) scaleX(1)}72%{transform:translateY(-10px) scaleX(-1)}80%{transform:scaleX(1) scale(1.06,.94)}88%{transform:none}}
 :is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) .g-dibujo{animation:anDibujo 3.6s ease-in-out infinite}
-@keyframes anSaludo{0%,58%,100%{transform:none}64%{transform:rotate(-13deg)}70%{transform:rotate(9deg)}76%{transform:rotate(-13deg)}82%{transform:rotate(9deg)}88%{transform:rotate(-7deg)}}
-@keyframes anCejas{0%,60%,100%{transform:none}66%{transform:translateY(-6px)}72%{transform:none}78%{transform:translateY(-6px)}84%{transform:none}}
-@keyframes anNo{0%,58%,100%{transform:none}64%{transform:rotate(-7deg)}70%{transform:rotate(7deg)}76%{transform:rotate(-7deg)}82%{transform:rotate(7deg)}88%{transform:none}}
-@keyframes anSi{0%,60%,100%{transform:none}66%{transform:rotate(5deg) translateY(4px)}72%{transform:none}78%{transform:rotate(5deg) translateY(4px)}84%{transform:none}}
+@keyframes anSaludo{0%,40%,100%{transform:none}47%{transform:rotate(-28deg)}54%{transform:rotate(18deg)}61%{transform:rotate(-28deg)}68%{transform:rotate(18deg)}75%{transform:rotate(-24deg)}82%{transform:rotate(12deg)}90%{transform:none}}
+@keyframes anCejas{0%,45%,100%{transform:none}52%{transform:translateY(-11px)}58%{transform:none}64%{transform:translateY(-11px)}70%{transform:none}76%{transform:translateY(-11px)}84%{transform:none}}
+@keyframes anNo{0%,42%,100%{transform:none}49%{transform:rotate(-15deg)}56%{transform:rotate(15deg)}63%{transform:rotate(-15deg)}70%{transform:rotate(15deg)}77%{transform:rotate(-9deg)}85%{transform:none}}
+@keyframes anSi{0%,45%,100%{transform:none}52%{transform:rotate(9deg) translateY(8px)}59%{transform:rotate(-3deg)}66%{transform:rotate(9deg) translateY(8px)}73%{transform:rotate(-3deg)}80%{transform:rotate(9deg) translateY(8px)}88%{transform:none}}
 @keyframes anLengua{0%,55%,92%,100%{opacity:0;transform:translateY(-5px)}62%,85%{opacity:1;transform:none}}
-@keyframes anPisa{0%,62%,100%{transform:none}70%{transform:translateY(-11px)}75%{transform:translateY(0)}78%{transform:translate(1.5px,-1.5px)}81%{transform:translate(-1.5px,0)}84%{transform:none}}
-@keyframes anSalto{0%,58%,100%{transform:none}66%{transform:translateY(-15px)}72%{transform:none}78%{transform:translateY(-9px)}84%{transform:none}}
+@keyframes anPisa{0%,45%,100%{transform:none}55%{transform:translateY(-22px) rotate(-4deg)}61%{transform:translateY(0) scale(1.06,.92)}64%{transform:translate(3px,-2px)}67%{transform:translate(-3px,0)}70%{transform:translate(2px,-1px)}74%{transform:none}}
+@keyframes anSalto{0%,42%,100%{transform:none}48%{transform:scale(1.08,.9)}56%{transform:translateY(-34px) scale(.95,1.06)}64%{transform:scale(1.08,.92)}70%{transform:translateY(-18px)}78%{transform:scale(1.04,.96)}84%{transform:none}}
 @keyframes anDibujo{0%,55%,100%{transform:none}63%{transform:rotate(-2.2deg) scale(1.03)}71%{transform:rotate(2.2deg) scale(1.03)}79%{transform:rotate(-1.4deg)}87%{transform:none}}
 .tirar-bt{display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;font-size:20px}
 .ult-tiro{border:1.5px dashed var(--linea);border-radius:10px;padding:8px 10px;display:grid;gap:5px;background:var(--crema2)}
@@ -661,7 +671,7 @@ svg.dd.dd-t{display:inline-block;vertical-align:-.28em;margin:0 .08em}
   #panel .bt.oro,#panel .bt.fuerte{cursor:pointer}
 }
 
-@media (prefers-reduced-motion:reduce){:is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) :is(.an-br1,.an-ceja,.an-cab,.an-len,.fig){animation:none!important}.llama,.barra-va{animation:none}.reloj.urgente{animation:none}
+@media (prefers-reduced-motion:reduce){:is(.hoja,.fichaje,.mu-eq,.dtelige,.hero,.tuto-extra,.mp,.inf-l) :is(.an-br1,.an-ceja,.an-cab,.an-len,.fig,.g-baile,.g-festejo,.g-trompo){animation:none!important}.llama,.barra-va{animation:none}.reloj.urgente{animation:none}
 .lat,.rueda,.fj-gira,.fj-pone,.mu-rayos,.mu-est,.copa,.mu-carta,.cj-tk{animation:none}.tq-c.ida,.tq-c.vuelta{animation-duration:.01s}}
 /* v36: el inicio entra entero en la pantalla, sin bajar */
 .ini-com{gap:6px;padding:6px 12px 10px}.ed-nom{padding-right:44px!important;padding-left:44px!important}
@@ -830,6 +840,73 @@ svg.dd.dd-t{display:inline-block;vertical-align:-.28em;margin:0 .08em}
 .ar-pelota{position:absolute;bottom:14%;left:-60px;width:44px;height:44px;animation:arPelota 2.4s cubic-bezier(.4,0,.6,1) .5s both}.ar-pelota svg{width:100%;height:100%}
 @keyframes arPelota{0%{left:-60px;transform:translateY(0) rotate(0)}25%{transform:translateY(-70px) rotate(180deg)}50%{transform:translateY(0) rotate(360deg)}75%{transform:translateY(-35px) rotate(540deg)}100%{left:calc(100% + 60px);transform:translateY(0) rotate(720deg)}}
 .ar-sub{position:relative;font:700 14px var(--t);color:#fff8d6;letter-spacing:.05em}
+/* ===== Ronda 43 ===== */
+/* El Defensor cobra */
+.def-cobra{animation-duration:3.4s;background:rgba(20,30,50,.82)}
+.def-cobra .fj-tit span{max-width:330px;line-height:1.3}
+.dc-mesa{display:grid;grid-template-columns:1fr 1.25fr 1fr;align-items:center;gap:6px;width:min(360px,94vw)}
+.dc-lado{display:grid;justify-items:center;gap:6px;position:relative}
+.dc-mu{position:relative;display:block}.dc-mu .sello{font-size:11px}
+.dc-centro{position:relative;display:grid;place-items:center;height:170px}
+.dc-def{display:block;width:96px;position:relative;animation:dcDef 3.4s ease both}.dc-def>svg{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+.dc-escudo{position:absolute;right:-14px;top:-12px;animation:dcEscudo 3.4s ease both}
+.dc-carta{position:absolute;width:52px;left:50%;top:50%;margin:-40px 0 0 -26px;animation:dcVuela 3.4s cubic-bezier(.5,0,.4,1) both;z-index:2}.dc-carta svg{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))}
+.dc-mas{font:400 30px var(--d);color:#7dff9a;text-shadow:0 2px 0 #1b3a22;animation:dcMas 3.4s ease both}
+@keyframes dcDef{0%,10%{transform:scale(.5) rotate(-8deg);opacity:0}22%{transform:scale(1.08);opacity:1}30%,100%{transform:none;opacity:1}}
+@keyframes dcEscudo{0%,40%{transform:scale(0)}50%{transform:scale(1.4) rotate(-12deg)}58%,100%{transform:scale(1)}}
+@keyframes dcVuela{0%,18%{transform:translate(-120px,30px) scale(.8) rotate(-20deg);opacity:0}28%{opacity:1;transform:translate(-110px,20px) scale(.9)}50%{transform:translate(0,-10px) scale(1.15) rotate(8deg)}58%{transform:translate(0,-14px) scale(1.15)}82%,100%{transform:translate(118px,26px) scale(.75) rotate(14deg);opacity:1}}
+@keyframes dcMas{0%,76%{opacity:0;transform:translateY(10px)}84%{opacity:1;transform:translateY(-6px) scale(1.3)}92%,100%{opacity:1;transform:none}}
+.mv-cab{display:flex;align-items:center;gap:10px;margin:0 0 6px}.mv-cab small{color:#5e5446}.ico-merc{flex:none}
+/* La oferta: mismo borde de color que El Relator y sale deslizándose desde abajo de él */
+.relator .of{border-left:12px solid var(--dtc,var(--tinta))}
+.of.sale{animation:ofSale .45s cubic-bezier(.2,.9,.3,1) both}
+@keyframes ofSale{from{clip-path:inset(0 -30px 100% -30px);opacity:.4}to{clip-path:inset(0 -30px -40px -30px);opacity:1}}
+/* Las ventanas suben desde abajo y se cierran arrastrándolas */
+.hoja{position:relative;touch-action:pan-y}
+.hoja.entra{animation:hojaSube .32s cubic-bezier(.2,.9,.3,1) both}
+@keyframes hojaSube{from{transform:translateY(100%)}to{transform:none}}
+.modal:has(.hoja.entra){animation:modalFondo .32s ease both}
+@keyframes modalFondo{from{background:rgba(20,20,30,0)}}
+.hoja-asa{display:grid;place-items:center;height:12px;margin:-8px 0 -8px;cursor:grab;touch-action:none}
+.hoja-asa i{display:block;width:46px;height:5px;border-radius:3px;background:var(--tinta);opacity:.3}
+.ficha-acc{display:grid;gap:6px}
+.ficha-acc .bt{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;min-height:46px}
+/* Negocios: cinco tarjetas fijas */
+.ng{display:grid;gap:5px;border:2px solid var(--tinta);border-radius:12px;padding:6px 8px 7px;background:linear-gradient(180deg,#fffaf0,#f3ead7)}
+.hoja.entra .ng,.hoja.entra .ng-oferta{animation:ngEntra .4s cubic-bezier(.2,1.2,.4,1) both}
+.hoja.entra .ng:nth-of-type(2){animation-delay:.05s}.hoja.entra .ng:nth-of-type(3){animation-delay:.1s}.hoja.entra .ng:nth-of-type(4){animation-delay:.15s}.hoja.entra .ng-oferta{animation-delay:.2s}
+@keyframes ngEntra{from{opacity:0;transform:translateY(14px)}}
+.ng.hay{border-color:#b8862b;box-shadow:0 0 0 2px rgba(255,216,58,.6)}
+.ng-cab{display:flex;align-items:center;gap:7px;min-width:0}
+.ng-cab b{font:400 14.5px var(--d);white-space:nowrap}.ng-cab small{margin-left:auto;font-size:12px;color:#5e5446;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ng.hay .ng-cab small{color:#8a5a00;font-weight:700}
+.ng-ic{flex:none;display:flex;align-items:center;gap:1px}.ng-ic .ben-d{width:18px}.ng-ic .ben-d svg{width:100%;height:auto;display:block}
+.ng-bts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ng-bt{position:relative;overflow:hidden;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:4px 8px;border:2px solid var(--tinta);border-radius:11px;background:#fff;color:var(--tinta);cursor:pointer;box-shadow:0 3px 0 var(--tinta);transition:transform .12s,box-shadow .12s}
+.ng-bt.chico{flex:1 1 0;padding:3px 2px;gap:1px}.ng-bt.mini{flex:none;min-height:30px;padding:2px 4px;box-shadow:0 2px 0 var(--tinta)}
+.ng-bt.ok{background:linear-gradient(180deg,#fff3c4,#ffd96a)}
+.ng-bt.ok::after{content:"";position:absolute;top:-20%;bottom:-20%;left:-40%;width:30%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);transform:skewX(-20deg);animation:ngBrillo 3s ease-in-out infinite}
+.ng-bt.ok:nth-child(2)::after{animation-delay:.6s}.ng-bt.ok:nth-child(3)::after{animation-delay:1.2s}
+@keyframes ngBrillo{0%,60%{left:-40%}100%{left:130%}}
+.ng-bt:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 var(--tinta)}
+.ng-bt:disabled{opacity:.42;cursor:default;box-shadow:0 2px 0 rgba(43,38,32,.4)}
+.ng-bt.ok-toma{background:#e8f4ea}
+.ng-vuelve{flex:none!important;background:var(--piluso)!important;color:var(--crema)!important;padding:3px 6px!important}
+.ng-pr{display:flex;align-items:center}.ng-pr svg{margin-left:-2px}
+.ng-tx{font:400 15px var(--d)}
+.ng-dorso{width:22px}.ng-dorso svg{display:block;width:100%;height:auto}
+.ng-n{font:400 13px var(--d)}
+.ng-fl{font-style:normal;font-size:13px;font-weight:700}
+.ng-arq{font:700 9.5px var(--t);background:var(--tinta);color:var(--crema);border-radius:4px;padding:0 3px}
+.ng-nada{font-size:13px;color:#5e5446;padding:4px 2px}
+.ng-usados{display:flex;align-items:center;gap:4px;width:100%}.ng-usados small{font-size:11.5px;font-weight:700;margin-right:2px}
+.ng-oferta{display:flex;align-items:center;gap:10px;width:100%;min-height:58px;padding:6px 12px;border:2.5px solid var(--tinta);border-radius:14px;background:linear-gradient(180deg,#ffe58a,#f0b92c);color:var(--tinta);text-align:left;cursor:pointer;box-shadow:0 4px 0 var(--tinta);position:relative;overflow:hidden}
+.ng-oferta svg{flex:none;animation:ngApreton 2.4s ease-in-out infinite}
+@keyframes ngApreton{0%,70%,100%{transform:none}76%{transform:translateY(-3px) rotate(-6deg)}82%{transform:translateY(1px) rotate(4deg)}88%{transform:translateY(-2px)}}
+.ng-oferta span{display:grid;line-height:1.15}.ng-oferta b{font:400 17px var(--d)}.ng-oferta small{font-size:12.5px}
+.ng-oferta:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--tinta)}
+.ng-oferta:disabled{background:#e4ddcc;box-shadow:none;opacity:.7;cursor:default}.ng-oferta:disabled svg{animation:none}
+@media (prefers-reduced-motion:reduce){.hoja.entra,.of.sale,.ng-bt.ok::after,.ng-oferta svg,.hoja.entra .ng{animation:none}}
 @media (prefers-reduced-motion:reduce){.dm-1,.dm-2,.dados-mesa,.bt-empezar::after,.bt-empezar .ic-pelota,.mp-alarma,.m9-alarma,.m9-c.sale,.ar-luces,.ar-pelota,.mn-der{animation:none}}
 </style>
 </head>

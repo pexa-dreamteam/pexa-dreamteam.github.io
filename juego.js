@@ -45,7 +45,7 @@ var BENEF={
   figuritas:{n:'Cambio de Figuritas',t:'Elegí un DT que tenga un Jugador de una posición que vos también tenés: se cambian esos dos Jugadores.',p:['dt','pos']},
   dame:{n:'Dame un Beneficio',t:'Robale al azar 1 Beneficio sin usar a otro DT.',p:['dt']},
   roja:{n:'Tarjeta Roja',t:'Elegí un DT: en su próximo turno no mueve su cono.',p:['dt']},
-  gas:{n:'Gas Pimienta',t:'Reubicá a todos los Barrabravas en intersecciones libres de la Circunvalación o de la Peatonal del Palco.',p:['nodos']},
+  gas:{n:'Gas Pimienta',t:'Reubicá a todos los Barrabravas en intersecciones libres de la Avenida Circunvalación.',p:['nodos']},
   arreglo:{n:'Sospechoso Arreglo',t:'Este turno movés los Barrabravas antes que tu cono.',g:'mov'}
 };
 
@@ -298,7 +298,8 @@ function despuesDeMover(g){
 }
 // Los Barrabravas avanzan solos una intersección en sentido horario, por su recorrido: la Circunvalación o la Peatonal del Palco.
 // Si hay un cono en el camino lo saltan; a otro Barrabrava no lo saltan nunca: se quedan donde están.
-function enRecorrido(k){return ANILLO.indexOf(k)>=0||PALCO.indexOf(k)>=0;}
+// Gas Pimienta solo manda Barrabravas a la Avenida Circunvalación (decidido por Marcos, ronda 43)
+function enRecorrido(k){return ANILLO.indexOf(k)>=0;}
 function iniciarBarras(g,volver){
   g.barras.forEach(function(k,ib){var ruta=PALCO.indexOf(k)>=0?PALCO:ANILLO,pos=ruta.indexOf(k);if(pos<0)return;var s1=ruta[(pos+1)%ruta.length];
     if(g.barras.indexOf(s1)>=0)return;
@@ -486,7 +487,7 @@ function usarBeneficio(g,j,b,a){
     case 'dame':q=otro(g,j,a.dt);var lb=q.benef.concat(q.nuevos);if(!lb.length)falla('Ese DT no tiene Beneficios sin usar.');var rb=lb[Math.floor(az(g)*lb.length)];var ib=q.benef.indexOf(rb);if(ib>=0)q.benef.splice(ib,1);else q.nuevos.splice(q.nuevos.indexOf(rb),1);p.nuevos.push(rb);anotar(g,'Le sacaste '+BENEF[rb].n+'.',j);st(p).robo++;st(q).robado++;totales(g).robB++;golpe(g,p.nombre+' te robó '+BENEF[rb].n+' con Dame un Beneficio.',q.id);ef={q:q.id,rb:rb};break;
     case 'roja':q=otro(g,j,a.dt);q.roja=true;st(q).rojas++;anotar(g,'Tarjeta Roja para '+q.nombre+': en su próximo turno no mueve el cono.');golpe(g,p.nombre+' te sacó Tarjeta Roja: en tu próximo turno no movés.',q.id);ef={q:q.id};break;
     case 'gas':if(!a.nodos||a.nodos.length!==g.barras.length)falla('Elegí un lugar para cada Barrabrava.');var viejos=g.barras;g.barras=[];
-      for(var i2=0;i2<a.nodos.length;i2++){if(!NODOS[a.nodos[i2]]||!enRecorrido(a.nodos[i2])||ocupado(g,a.nodos[i2])){g.barras=viejos;falla('Tienen que ser intersecciones libres y distintas, en la Circunvalación o en la Peatonal.');}g.barras.push(a.nodos[i2]);}break;
+      for(var i2=0;i2<a.nodos.length;i2++){if(!NODOS[a.nodos[i2]]||!enRecorrido(a.nodos[i2])||ocupado(g,a.nodos[i2])){g.barras=viejos;falla('Tienen que ser intersecciones libres y distintas, en la Avenida Circunvalación.');}g.barras.push(a.nodos[i2]);}break;
     case 'arreglo':usaYAnota(g,p,b);anotar(g,'Los Barrabravas avanzan antes que el cono de '+p.nombre+'.');g.mv.arreglo=true;iniciarBarras(g,true);return;
   }
   // Primero se cuenta qué Beneficio se usó y después qué pasó

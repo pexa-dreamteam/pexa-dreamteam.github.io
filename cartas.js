@@ -844,7 +844,7 @@
     ['Rivales','Cambio de Figuritas',1,'Elegí un DT que tenga un Jugador de una posición que vos también tenés: se cambian esos dos Jugadores.','teo'],
     ['Rivales','Dame un Beneficio',1,'Robale al azar 1 Beneficio sin usar a otro DT.',null,'dame'],
     ['Rivales','Tarjeta Roja',1,'Elegí un DT: en su próximo turno no mueve su cono.','gaspi'],
-    ['Barras','Gas Pimienta',1,'Reubicá a todos los Barrabravas en intersecciones libres de la Circunvalación o de la Peatonal. No se usa con 2 DTs.',null,'gas'],
+    ['Barras','Gas Pimienta',1,'Reubicá a todos los Barrabravas en intersecciones libres de la Avenida Circunvalación. No se usa con 2 DTs.',null,'gas'],
 
     ['Barras','Sospechoso Arreglo',1,'Este turno movés los Barrabravas antes que tu cono.',null,'arreglo']
   ];
@@ -1419,6 +1419,7 @@
   // El gesto de cada personaje (la versión digital lo anima con CSS)
   var G_J={gol:['cejas','pisoton','si','salto'],suerte:['no','salto','lengua','no'],picardia:['si','saludo','pisoton','salto'],fans:['saludo','si','cejas','lengua'],sponsors:['si','cejas','saludo','lengua']};
   var G_DT=['no','cejas','pisoton','salto','si'];
+  var G_CUS=['baile','salto','festejo','pisoton','saludo','no','cejas','lengua','trompo'];
   var G_E={capitano:'si',teo:'cejas',fer:'no',piolo:'salto',pancho:'saludo',juambo:'saludo',gaspi:'pisoton',m:'cejas',muchi:'salto',mark:'salto',sora:'lengua',tai:'cejas',golzalez:'cejas',cocho:'pisoton'};
   function conGesto(svg,g){return svg.replace('class="fig"','class="fig g-'+g+'"');}
   // Creá tu DT: cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo
@@ -1468,7 +1469,8 @@
     dorso:function(t){return guardo('d'+t,function(){return dorso(t);});},
     retrato:function(dt){return guardo('t'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="45 18 110 120" aria-hidden="true">'+figura('dt_'+id,Object.assign({},DT_FIG[id].o,{gag:null,globo:null,palitos:false}))+'</svg>',G_DT[dt]);});},
     dtEntero:function(dt){return guardo('e'+dt,function(){var id=DTIDS[dt];return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('dt_'+id,DT_FIG[id].o)+'</svg>',G_DT[dt]);});},
-    dtCustom:function(r,entero){return guardo('cus'+(entero?1:0)+JSON.stringify(r),function(){return conGesto(entero?'<svg viewBox="0 0 200 220" aria-hidden="true">'+figuraCus(r,1)+'</svg>':'<svg viewBox="45 18 110 120" aria-hidden="true">'+figuraCus(r,0)+'</svg>','si');});},
+    // El DT propio también elige su movimiento (r.anim); si no tiene, baila
+    dtCustom:function(r,entero){return guardo('cus'+(entero?1:0)+JSON.stringify(r),function(){return conGesto(entero?'<svg viewBox="0 0 200 220" aria-hidden="true">'+figuraCus(r,1)+'</svg>':'<svg viewBox="45 18 110 120" aria-hidden="true">'+figuraCus(r,0)+'</svg>',G_CUS[r.anim]||'baile');});},
     badge:function(k){return guardo('g'+k,function(){return badge(k);});},
     // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada Boletería tiene su mazo de cartas encima
     tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;var mazos='';for(var i=0;i<5;i++){var aF=TH[i]+36,c=P(RH,aF),cr=cartaRecurso(outer[i]);mazos+=G(c[0],c[1],aF+90)+[2,1,0].map(function(q){return cr.replace('<svg ','<svg x="'+(q-14)+'" y="'+(-21.5-q)+'" width="28" height="43" ');}).join('')+'</g>';}return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero().replace('fill="#d8c8a2"','fill="#8fc3df"')+mazos+'</svg>';},
