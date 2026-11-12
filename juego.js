@@ -14,11 +14,12 @@ var ESTADIO={gol:'La Canasta',suerte:'La Fortuna',picardia:'La Astucia',fans:'La
 var PREDIO={gol:'Bajo Nono',suerte:'Restaurante La Serena',picardia:'Banadi',fans:'La Milla',sponsors:'La Canterita'};
 var ZONA=['Estacionamiento La Canterita','Rotisería El Chulengo','Cementerio de Rodillas','Diario La Pipeta','Oficina del Sapo'];
 var POS=['Arquero','Defensor','Volante','Delantero'];
-var HABILIDAD=['Podés usar su Recurso para pagar cualquier Multa.','La Multa de su Recurso te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.','En cualquier lugar cambiás 2 de su Recurso por 1 a elección. En la Boletería de su Recurso, 1 por 1.','Cuando cobrás su Recurso, levantás el doble.'];
+var HABILIDAD=['Podés usar su Recurso para pagar cualquier Multa.','Al contratarlo devolvés todas tus Multas de su Recurso. Desde ahí, esa Multa te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.','En cualquier lugar cambiás 2 de su Recurso por 1 a elección. En la Boletería de su Recurso, 1 por 1.','Cuando cobrás su Recurso, levantás el doble.'];
 var PLANTEL={gol:['Polaco','Moncho','Nano','Cocho'],suerte:['Caba','Mosca','Tanos','Topo'],picardia:['Pipes','Tomo','Krupo','Chun'],fans:['Tuki','Joaquinho','Baigo','Juane'],sponsors:['Nico','Falso Topo','Guido','Cale']};
 var DTS=[{id:'abuelo',nombre:'El Abuelo',color:'#f4f1ea',tinta:'#2b2620'},{id:'mister',nombre:'El Míster',color:'#26231f',tinta:'#f6efe0'},{id:'dona',nombre:'La Doña',color:'#e77fb3',tinta:'#2b2620'},{id:'loco',nombre:'El Terror del Río',color:'#7b4fa3',tinta:'#f6efe0'},{id:'profe',nombre:'El Gallo',color:'#7cc4e4',tinta:'#2b2620'}];
 // Los colores de cono que se pueden elegir: los cinco de siempre primero, en el orden de los DTs
-var CONOS=[{c:'#f4f1ea',t:'#2b2620',n:'Blanco'},{c:'#26231f',t:'#f6efe0',n:'Negro'},{c:'#e77fb3',t:'#2b2620',n:'Rosa'},{c:'#7b4fa3',t:'#f6efe0',n:'Violeta'},{c:'#7cc4e4',t:'#2b2620',n:'Celeste'},{c:'#d8261f',t:'#f6efe0',n:'Rojo'},{c:'#2f8a3c',t:'#f6efe0',n:'Verde'},{c:'#f08a24',t:'#2b2620',n:'Naranja'},{c:'#f2d23c',t:'#2b2620',n:'Amarillo'},{c:'#2f5fb3',t:'#f6efe0',n:'Azul'}];
+var CONOS=[{c:'#f4f1ea',t:'#2b2620',n:'Blanco'},{c:'#26231f',t:'#f6efe0',n:'Negro'},{c:'#e77fb3',t:'#2b2620',n:'Rosa'},{c:'#7b4fa3',t:'#f6efe0',n:'Violeta'},{c:'#7cc4e4',t:'#2b2620',n:'Celeste'},{c:'#a5d94a',t:'#2b2620',n:'Verde lima'},{c:'#1fa89a',t:'#f6efe0',n:'Turquesa'},{c:'#f5ec6e',t:'#2b2620',n:'Amarillo limón'},{c:'#7a1f3d',t:'#f6efe0',n:'Bordó'},{c:'#9a9890',t:'#2b2620',n:'Gris'}];
+// Los colores de los conos no repiten los de los Recursos (azul, verde, dorado, naranja y rojo): son otros tonos
 var BENEF={
   tactica:{n:'Cambio de Táctica',t:'Después de tirar, elegí con qué dado mover.',g:'mov'},
   ganador:{n:'Equipo que gana no se toca',t:'Después de tirar, podés no mover tu cono.',g:'mov'},
@@ -374,14 +375,19 @@ function contratar(g,j,ix2){
   if(!puedeFichar(g,p,c)){var tq=tokenDe(g,c);falla(tq?'Este Jugador se paga con 1 Token de '+(tq==='V'?'Victoria':'Efectivo')+'.':'Se paga con 1 Token de Victoria y 1 de Efectivo.');}
   var tkj=tokenDe(g,c);
   g.mercados[m].splice(ix2,1);p.eq[c.pos]=c;if(tkj){p[tkj]--;g.tokens[tkj]++;}else{p.V--;p.E--;g.tokens.V++;g.tokens.E++;}p.contrato=true;
-  anotar(g,'¡'+p.nombre+' contrata a '+textoCarta(c)+'!');evento(g,{t:'jugador',j:j,c:c,cambio:false});cerrarMercado(g,j);
+  anotar(g,'¡'+p.nombre+' contrata a '+textoCarta(c)+'!');var dv=devuelveConDefensor(g,p,c);evento(g,{t:'jugador',j:j,c:c,cambio:false,dev:dv});cerrarMercado(g,j);
+}
+// Al contratar a un Defensor se devuelven a la bolsa todas las Multas de su Recurso, sin pagarlas
+function devuelveConDefensor(g,p,c){
+  if(c.pos!==1||!p.multas[c.club])return 0;var n=p.multas[c.club];g.bolsa[c.club]+=n;p.multas[c.club]=0;
+  anotar(g,p.nombre+' devuelve '+n+' Multa'+(n===1?'':'s')+' de '+MULTA[c.club]+' gracias a su Defensor.');return n;
 }
 function cambiarJugador(g,j,ix2,tk){
   var p=g.jug[j],m=g.mercadoAbierto,c=g.mercados[m][ix2];if(!c)falla('Esa carta no está.');
   if(!p.eq[c.pos])falla('No tenés esa posición: se contrata, no se cambia.');
   if(p[tk]<1)falla('No tenés ese Token.');
   var viejo=p.eq[c.pos];g.mercados[m].splice(ix2,1);g.mercados[m].push(viejo);p.eq[c.pos]=c;p[tk]--;g.tokens[tk]++;p.contrato=true;st(p).cambios++;
-  anotar(g,p.nombre+' cambia a su '+POS[c.pos]+': ahora juega '+textoCarta(c)+'.');evento(g,{t:'jugador',j:j,c:c,cambio:true});cerrarMercado(g,j);
+  anotar(g,p.nombre+' cambia a su '+POS[c.pos]+': ahora juega '+textoCarta(c)+'.');var dv=devuelveConDefensor(g,p,c);evento(g,{t:'jugador',j:j,c:c,cambio:true,dev:dv});cerrarMercado(g,j);
 }
 function cerrarMercado(g,j){verCartas(g,j,g.mercadoAbierto);g.mercadoAbierto=null;g.fase='canje';}
 

@@ -134,6 +134,7 @@ function vencioRed(){sala.red.transaccion('partida',function(cur){if(cur==null)r
 function tickReloj(){
   var g=sala.g,e=document.getElementById('reloj');if(!g||!g.limite||!g.rel||g.fase==='fin'){if(e)e.hidden=true;return;}
   var r=g.rel,ahora=Date.now(),deben=P.quienDebe(g),hum=deben.filter(function(j){return !g.jug[j].bot;});
+  if(ui.relPausa&&!sala.red){if(e){e.hidden=false;e.textContent='En pausa';e.classList.add('pausa');e.classList.remove('urgente');}return;}
   if(e){
     if(!hum.length&&r.pausa==null){e.hidden=true;}
     else{e.hidden=false;var rest=r.pausa!=null?r.pausa:r.fin-ahora;e.textContent=(r.pausa!=null?'En pausa ':'')+textoReloj(rest);e.classList.toggle('urgente',r.pausa==null&&rest<=10000);e.classList.toggle('pausa',r.pausa!=null);}
@@ -282,12 +283,19 @@ function piezaEn(x,y){
   return null;
 }
 // Historial al costado del tablero: la última tirada de cada DT
-function historial(g){
+function historial(g,me){
   var vistos={},l=[],s='<div class="hist" aria-label="La última tirada de cada DT"><span class="hist-t">Dados</span>';
   (g.tiradas||[]).slice().reverse().forEach(function(x){if(!vistos[x.j]){vistos[x.j]=1;l.push(x);}});
   for(var i=0;i<g.n;i++){var x=l[i];s+=x?'<div class="ht'+(i===0?' ult':'')+'" style="border-left-color:'+colJ(g.jug[x.j]).color+'">'+dado(x.d[0],'a',17)+dado(x.d[1],'b',17)+'</div>':'<div class="ht vacio"></div>';}
+  // Mercados vistos: abajo de todo, sobre el mar
+  if(me)s+='<button class="hist-mer" id="abrMercados" aria-label="Mercados vistos" title="Mercados vistos">'+icoBinoculares(30)+'<small>Vistos</small></button>';
   return s+'</div>';
 }
+function dadosMesa(id){return '<button class="dados-mesa" id="'+(id||'tirar')+'" aria-label="Tirar los dados"><span class="dm-dados"><span class="dm-d dm-1">'+dado(5,'a',58)+'</span><span class="dm-d dm-2">'+dado(3,'b',58)+'</span></span><b>¡Tocá los dados!</b></button>';}
+var ICO_PAUSA='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.2" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.2" fill="currentColor"/></svg>';
+var ICO_REG='<svg viewBox="0 0 48 48" width="36" height="36" aria-hidden="true"><rect x="9" y="5" width="30" height="38" rx="4" fill="#fff8d6" stroke="#2b2620" stroke-width="2.6"/><path d="M15 15h18M15 22h18M15 29h12" stroke="#8a7f6e" stroke-width="2.6" stroke-linecap="round"/><circle cx="35" cy="36" r="9" fill="#3f6aa6" stroke="#2b2620" stroke-width="2.4"/><path d="M35 31v5.5l3.5 2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>';
+var ICO_TRATO='<svg viewBox="0 0 48 32" width="34" height="23" aria-hidden="true"><path d="M2 9l9-4 7 3 6-2 7 2 7-3 8 4v11l-7 3-9 7c-2 1.6-4 1.2-5-.4-1.6 1-3.4.6-4.2-.8-1.8.6-3.4-.2-3.8-1.8-1.8 0-3-1.4-2.8-3.2L2 20Z" fill="#f2c79a" stroke="#2b2620" stroke-width="2" stroke-linejoin="round"/><path d="M24 7l-7 6c-1.4 1.4.4 3.6 2.2 2.6L25 12l9 8M19 23l3-2.6M23 25.4l3-2.6M27 26.8l2.4-2" fill="none" stroke="#2b2620" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 9v11M46 9v11" stroke="#2b2620" stroke-width="3" stroke-linecap="round"/></svg>';
+var ICO_SILBATO='<svg viewBox="0 0 40 28" width="30" height="21" aria-hidden="true"><path d="M3 9h17a9 9 0 1 1-8.6 11.6H7a4 4 0 0 1-4-4Z" fill="#fff8d6" stroke="#2b2620" stroke-width="2.2" stroke-linejoin="round"/><circle cx="20" cy="18" r="3.2" fill="#2b2620"/><path d="M20 9V4h6" fill="none" stroke="#2b2620" stroke-width="2.2" stroke-linecap="round"/><path d="M31 5l4-3M33 10l5-1" stroke="#fff8d6" stroke-width="2.2" stroke-linecap="round"/></svg>';
 function mostrarTiro(d){
   var v=document.querySelector('.tiro');if(v)v.remove();
   var t=el('<div class="tiro" aria-hidden="true">'+dado(d[0],'a',74,'rueda')+dado(d[1],'b',74,'rueda r2')+'</div>').firstChild;document.body.appendChild(t);
@@ -303,7 +311,8 @@ function jugarCola(){
   setTimeout(function(){ui.animando=false;jugarCola();},ms);
 }
 function mostrarEvento(g,e){
-  if(e.t==='turno')return mostrarTuTurno(g);
+  if(e.t==='turno')return mostrarTuTurno(g,e);
+  if(e.t==='arranque')return mostrarArranque(g);
   if(e.t==='cobro')return mostrarCobro(g,e);
   if(e.t==='trato'||e.t==='banco'||e.t==='devuelve')return mostrarTrueque(g,e);
   if(e.t==='jugador')return mostrarFichaje(g,e);
@@ -316,7 +325,13 @@ function mostrarEvento(g,e){
 }
 function capa(html,ms){var t=el(html.replace(/<div class="fj-tit">.*?<\/div>/,function(m){return conDT(jugActual(),m);})).firstChild;t.style.animationDuration=ms+'ms';document.body.appendChild(t);setTimeout(function(){t.remove();},ms);return ms;}
 // ¡Es tu turno!
-function mostrarTuTurno(g){var p=g.jug[ui.yo];if(!p)return 0;return capa('<div class="fichaje tu-turno" aria-hidden="true"><span class="tt-cara">'+retratoJ(p)+'</span><b class="tt-txt">¡Es tu turno!</b></div>',1500);}
+// Cada turno empieza con un cartel: grande si es el tuyo, más corto si es el de otro DT
+function mostrarTuTurno(g,e){var j=e&&e.j!=null?e.j:ui.yo,p=g.jug[j];if(!p)return 0;var mio=j===ui.yo,c=colJ(p);
+  return capa('<div class="fichaje tu-turno'+(mio?'':' de-otro')+'" style="--dtc:'+c.color+';--dtt:'+c.tinta+'" aria-hidden="true"><span class="tt-cara">'+retratoJ(p)+'</span><b class="tt-txt">'+(mio?'¡Es tu turno!':'Turno de '+esc(p.nombre))+'</b><small class="tt-n">Turno '+g.nTurnos+'</small></div>',mio?1600:1100);}
+// El arranque del partido: suena el silbato, entran los DTs con sus conos y la pelota cruza la pantalla
+function mostrarArranque(g){
+  var dts=g.jug.map(function(p,i){var c=colJ(p);return '<div class="ar-dt" style="--dtc:'+c.color+';animation-delay:'+(0.35+i*0.16).toFixed(2)+'s"><span class="ar-cara">'+retratoJ(p)+'</span>'+cono(p,22)+'<b>'+esc(p.nombre)+'</b></div>';}).join('');
+  return capa('<div class="arranque" aria-hidden="true"><div class="ar-luces"></div><div class="ar-logo">'+K.logo('copa')+'</div><b class="ar-tit">¡Arranca el partido!</b><div class="ar-dts">'+dts+'</div><div class="ar-pelota">'+PELOTA+'</div><small class="ar-sub">'+(g.modo==='rapido'?'Partido rápido':'Partido completo')+' · '+g.n+' DTs</small></div>',3000);}
 // Lo que cobraste vos con la tirada: lo de los demás no se muestra acá
 function mostrarCobro(g,e){
   var u=g.ultTiro,yo=ui.yo;if(!u||u.n!==e.n||yo==null)return 0;
@@ -407,7 +422,7 @@ function mostrarTrueque(g,e){
 // Un fichaje: la carta aparece dada vuelta y gira hasta mostrar al Jugador
 function mostrarFichaje(g,e){
   var p=g.jug[e.j],n=P.nombreCarta(e.c);
-  var t=el('<div class="fichaje" aria-hidden="true"><div class="fj-tit"><b>¡'+esc(p.nombre)+(e.cambio?' cambia y trae a ':' contrata a ')+esc(n)+'!</b><span>'+P.POS[e.c.pos]+' de '+P.NOMBRE_REC[e.c.club]+'</span></div><div class="fj-gira"><div class="fj-cara fj-dorso">'+K.dorso('Jugador')+'</div><div class="fj-cara">'+K.jugador(e.c.club,e.c.pos)+'</div></div></div>').firstChild;
+  var t=el('<div class="fichaje" aria-hidden="true"><div class="fj-tit"><b>¡'+esc(p.nombre)+(e.cambio?' cambia y trae a ':' contrata a ')+esc(n)+'!</b><span>'+P.POS[e.c.pos]+' de '+P.NOMBRE_REC[e.c.club]+(e.dev?'. Devuelve '+e.dev+' Multa'+(e.dev>1?'s':'')+' de '+esc(P.MULTA[e.c.club])+'.':'')+'</span></div><div class="fj-gira"><div class="fj-cara fj-dorso">'+K.dorso('Jugador')+'</div><div class="fj-cara">'+K.jugador(e.c.club,e.c.pos)+'</div></div></div>').firstChild;
   document.body.appendChild(t);setTimeout(function(){t.remove();},2800);return 2800;
 }
 
@@ -459,14 +474,14 @@ function iconoCirc(r,w){return '<span class="circ" style="width:'+w+'px;height:'
 function faltaPara(me,pr){var f=[];for(var k in pr){var x=pr[k]-me.mano[k];if(me.multas[k]&&!me.amnistia)f.push(P.NOMBRE_REC[k]+' trabado por Multa');else if(x>0)f.push(x+' de '+P.NOMBRE_REC[k]);}return f.length?'<span class="sub">Te falta: '+f.join(', ')+'.</span>':'';}
 function consejoCanje(g,me){
   var nm=P.suma(me.multas),n=P.contratados(me),m=P.mercadoDe(me.pos);
-  if(nm)return 'Tenés '+nm+' Multa'+(nm>1?'s':'')+': ese Recurso queda trabado hasta que pagues. Tocá Canjear y pagala con 1 de su tipo.';
+  if(nm)return 'Tenés '+nm+' Multa'+(nm>1?'s':'')+': ese Recurso queda trabado hasta que pagues. Tocá Negocios y pagala con 1 de su tipo.';
   if(n>=g.meta)return P.gana(g,me)?'Tenés todo para levantar la Copa: terminá el turno y buscá un vértice del Palco.':'Tu equipo está completo: juntá 1 Recurso de cada tipo y andá al Palco a levantar la Copa.';
   if(m>=0&&!me.contrato&&g.mercados[m].length)return 'Estás en un Mercado de Pases: entrá a ver los Jugadores, y salí a canjear o negociar cuantas veces quieras.';
   var rap=g.modo==='rapido'&&g.meta===4,paga=rap?'En este partido, Arquero y Defensor cuestan 1 de Victoria; Volante y Delantero, 1 de Efectivo.':'Con uno de Victoria y uno de Efectivo se contrata un Jugador.';
   if(P.puedeContratarAlgo(g,me))return 'Ya tenés con qué contratar: caminá hasta un Mercado de Pases (las casillas rojas). '+(rap?paga:'');
-  if(P.puedePagar(me,P.PRECIO.V)&&me.V<1)return 'Te alcanza para un Token de Victoria: tocá Canjear. '+paga;
-  if(P.puedePagar(me,P.PRECIO.E)&&me.E<1)return 'Te alcanza para un Token de Efectivo: tocá Canjear. '+paga;
-  return 'Te falta para un Token. Probá negociar con otro DT o cambiar con el Banco, en Canjear. Si no, terminá el turno.';
+  if(P.puedePagar(me,P.PRECIO.V)&&me.V<1)return 'Te alcanza para un Token de Victoria: tocá Negocios. '+paga;
+  if(P.puedePagar(me,P.PRECIO.E)&&me.E<1)return 'Te alcanza para un Token de Efectivo: tocá Negocios. '+paga;
+  return 'Te falta para un Token. Probá negociar con otro DT o cambiar con el Banco, en Negocios. Si no, terminá el turno.';
 }
 function costoJugador(g){return g&&g.modo==='rapido'&&g.meta===4?'cuesta 1 Token: <b>Arquero y Defensor</b> '+token('V',20)+', <b>Volante y Delantero</b> '+token('E',20):'cuesta '+token('V',20)+' + '+token('E',20);}
 // Las reglas, cada una con un ejemplo dibujado
@@ -491,10 +506,10 @@ function tabReglas(g,me){
     ['Multas','Cada Multa <b>traba un Recurso</b>: no lo podés usar hasta pagarla con 1 de ese Recurso, o con tu Arquero. Podés tener 5 como máximo: con 5, no te cae ninguna más.'+ej('Con la Multa de Fans, tus cartas de Fans quedan trabadas. Pagás 1 y se destraban.',iconoMulta('fans',44)+ejCarta(K.recurso('fans'),'trabada')+ejCarta(K.recurso('fans'),'trabada')+ejFl()+ic('fans')+ejFl()+ejCarta(K.recurso('fans')))],
     ['Tokens y Jugadores','Los Tokens se canjean en tu turno, y con ellos se contratan los Jugadores.'+ej('Token de Victoria',pr(P.PRECIO.V)+ejFl()+token('V',32))+ej('Token de Efectivo',pr(P.PRECIO.E)+ejFl()+token('E',32))+ej('Partido completo: cada Jugador cuesta los dos Tokens.',token('V',28)+token('E',28)+ejFl()+ejCarta(K.dorso('Jugador')))+ej('Partido rápido: Arquero y Defensor, 1 de Victoria. Volante y Delantero, 1 de Efectivo.',token('V',28)+ejFl()+ejCarta(K.jugador('gol',0))+ejCarta(K.jugador('gol',1))+'<i class="ej-mas"></i>'+token('E',28)+ejFl()+ejCarta(K.jugador('gol',2))+ejCarta(K.jugador('gol',3)))],
     ['Mercado de Pases','Parado en un Mercado, en tu turno, podés <b>entrar a mirar los Jugadores todas las veces que quieras</b>. Mirar es gratis. Si te falta un Token, salís, canjeás o negociás, y volvés a entrar. Se contrata uno por turno, y cambiar a uno que ya tenés cuesta 1 Token, el que quieras.'+ej('Tocás un Jugador y aparece el botón para contratarlo.',ejCarta(K.jugador('fans',2))+ejFl()+token('V',28)+token('E',28))],
-    ['Qué hace cada Jugador','Cada uno tiene el Recurso de su club, y su habilidad usa ese Recurso.'+ej('<b>Arquero de Gol:</b> con Gol pagás cualquier Multa.',ic('gol')+ejFl()+iconoMulta('fans',36))+ej('<b>Defensor de Fans:</b> la Multa de Fans te rebota: no te cae.','<span class="ej-tacha">'+iconoMulta('fans',36)+'</span>')+ej('<b>Y además:</b> si un rival paga la Multa de Fans, ese pago es tuyo.',cono(1,24)+iconoMulta('fans',32)+ic('fans')+ejFl()+cono(0,24))+ej('<b>Volante de Gol:</b> cambiás 2 de Gol por 1 cualquiera, donde estés. En la Boletería de Gol, 1 por 1.',ic('gol')+ic('gol')+ejFl()+ic('sponsors'))+ej('<b>Delantero de Gol:</b> cuando cobrás Gol, levantás el doble.',ic('gol')+ejFl()+ic('gol')+ic('gol'))],
+    ['Qué hace cada Jugador','Cada uno tiene el Recurso de su club, y su habilidad usa ese Recurso.'+ej('<b>Arquero de Gol:</b> con Gol pagás cualquier Multa.',ic('gol')+ejFl()+iconoMulta('fans',36))+ej('<b>Defensor de Fans:</b> al contratarlo devolvés todas tus Multas de Fans. Desde ahí, la de Fans te rebota: no te cae.','<span class="ej-tacha">'+iconoMulta('fans',36)+'</span>')+ej('<b>Y además:</b> si un rival paga la Multa de Fans, ese pago es tuyo.',cono(1,24)+iconoMulta('fans',32)+ic('fans')+ejFl()+cono(0,24))+ej('<b>Volante de Gol:</b> cambiás 2 de Gol por 1 cualquiera, donde estés. En la Boletería de Gol, 1 por 1.',ic('gol')+ic('gol')+ejFl()+ic('sponsors'))+ej('<b>Delantero de Gol:</b> cuando cobrás Gol, levantás el doble.',ic('gol')+ejFl()+ic('gol')+ic('gol'))],
     ['Beneficios','Se usan desde tu próximo turno, uno por turno.'+ej('Un Beneficio es una sorpresa del mazo.',pr(P.PRECIO.B)+ejFl()+ejCarta(K.dorso('Beneficio')))+ej('Con 3 usados, cuando quieras, los entregás por 1 Recurso a elección.',ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejCarta(K.dorso('Beneficio'))+ejFl()+ic('suerte'))],
     ['Cambiar con el Banco','Con el Banco se cambia en cualquier lugar. En una <b>Boletería</b> sale más barato: se usa desde las 3 esquinas de la punta del predio. Y si tenés el Volante de ese Recurso, ahí cambiás 1 por 1.'+ej('En cualquier lugar: 4 iguales por 1.',ic('gol',22)+ic('gol',22)+ic('gol',22)+ic('gol',22)+ejFl()+ic('suerte'))+ej('En la Boletería de Gol: das 2 de Gol y te llevás 1 del que quieras.',ic('gol')+ic('gol')+ejFl()+ic('picardia'))],
-    ['Negociar','En tu turno, después de mover, podés ofrecer un trato a un DT o a todos. Cuando es el turno de otro, también podés ofrecerle a él. Una oferta a todos se la lleva el primero que acepte.'+ej('Das lo que te sobra, pedís lo que te falta.',cono(0,24)+ic('fans')+'<i class="ej-fl">⇄</i>'+ic('gol')+cono(1,24))],
+    ['Negociar','En tu turno, después de mover, podés ofrecer un trato en Negocios. La oferta va siempre para todos los DTs y se la lleva el primero que acepte. Cuando es el turno de otro, también podés ofrecerle a él.'+ej('Das lo que te sobra, pedís lo que te falta.',cono(0,24)+ic('fans')+'<i class="ej-fl">⇄</i>'+ic('gol')+cono(1,24))],
     ['El Palco','Desde un vértice podés espiar <b>uno solo</b> de los dos Mercados de Pases más cercanos: vos elegís cuál. Al centro solo se entra con todo listo para levantar la Copa (los Recursos de la mano, descontando lo que pagás de Multas), con el último paso: no es lugar de paso.'+ej('Mirás uno de los dos, no los dos.',icoBinoculares(38)+ejFl()+ejCarta(K.dorso('Jugador'))+'<b>o</b>'+ejCarta(K.dorso('Jugador')))],
     ['Barrabravas','Después de que movés tu cono, cada Barrabrava avanza <b>solo</b> una intersección en sentido horario, por su recorrido. Nadie puede pasar ni pararse donde hay un Barrabrava.'+ejCalle(['n','',''],1,'Si está libre, avanza uno.')+ejCalle(['n','c',''],2,'Si hay un cono, lo salta.')+ejCalle(['n','n',''],0,'Si hay otro Barrabrava, se queda donde está.')]
   ];
@@ -523,7 +538,7 @@ function fichaPieza(g,pz){
       f.filas=[filaFicha(iconoCirc(r,34),'Cobrás '+P.NOMBRE_REC[r],'Cuando sale un <b>'+n+'</b>, cada cono que toque esta pieza se lleva 1.'),filaFicha('<span class="ff-pos">DEL</span>','Con su Delantero','El Delantero de '+P.NOMBRE_REC[r]+' cobra el doble.')];
       if(!est)f.filas.push(filaFicha('<span class="ff-pos">$</span>','Boletería','En su punta está la Boletería de '+P.NOMBRE_REC[r]+'.'));}
     else{var z=a-11;f.tit=P.ZONA[z];f.sup='Zona de Mala Fama';f.color='#2b2620';f.lore=ZONA_TXT[z];
-      f.filas=[filaFicha(iconoMulta('gol',34),'Te cae una Multa','Cuando sale un <b>'+n+'</b>, cada cono que la toque saca 1 Multa de la bolsa. Conviene no quedarse cerca.')];}
+      f.filas=[filaFicha(multaGenerica(34),'Te cae una Multa','Cuando sale un <b>'+n+'</b>, cada cono que la toque saca 1 Multa de la bolsa, sin mirar. Puede ser de cualquiera de los cinco Recursos. Conviene no quedarse cerca.')];}
   } else if(pz.t==='mercado'){var mm=g.mercados[pz.i];f.tit='Mercado de Pases';f.sup=P.ZONA[pz.i];f.color='#b8323a';f.quien=g.jug.filter(function(p){return p.pos===P.MERCADOS[pz.i];});
     f.filas=[filaFicha('<span class="ff-pos">'+mm.length+'/4</span>','Jugadores','Quedan <b>'+mm.length+' de 4</b> en este Mercado.'),filaFicha(token('V',28)+token('E',28),'Para contratar','Parate acá. Un Jugador '+costoJugador(g)+'.'),filaFicha(icoBinoculares(30),'Mirar es gratis','En tu turno, todas las veces que quieras. Si ninguno te sirve, no pagás nada.')];}
   else{var b=g.rec[6+pz.i];f.tit='Boletería de '+P.NOMBRE_REC[b];f.sup=P.PREDIO[b];f.color=COL[b];
@@ -541,7 +556,7 @@ function piezaSimple(g,pz,f){
     s+='<polygon points="'+poli(hex?6:5,76,cx,cy,hex?30:-90)+'" fill="'+col+'" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/>';
     if(r)s+='<g transform="translate('+(cx-62)+' '+(cy-40)+') scale(.5)">'+K.badge(r)+'</g>'+numero(cx+28,cy+6,g.num[a],col);
     else if(a===0)s+=COPA.replace('<svg ','<svg x="'+(cx-24)+'" y="'+(cy-66)+'" width="48" height="68" ')+numero(cx,cy+26,1,'#111');
-    else s+='<g transform="translate('+(cx-24)+' '+(cy-64)+') scale(.48)">'+I.multa('fans')+'</g>'+numero(cx,cy+24,g.num[a],'#111');
+    else s+='<g transform="translate('+(cx-24)+' '+(cy-64)+') scale(.48)">'+multaGenInner()+'</g>'+numero(cx,cy+24,g.num[a],'#111');
     s+=cartel(f.tit);}
   else if(pz.t==='mercado'){var n=g.mercados[pz.i].length;
     s+='<rect x="'+(cx-80)+'" y="'+(cy-58)+'" width="160" height="112" rx="10" fill="#b8323a" stroke="'+INK+'" stroke-width="3.5"/><rect x="'+(cx-68)+'" y="'+(cy-46)+'" width="136" height="88" rx="6" fill="#fdf3d2"/>';
@@ -561,6 +576,15 @@ function modalPieza(g,pz){
   var vh=vis?'<div class="ficha-vistos"><b>'+icoBinoculares(26)+'Lo que viste en el turno '+vis.t+'</b>'+(vis.c.length?'<div class="pz-eq">'+vis.c.map(function(x){return '<button class="cartita" data-vercarta="'+x.club+'-'+x.pos+'" aria-label="Ver a '+esc(P.nombreCarta(x))+'">'+K.jugador(x.club,x.pos)+'</button>';}).join('')+'</div>':'<span>Estaba vacío.</span>')+'</div>':'';
   return '<div class="ficha" style="--fc:'+f.color+'"><div class="ficha-img">'+piezaSimple(g,pz,f)+'</div><div class="ficha-cab"><small>'+esc(f.sup)+'</small><h2>'+esc(f.tit)+'</h2></div>'+(f.lore?'<p class="ficha-lore">'+esc(f.lore)+'</p>':'')+vh+'<div class="ficha-filas">'+f.filas.join('')+'</div>'+(f.quien.length?'<div class="ficha-quien"><b>Acá están:</b>'+f.quien.map(function(q){return '<span>'+cono(q,16)+' '+esc(q.nombre)+'</span>';}).join('')+'</div>':'')+'</div>';
 }
+// Una Multa que representa a todas: el cartel de advertencia y abajo los cinco colores de los Recursos
+function multaGenInner(){return '<rect x="2" y="2" width="96" height="96" rx="10" fill="'+INK+'"/><rect x="6" y="6" width="88" height="88" rx="7" fill="none" stroke="#f6efe0" stroke-width="2.6" stroke-dasharray="5 3"/><text x="50" y="25" text-anchor="middle" font-family="Bowlby One SC,Arial Black,sans-serif" font-size="15" fill="#f6efe0" letter-spacing="1">MULTA</text><path d="M50 31L72 69H28Z" fill="#ffd83a" stroke="#f6efe0" stroke-width="3" stroke-linejoin="round"/><path d="M50 43v13" stroke="'+INK+'" stroke-width="5.5" stroke-linecap="round"/><circle cx="50" cy="63" r="3.2" fill="'+INK+'"/>'+P.REC.map(function(r,i){return '<circle cx="'+(26+i*12)+'" cy="83" r="4.6" fill="'+COL[r]+'" stroke="#f6efe0" stroke-width="1.4"/>';}).join('');}
+function multaGenerica(s){return '<svg class="multa-gen" viewBox="0 0 100 100" width="'+s+'" height="'+s+'" aria-hidden="true">'+multaGenInner()+'</svg>';}
+// Más de 9 Recursos: qué pasa si sale un 1, con dibujos
+function modalMas9(g,M){var q=g.jug[M.q],mia=M.q===ui.yo,n=P.suma(q.mano),d=Math.floor(n/2),cs='';
+  for(var i=0;i<Math.min(n,12);i++)cs+='<span class="m9-c'+(i<d?' sale':'')+'">'+K.dorso('Recurso')+'</span>';
+  return '<div class="m9-alarma">+9</div><h2 style="margin:0;text-align:center">'+(mia?'Tenés':esc(q.nombre)+' tiene')+' más de 9 Recursos</h2><div class="m9-ej"><div class="m9-mano">'+cs+'</div><div class="m9-paso">'+dado(1,'a',40)+'<span>Si en la próxima tirada sale un <b>1</b> en cualquiera de los dos dados…</span></div><div class="m9-paso m9-dev"><span class="m9-n">−'+d+'</span><span>…'+(mia?'devolvés':'devuelve')+' al Banco la mitad, redondeando para abajo: '+(mia?'tenés':'tiene')+' '+n+', '+(mia?'devolvés':'devuelve')+' <b>'+d+'</b>. Las elige quien las devuelve.</span></div></div>'+(mia?'<p class="nota" style="margin:0"><b>Para evitarlo, gastá antes:</b> canjeá Tokens, comprá Beneficios, pagá Multas o negociá, en Negocios.</p>':'');}
+// Un lugar vacío para Multas: qué va ahí
+function modalMultaVacia(){return '<div class="multa-g">'+multaGenerica(130)+'</div><h2 style="margin:0">Acá van tus Multas</h2><p style="margin:0">Te cae una cuando tu cono toca una <b>Zona de Mala Fama</b> (los pentágonos oscuros) y sale su número. Se saca de la bolsa sin mirar.</p><div class="qt-info">'+filaFicha(iconoMulta('fans',34),'Te traba un Recurso','Mientras no la pagues, no podés usar las cartas de ese Recurso.')+filaFicha(iconoCirc('fans',30),'Se paga con 1 de su Recurso','En tu turno, en Negocios › Pagar Multas.')+filaFicha('<span class="ff-pos">ARQ</span>','Tu Arquero','Con su Recurso pagás cualquier Multa.')+filaFicha('<span class="ff-pos">DEF</span>','Tu Defensor','Al contratarlo devolvés las Multas de su Recurso, y desde ahí te rebotan.')+'</div>';}
 function icoBarra(s){return '<svg viewBox="-15 -11 30 22" width="'+s+'" height="'+Math.round(s*22/30)+'" aria-hidden="true"><ellipse rx="11" ry="8" fill="#dcb98a" stroke="'+INK+'" stroke-width="1.2"/><path d="M-6-5q1.6 5 0 10M-2-6.6q1.6 6.6 0 13.2M2-6.6q1.6 6.6 0 13.2M6-5q1.6 5 0 10" fill="none" stroke="#a9825c" stroke-width="1"/></svg>';}
 function icoBinoculares(s){return '<svg class="ic-bino" viewBox="0 0 48 34" width="'+s+'" height="'+Math.round(s*34/48)+'" aria-hidden="true"><g fill="#fbf8f1" stroke="#2b2620" stroke-width="2.4" stroke-linejoin="round"><path d="M9 6c1-3 7-3 8 0l3 8h8l3-8c1-3 7-3 8 0l4 12H5Z" fill="#3a3f4a"/><circle cx="13" cy="22" r="10" fill="#3a3f4a"/><circle cx="35" cy="22" r="10" fill="#3a3f4a"/><circle cx="13" cy="22" r="6.2" fill="#9fd3ea"/><circle cx="35" cy="22" r="6.2" fill="#9fd3ea"/><rect x="20" y="15" width="8" height="9" fill="#3a3f4a"/></g><path d="M10 19.5q2-2 4.5-1.8M32 19.5q2-2 4.5-1.8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>';}
 function icoAnim(apagada){return '<svg viewBox="0 0 48 48" width="36" height="36" aria-hidden="true"><rect x="6" y="9" width="36" height="30" rx="4" fill="#fff8d6" stroke="#2b2620" stroke-width="2.6"/><path d="M6 16h36M6 32h36" stroke="#2b2620" stroke-width="2"/><path d="M12 9v7M20 9v7M28 9v7M36 9v7M12 32v7M20 32v7M28 32v7M36 32v7" stroke="#2b2620" stroke-width="2"/><path d="M20 19l10 5-10 5Z" fill="#b8323a" stroke="#2b2620" stroke-width="1.6" stroke-linejoin="round"/>'+(apagada?'<path d="M5 5L43 43M43 5L5 43" stroke="#fff" stroke-width="9" stroke-linecap="round"/><path d="M5 5L43 43M43 5L5 43" stroke="#d8261f" stroke-width="5.5" stroke-linecap="round"/>':'')+'</svg>';}
@@ -662,6 +686,8 @@ function caja(tit,html,clave,valor){if(!clave)return '<section class="caja"><h3>
 function cajaCuantos(n,attr,plega){return caja('¿Cuántos van a jugar?','<div class="sel" role="group" aria-label="Cuántos van a jugar">'+[2,3,4,5].map(function(x){return '<button class="chip" '+attr+'="'+x+'" aria-pressed="'+(n===x)+'">'+x+' DTs</button>';}).join('')+'</div><p class="nota" style="margin:0">Cada persona dirige a un DT. Los lugares libres los puede jugar la Máquina.</p>',plega?'cuantos':null,n+' DTs');}
 var MODOS=[['completo','Partido completo','Cada DT arma un equipo de 4 Jugadores: Arquero, Defensor, Volante y Delantero. Cada uno cuesta 2 Tokens. Es el juego entero, de unos 30 a 45 minutos.'],['rapido','Partido rápido','También con 4 Jugadores, pero cuestan 1 Token: Arquero y Defensor, 1 de Victoria; Volante y Delantero, 1 de Efectivo. Termina antes: cerca de un cuarto menos de turnos.']];
 // Modo de juego y tiempo por turno: dos botones de color, uno al lado del otro; cada toque pasa a la opción siguiente
+var PELOTA='<svg class="ic-pelota" viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10.5" fill="#fff" stroke="#2b2620" stroke-width="1.8"/><path d="M0-4.6l4.4 3.2-1.7 5.2h-5.4l-1.7-5.2z" fill="#2b2620"/><path d="M0-4.6V-10.3M4.4-1.4l5.6-1.8M2.7 3.8l3.4 4.7M-2.7 3.8l-3.4 4.7M-4.4-1.4l-5.6-1.8" stroke="#2b2620" stroke-width="1.4"/></svg>';
+var ICO_PLAY='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#fff8d6" stroke="#2b2620" stroke-width="2"/><path d="M10 7.5l6 4.5-6 4.5z" fill="#2b2620"/></svg>';
 var LAPIZ='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-5L15.5 4.5a2.1 2.1 0 0 1 3 0l1 1a2.1 2.1 0 0 1 0 3L9 19z" fill="#fff8d6" stroke="#2b2620" stroke-width="2" stroke-linejoin="round"/><path d="M13.5 6.5l4 4M4 20l5-1" stroke="#2b2620" stroke-width="2"/></svg>';
 function botonesJuego(m,lim,attrM,attrL){var il=0;LIMITES.forEach(function(l,i){if(l[0]===lim)il=i;});
   var exM=m==='rapido'?'Cada Jugador cuesta 1 solo Token: el equipo se arma antes y el partido dura menos.':'El juego entero: cada Jugador cuesta 2 Tokens. Unos 30 a 45 min.';
@@ -680,9 +706,8 @@ function pantallaInicio(){
   confeti(false);var hay=false;try{hay=!!localStorage.getItem(CLAVE);}catch(e){}
   var redOk=window.PEXA_RED&&PEXA_RED.disponible(),salaGuardada=null;try{salaGuardada=localStorage.getItem('pexa-sala');}catch(e){}
   if(!ui.iniTab)ui.iniTab=redOk?'online':'local';
-  var s='<div class="ini ini-com"><div class="ini-cab"><span class="logo">'+K.logo('copa')+'</span><h1>PEXA<small>DREAM TEAM</small></h1></div>';
+  var s='<div class="ini ini-com'+(hay?' con-guardado':'')+'"><div class="ini-cab"><span class="logo">'+K.logo('copa')+'</span><h1>PEXA<small>DREAM TEAM</small></h1></div>';
   s+='<div class="hero"><h2>Armá tu Dream Team y levantá la Copa antes que nadie.</h2><ol class="hero-pasos"><li><div class="hp-vis hp-esc">'+P.REC.map(function(r){return iconoCirc(r,30);}).join('')+'</div><b>Juntá Recursos</b><span>Tirás los dados y cobran todos.</span></li><li><div class="hp-vis hp-car">'+[['fans',0],['gol',1],['picardia',2],['sponsors',3]].map(function(x){return '<span>'+K.jugador(x[0],x[1])+'</span>';}).join('')+'</div><b>Contratá 4 Jugadores</b><span>Uno por posición, a tu gusto.</span></li><li><div class="hp-vis">'+COPA.replace('class="copa"','class="hp-copa"')+'</div><b>Levantá la Copa</b><span>El primero en el Palco gana.</span></li></ol><div class="hero-dato">2 a 5 DTs · 30 a 45 minutos</div><div class="hero-bts"><button class="bt oro" id="verTuto">Tutorial</button><button class="bt" id="verReglas">¿Cómo se juega?</button></div></div>';
-  if(hay)s+='<button class="bt fuerte" id="seguir">Seguir el partido guardado</button>';
   s+='<div class="ini-tabs" role="tablist"><button role="tab" data-itab="online" aria-selected="'+(ui.iniTab==='online')+'"><b>Juego online</b><span>Cada uno desde su celu</span></button><button role="tab" data-itab="local" aria-selected="'+(ui.iniTab==='local')+'"><b>Juego local</b><span>Todos en este aparato</span></button></div><div class="ini-panel">';
   if(ui.iniTab==='online'){
     if(redOk){
@@ -698,9 +723,9 @@ function pantallaInicio(){
     for(var i=0;i<5;i++){var d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0,nom=conf.nombres[i]||d.nombre;
       filas+='<div class="dtelige'+(on?' on':'')+'"><button class="dt-add" data-togdt="'+i+'" aria-pressed="'+on+'" aria-label="'+(on?'Sacar a ':'Sumar a ')+esc(nom)+'">'+(on?'✓':'+')+'</button><div class="dt-cara"><button class="dt-tog" data-edit="'+i+'" aria-label="Ver y editar a '+esc(nom)+'">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-lapiz" data-edit="'+i+'" aria-label="Editar a '+esc(nom)+'">'+LAPIZ+'</button></div>'+
         '<div class="dt-dat dt-lin"><b>'+esc(nom)+'</b>'+(on?'<button class="dt-quien'+(h?' per':'')+'" data-h="'+i+'" data-v="'+(h?0:1)+'" aria-label="Lo juega '+(h?'una persona':'la Máquina')+'. Tocá para cambiar">'+(h?'Persona':'Máquina')+'</button>':'<span class="nota">No juega</span>')+'</div><button class="dt-cono" data-ccdt="'+i+'" aria-label="Color del cono de '+esc(nom)+': '+P.CONOS[ccLocal(i)].n+'. Tocá para cambiarlo">'+cono({cc:ccLocal(i)},24)+'</button></div>';}
-    s+='<section class="caja"><h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><button class="bt oro" id="empezar">Empezar el partido</button>';
+    s+='<section class="caja"><h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><button class="bt bt-empezar" id="empezar">'+PELOTA+'<span>Empezar el partido</span>'+PELOTA+'</button>';
   }
-  s+='</div></div>';
+  s+='</div>'+(hay?'<button class="bt bt-seguir" id="seguir">'+ICO_PLAY+'<span>Seguir el partido guardado</span></button>':'')+'</div>';
   app.innerHTML=s;
   var b=document.getElementById('seguir');if(b)b.onclick=function(){sala.cargar();ui.yo=null;reiniciarVista();ui.festejo=sala.g.fase==='fin';actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
   document.getElementById('verReglas').onclick=function(){guardarNombreInput();leerNombres();ui.modal={tipo:'reglas'};pintarModal(null,null,null);};
@@ -709,7 +734,9 @@ function pantallaInicio(){
   app.querySelectorAll('[data-itab]').forEach(function(x){x.onclick=function(){guardarNombreInput();leerNombres();ui.iniTab=x.dataset.itab;pantallaInicio();};});
   if(redOk&&ui.iniTab==='online')conectarAmigos(salaGuardada);
   app.querySelectorAll('[data-edit]').forEach(function(x){x.onclick=function(){var i3=+x.dataset.edit;ui.modal={tipo:'editDT',i:i3,r:conf.cus&&conf.cus[i3]?JSON.parse(JSON.stringify(conf.cus[i3])):null,nombre:conf.nombres[i3]||P.DTS[i3].nombre,cc:ccLocal(i3),tomados:conf.sel.filter(function(q){return q!==i3;}).map(ccLocal)};pintarModal(null,null,null);};});
-  app.querySelectorAll('[data-ccdt]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.ccdt;ui.modal={tipo:'colorCono',i:i3,nombre:conf.nombres[i3]||P.DTS[i3].nombre,cc:ccLocal(i3),tomados:conf.sel.filter(function(q){return q!==i3;}).map(ccLocal)};pintarModal(null,null,null);};});
+  // Tocando el cono pasa al color siguiente que no use otro DT
+  app.querySelectorAll('[data-ccdt]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.ccdt,v=colorSiguiente(ccLocal(i3),conf.sel.filter(function(q){return q!==i3;}).map(ccLocal));
+    conf.cc=conf.cc||{};if(v!==i3)conf.cc[i3]=v;else delete conf.cc[i3];pantallaInicio();var b=app.querySelector('[data-ccdt="'+i3+'"]');if(b){b.classList.add('gira');b.focus();}};});
   app.querySelectorAll('[data-cuantos]').forEach(function(x){x.onclick=function(){leerNombres();var n=+x.dataset.cuantos,i2;
     while(conf.sel.length<n){for(i2=0;i2<5;i2++)if(conf.sel.indexOf(i2)<0){conf.sel.push(i2);break;}}
     while(conf.sel.length>n){var maq=conf.sel.filter(function(q){return !conf.filas[q].h;});conf.sel.splice(conf.sel.indexOf(maq.length?maq[maq.length-1]:conf.sel[conf.sel.length-1]),1);}
@@ -724,8 +751,9 @@ function pantallaInicio(){
     sala.g=P.nuevaPartida({dts:d,modo:conf.modo,limite:conf.limite,semilla:Math.floor(Math.random()*1e9),t0:Date.now()});ui.yo=null;reiniciarVista();ui.verDT=null;sala.guardar();actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
 }
 function ccLocal(i){return conf.cc&&conf.cc[i]!=null?conf.cc[i]:i;}
+function colorSiguiente(cur,tom){for(var k=1;k<=P.CONOS.length;k++){var c=(cur+k)%P.CONOS.length;if(tom.indexOf(c)<0)return c;}return cur;}
 function guardarNombreInput(){var x=document.getElementById('miNombre');if(x){try{localStorage.setItem('pexa-nombre',x.value.trim());}catch(e){}}}
-function reiniciarVista(){ui.certAb=false;ui.pausa=false;ui.mercSel=null;ui.manoI=0;ui.turnoVisto=null;ui.resAb=null;ui.barrasAntes=null;ui.ofertaK=null;ui.tiradaVista=null;ui.eventoVisto=null;ui.cola=[];ui.animando=false;ui.logVisto=null;ui.festejo=false;ui.faseVista=null;}
+function reiniciarVista(){ui.certAb=false;ui.pausa=false;ui.relPausa=null;ui.negAb=null;ui.mercSel=null;ui.manoI=0;ui.turnoVisto=null;ui.resAb=null;ui.barrasAntes=null;ui.ofertaK=null;ui.tiradaVista=null;ui.eventoVisto=null;ui.cola=[];ui.animando=false;ui.logVisto=null;ui.festejo=false;ui.faseVista=null;}
 function leerNombres(){app.querySelectorAll('[data-nom]').forEach(function(x){conf.nombres[+x.dataset.nom]=x.value;});}
 
 // ---------- Lo que tiene que hacer cada uno ----------
@@ -741,7 +769,9 @@ function pintar(){
   var yo=ui.yo,me=yo!=null?g.jug[yo]:null,marcados=[],tap=null,deben=P.quienDebe(g),miTurno=yo!=null&&deben.indexOf(yo)>=0;
   // Las ventanas que abre el propio juego: el Mercado de Pases y la devolución. Y si te hacen una oferta, se te muestra.
   if(ui.modal&&ui.modal.tipo==='mercado'&&(g.fase!=='mercado'||g.oferta||yo!==g.turno)){ui.modal=null;ui.mercSel=null;}
-  if(me&&g.fase==='tirar'&&yo===g.turno&&ui.turnoVisto!==g.nTurnos){if(ui.turnoVisto!=null&&!ui.sinAnim&&!ui.cubierto)ui.cola.push({t:'turno'});ui.turnoVisto=g.nTurnos;ui.manoI=0;}
+  // El arranque del partido y el comienzo de cada turno se anuncian siempre, aunque las animaciones estén apagadas
+  if(g.fase==='ubicar'&&g.faltaUbicar.length===g.n&&ui.arranqueVisto!==g.t0){ui.arranqueVisto=g.t0;ui.cola.push({t:'arranque'});}
+  if(g.fase==='tirar'&&ui.turnoVisto!==g.nTurnos){var mioT=me&&yo===g.turno;if(!(mioT&&ui.cubierto))ui.cola.push({t:'turno',j:g.turno});ui.turnoVisto=g.nTurnos;if(mioT)ui.manoI=0;}
   if(ui.modal&&ui.modal.tipo==='descarte'&&(g.fase!=='descarte'||g.descartes[yo]==null))ui.modal=null;
 
   if(g.oferta&&yo!=null&&P.esperan(g.oferta).indexOf(yo)>=0&&ui.modal&&!(ui.modal.tipo==='nego'&&ui.modal.contra)){ui.modal=null;}
@@ -749,7 +779,7 @@ function pintar(){
   if(!ui.modal&&g.fase==='descarte'&&yo!=null&&g.descartes[yo]!=null)ui.modal={tipo:'descarte'};
   var h='',turno=g.fase==='ubicar'?g.jug[g.faltaUbicar[0]]:g.fase==='barraIni'?g.jug[deben[0]]:g.jug[g.turno];
   var esFin=g.fase==='fin';confeti(esFin);var tabVista='',cT=colJ(turno);
-  h+=esFin?'<div class="juego es-fin"><span id="reloj" hidden></span>':'<div class="juego"><div class="barra barra-dt" style="--dtc:'+cT.color+';--dtt:'+cT.tinta+'"><button class="barra-cara" data-verdtj="'+turno.id+'" aria-label="Ver a '+esc(turno.nombre)+'">'+retratoJ(turno)+'</button><div class="q"><b>'+esc(turno.nombre)+'</b><span>'+(g.nTurnos?'Turno '+g.nTurnos+' · ':'')+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span></div>';
+  h+=esFin?'<div class="juego es-fin"><span id="reloj" hidden></span>':'<div class="juego"><div class="barra barra-dt" style="--dtc:'+cT.color+';--dtt:'+cT.tinta+'"><button class="barra-cara" data-verdtj="'+turno.id+'" aria-label="Ver a '+esc(turno.nombre)+'">'+retratoJ(turno)+'</button><div class="q"><b>'+esc(turno.nombre)+'</b><span>'+(g.nTurnos?'Turno '+g.nTurnos+' · ':'')+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span><button class="barra-pausa" id="abrPausa" aria-label="Pausa: reglas, animaciones, lo que fue pasando y salir" title="Pausa">'+ICO_PAUSA+'</button></div>';
   // Al final: el Certificado arriba de todo y el tablero, plegado
   var finH=esFin?resumen(g,'<div class="mesa mesa-fin">'+dibujarTablero(g,[])+tabVista+'</div>'):'';
   // qué se puede tocar
@@ -765,17 +795,25 @@ function pintar(){
   }
   var cDT=colJ(turno),pa=panelAccion(g,yo,me,miTurno),tt=g.fase!=='fin'?textoTirada(g):'';
   if(!esFin)h+='<div class="col-mesa">'+conDT(g,'<div class="relator" id="relator" style="--dtc:'+cDT.color+';--dtt:'+cDT.tinta+'"><span class="rel-tag">El Relator</span><b class="rel-tit">'+pa.tit+'</b><div class="rel-x">'+conIco(pa.txt)+'</div>'+(tt?'<div class="rel-t">'+conIco(tt)+'</div>':'')+(g.oferta&&me?panelOferta(g,yo):'')+'</div>');
-  if(!esFin)h+='<div class="mesa">'+tiradaCol(g)+dibujarTablero(g,marcados)+historial(g)+tabVista+'</div></div>';
+  // Los dados bailan sobre el tablero esperando que los toques
+  var dm=me&&g.fase==='tirar'&&yo===g.turno&&!g.oferta&&!ui.modal?dadosMesa():'';
+  if(!esFin)h+='<div class="mesa">'+tiradaCol(g)+dibujarTablero(g,marcados)+historial(g,me)+tabVista+dm+'</div></div>';
   h+='<div class="col-der">'+finH;
   if(g.fase!=='fin'){if(!me)h+=espectador(g,pa);else h+=manos(g,yo,false)+acciones(g,yo,me,miTurno,pa);h+=pieDePagina(g,yo);}
   h+='</div></div>';
-  app.innerHTML=h;tickReloj();
+  app.innerHTML=h;tickReloj();ajustarPantalla();
   var sv=document.getElementById('tablero');if(sv)sv.addEventListener('click',function(ev){if(ui.modal&&ui.modal.tipo!=='gas'&&ui.modal.tipo!=='tocarMercado')return;tocarTablero(ev,marcados,tap);});
   conectar(g,yo,me);conectarAsa(g);conectarManos();if(g.fase==='fin')conectarCert(app,g);
   if(ui.faseVista!==g.fase){ui.faseVista=g.fase;if(['tirar','mover','ubicar','espiar'].indexOf(g.fase)>=0)window.scrollTo(0,0);}
   if(ui.modal&&ui.modal.tipo!=='gas'&&ui.modal.tipo!=='tocarMercado'&&!modalQuieto())pintarModal(g,yo,me);
   if(!ui.animando){if(ui.cola.length)jugarCola();else festejarSiToca();}
   if(ui.cubierto&&me&&humanos(g).length>1&&g.fase!=='fin'){var c=el('<div class="cubre"><div style="transform:scale(2.2);margin-bottom:14px">'+cono(me,30)+'</div><h2>Pasale el celu a '+esc(me.nombre)+'</h2><p>Lo que sigue es solo para sus ojos.</p><button class="bt oro" id="ya">Soy '+esc(me.nombre)+'</button></div>').firstChild;document.body.appendChild(c);document.getElementById('ya').onclick=function(){ui.cubierto=false;c.remove();};}
+}
+// En el celu todo entra en una pantalla: si algo sobra, el tablero se achica un poco (nunca menos de 210 px)
+function ajustarPantalla(){
+  var sv=document.getElementById('tablero');if(!sv||window.innerWidth>=1000||document.querySelector('.es-fin'))return;
+  sv.style.maxHeight='';var sobra=document.documentElement.scrollHeight-window.innerHeight;if(sobra<=0)return;
+  var h=sv.getBoundingClientRect().height;sv.style.maxHeight=Math.max(210,Math.floor(h-sobra))+'px';
 }
 function textoFase(g,yo){
   var mio=yo!=null&&yo===g.turno;
@@ -799,7 +837,7 @@ function panelAccion(g,yo,me,miTurno){
   switch(g.fase){
     case 'ubicar':return R('Elegí tu punto de arranque','Tocá una de las esquinas que titilan. Cobrás 1 Recurso de cada hexágono que toca, así que mirá qué colores te convienen.');
     case 'barraIni':return R('Poné un Barrabrava',g.barraPaso===0?'En un vértice libre del Palco.':'En un punto de arranque libre.');
-    case 'tirar':return R('Te toca tirar','Los dos dados activan piezas: con cada número cobran todos los que las tocan. El blanco, además, te dice cuánto caminás.','<button class="bt oro tirar-bt" id="tirar">'+dado(5,'a',34)+'<span>Tirar los dados</span>'+dado(3,'b',34)+'</button>');
+    case 'tirar':return R('Te toca tirar','Tocá los dados que bailan sobre el tablero. Con cada número cobran todos los que tocan esas piezas; el blanco, además, te dice cuánto caminás.');
     case 'mover':{var ds=P.destinos(g,yo),q=g.mv.quieto;
       return R(ds.length?'Mové tu cono':'No tenés camino',(g.dados[0]===g.dados[1]&&!g.mv.jet?'¡Doble! Caminás la suma de los dos dados. ':'')+(g.mv.jet?'Jet Privado: elegí cualquier intersección libre.':(g.mv.arreglo?'Los Barrabravas ya avanzaron. ':'')+(ds.length?'Tocá una de las esquinas marcadas. Tenés que caminar '+g.mv.pasos.join(' o ')+'.':'Te quedás donde estás.'))+(ds.indexOf(P.CENTRO)>=0?(P.gana(g,me)?' <b class="palco-si">¡Podés levantar la Copa! Tocá el centro del Palco.'+(P.suma(me.multas)?' Al entrar pagás tus '+P.suma(me.multas)+' Multas con lo que tenés en la mano.':'')+'</b>':''):''),(!ds.length||q)?'<button class="bt gr fuerte" id="quedarse">Quedarme acá</button>':'');}
     case 'espiar':return R('Desde el Palco se ve todo','Podés mirar uno solo: tocá en el tablero cuál de los dos Mercados de Pases marcados querés ver. Los otros tres quedan demasiado lejos.','<button class="bt gr" id="noEspiar">No mirar</button>');
@@ -809,22 +847,20 @@ function panelAccion(g,yo,me,miTurno){
   return R('','');
 }
 function filaTurno(g,yo,me,miTurno){
-  var mio=miTurno&&g.fase==='canje'&&!g.oferta,espera=me&&!miTurno&&g.fase==='canje'&&!g.oferta;
-  return (espera?'<button class="bt gr oro" id="ofrecer">Ofrecerle un trato</button>':'<button class="bt gr oro" data-negociar'+(mio?'':' disabled')+'>Negociar</button>')+'<button class="bt gr fuerte" id="fin"'+(mio?'':' disabled')+'>Terminar el turno</button>';
+  var mio=miTurno&&g.fase==='canje'&&!g.oferta;
+  return '<button class="bt gr bt-neg'+(hayCanje(g,yo,me)?' llama':'')+'" id="abrCanjes">'+ICO_TRATO+'<span>Negocios</span></button><button class="bt gr bt-fin" id="fin"'+(mio?'':' disabled')+'>'+ICO_SILBATO+'<span>Terminar turno</span></button>';
 }
 function hayCanje(g,yo,me){
   if(yo!==g.turno||g.oferta||(g.fase!=='canje'&&g.fase!=='mercado'))return false;
   return P.REC.some(function(r){return me.multas[r]&&me.mano[r]>0;})||P.puedePagar(me,P.PRECIO.V)||P.puedePagar(me,P.PRECIO.E)||P.puedePagar(me,P.PRECIO.B);
 }
 function acciones(g,yo,me,miTurno,pa){
-  var s=g.fase==='fin'?'':'<div class="acc-prim">'+(pa.prim||filaTurno(g,yo,me,miTurno))+'</div>';
-  s+='<div class="acc">';
-  if(me)s+='<button class="bt gr c-canje'+(hayCanje(g,yo,me)?' llama':'')+'" id="abrCanjes">Canjear</button>';
-  if(me)s+='<button class="bt gr c-mer" id="abrMercados">'+icoBinoculares(30)+'<span>Mercados vistos</span></button>';
-  return s+'</div>';
+  return g.fase==='fin'?'':'<div class="acc-prim">'+(pa.prim||filaTurno(g,yo,me,miTurno))+'</div>';
 }
-function pieDePagina(g,yo){
-  return '<div class="pie"><details class="registro" id="registro"'+(ui.regAbierto?' open':'')+'><summary>Lo que fue pasando <span class="reg-sum">· Turno '+g.nTurnos+'</span></summary>'+tabRegistro(g,yo)+'</details><div class="cuads"><button class="cuad c-reglas" id="abrReglas" title="Las reglas del juego" aria-label="Ver las reglas">'+icoReglas()+'<small>Reglas</small></button><button class="cuad c-anim'+(ui.sinAnim?' off':'')+'" id="animTog" title="'+(ui.sinAnim?'Animaciones apagadas: tocá para prenderlas':'Animaciones prendidas: tocá para apagarlas')+'" aria-label="'+(ui.sinAnim?'Prender las animaciones':'Apagar las animaciones')+'" aria-pressed="'+(!ui.sinAnim)+'">'+icoAnim(ui.sinAnim)+'<small>Animaciones</small></button><button class="cuad c-salir" id="salir" title="Salir: el partido queda guardado" aria-label="Salir. El partido queda guardado">'+icoSalir()+'<small>Salir</small></button></div></div>';
+// Reglas, animaciones, lo que fue pasando y salir: todo adentro de la Pausa
+function pieDePagina(g,yo){return '';}
+function modalPausa(g,yo){
+  return '<h2 class="pausa-tit">'+ICO_PAUSA+'Pausa</h2><p class="nota" style="margin:0;text-align:center">'+(sala.red?'El partido sigue para los demás: volvé pronto.':'El partido está frenado hasta que vuelvas.')+'</p><div class="pausa-bts"><button class="cuad c-reglas" id="abrReglas" title="Reglas" aria-label="Ver las reglas">'+icoReglas()+'</button><button class="cuad c-reg" id="abrRegistro" title="Lo que fue pasando" aria-label="Lo que fue pasando">'+ICO_REG+'</button><button class="cuad c-anim'+(ui.sinAnim?' off':'')+'" id="animTog" title="'+(ui.sinAnim?'Animaciones apagadas: tocá para prenderlas':'Animaciones prendidas: tocá para apagarlas')+'" aria-label="'+(ui.sinAnim?'Prender las animaciones':'Apagar las animaciones')+'" aria-pressed="'+(!ui.sinAnim)+'">'+icoAnim(ui.sinAnim)+'</button><button class="cuad c-salir" id="salir" title="Salir: el partido queda guardado" aria-label="Salir. El partido queda guardado">'+icoSalir()+'</button></div><button class="bt oro" data-cerrar>Seguir jugando</button>';
 }
 function panelDescarte(g,yo,me){
   var c=g.descartes[yo];if(!ui.descarte)ui.descarte=P.vacio();var d=ui.descarte,t=P.suma(d);
@@ -867,7 +903,7 @@ function panelMercado(g,yo,me){
     s+='</div>';}
   return s;
 }
-function habilidadCarta(c){return ['Podés usar '+P.NOMBRE_REC[c.club]+' para pagar cualquier Multa.','Si un rival paga una Multa de '+P.NOMBRE_REC[c.club]+' ('+P.MULTA[c.club]+'), ese pago es tuyo.','En cualquier lugar cambiás 2 de '+P.NOMBRE_REC[c.club]+' por 1 a elección. En la Boletería de '+P.NOMBRE_REC[c.club]+', 1 por 1.','Cuando cobrás '+P.NOMBRE_REC[c.club]+', levantás el doble.'][c.pos];}
+function habilidadCarta(c){return ['Podés usar '+P.NOMBRE_REC[c.club]+' para pagar cualquier Multa.','Al contratarlo devolvés tus Multas de '+P.MULTA[c.club]+' y desde ahí te rebotan. Si un rival la paga, ese pago es tuyo.','En cualquier lugar cambiás 2 de '+P.NOMBRE_REC[c.club]+' por 1 a elección. En la Boletería de '+P.NOMBRE_REC[c.club]+', 1 por 1.','Cuando cobrás '+P.NOMBRE_REC[c.club]+', levantás el doble.'][c.pos];}
 
 // ---------- La mano: cartas abanicadas ----------
 // Cada carta deja ver una franja según su "peso": los Beneficios más ancha, porque se tocan
@@ -886,53 +922,69 @@ function manoPanel(g,yo,q,verTodo){
   P.REC.forEach(function(r){for(var i=0;i<q.mano[r];i++)rs.push(abierta?{html:K.recurso(r),cls:q.multas[r]?'trabada':'',data:'data-verrec="'+r+'"',label:'Ver la carta de '+P.NOMBRE_REC[r]}:{html:K.dorso('Recurso'),data:'data-verdorso="Recurso"',label:'Ver el dorso de una carta de Recurso'});for(var j=0;j<q.multas[r];j++)ml.push(r);});
   q.benef.forEach(function(b){bs.push(abierta?{peso:2,html:K.beneficio(P.BENEF[b].n),data:'data-verb="'+b+'"'+(mia?'':' data-solo="1"'),label:'Ver '+P.BENEF[b].n}:{peso:1,html:K.dorso('Beneficio'),data:'data-verdorso="Beneficio"',label:'Ver el dorso de una carta de Beneficio'});});
   q.nuevos.forEach(function(b){bs.push(abierta?{peso:2,html:K.beneficio(P.BENEF[b].n)+'<i class="nuevo">Nuevo</i>',data:'data-verb="'+b+'"'+(mia?' data-nuevo="1"':' data-solo="1"'),label:'Ver '+P.BENEF[b].n+', recién comprado'}:{peso:1,html:K.dorso('Beneficio'),data:'data-verdorso="Beneficio"',label:'Ver el dorso de una carta de Beneficio'});});
-  var nr=rs.length,riesgo=nr>9,cq=colJ(q),s='<div class="mano-p" style="--dtc:'+cq.color+';--dtt:'+cq.tinta+'"><div class="mano-t"><button class="mp-cara" data-verdtj="'+q.id+'" aria-label="Ver a '+esc(q.nombre)+'">'+retratoJ(q)+'</button><h3>'+(mia?'Tu mano':dtN(q))+(q.roja?' <em class="mp-roja" title="Tarjeta Roja"></em>':'')+'</h3><span class="mp-rec'+(riesgo?' riesgo':'')+'">'+nr+' Recurso'+(nr===1?'':'s')+'</span></div>';
-  if(riesgo)s+='<div class="mp-alerta" role="status">⚠ '+(mia?'Tenés más de 9: si en la próxima tirada sale un 1, devolvés la mitad (redondeando para abajo).':'Tiene más de 9: si en la próxima tirada sale un 1, devuelve la mitad (redondeando para abajo).')+'</div>';
+  // El nombre va en tinta sobre el fondo claro de la mano: se lee con cualquier color de cono. Con más de 9 aparece el botoncito de alarma.
+  var nr=rs.length,riesgo=nr>9,cq=colJ(q),s='<div class="mano-p" style="--dtc:'+cq.color+';--dtt:'+cq.tinta+'"><div class="mano-t"><button class="mp-cara" data-verdtj="'+q.id+'" aria-label="Ver a '+esc(q.nombre)+'">'+retratoJ(q)+'</button><h3><span class="mp-nom">'+(mia?'Tu mano':esc(q.nombre))+'</span>'+(q.roja?' <em class="mp-roja" title="Tarjeta Roja"></em>':'')+'</h3>'+(riesgo?'<button class="mp-alarma" data-ver9="'+q.id+'" aria-label="'+(mia?'Tenés':'Tiene')+' más de 9 Recursos: tocá para ver qué pasa">+9</button>':'')+'<span class="mp-rec'+(riesgo?' riesgo':'')+'">'+nr+' Recurso'+(nr===1?'':'s')+'</span></div>';
   s+=nr+bs.length?abanico(rs.concat(bs),window.innerWidth>=1000?100:78,ancho):'<div class="nota mano-vacia">'+(mia?'Tenés la mano vacía.':'No tiene cartas.')+'</div>';
   s+='<div class="mp"><div class="mp-eq">'+['ARQ','DEF','VOL','DEL'].map(function(n,i){var c=q.eq[i];return c?'<button class="cartita" data-vercarta="'+c.club+'-'+c.pos+'" aria-label="Ver a '+esc(P.nombreCarta(c))+'">'+K.jugador(c.club,c.pos)+'</button>':'<button class="mp-v" data-verpos="'+i+'" aria-label="Qué hace el '+P.POS[i]+'">'+n+'</button>';}).join('')+'</div><div class="mp-dat"><div class="mp-fila"><button class="mp-t'+(q.V?'':' apag')+'" data-vertk="V" aria-label="Ver el Token de Victoria">'+token('V',26)+'<b>'+q.V+'</b></button><button class="mp-t'+(q.E?'':' apag')+'" data-vertk="E" aria-label="Ver el Token de Efectivo">'+token('E',26)+'<b>'+q.E+'</b></button><button class="mp-t" data-verusados="'+q.id+'" aria-label="Ver los Beneficios usados"><span class="ben-d mp-ben">'+K.dorso('Beneficio')+'</span><b>'+q.usados.length+'/3</b></button></div><div class="mp-mul" aria-label="Multas">';
-  for(var k=0;k<5;k++)s+=ml[k]?'<button class="mp-m" data-vermulta="'+ml[k]+'" aria-label="Ver la Multa '+esc(P.MULTA[ml[k]])+'">'+iconoMulta(ml[k],22)+'</button>':'<span class="mp-m"></span>';
+  for(var k=0;k<5;k++)s+=ml[k]?'<button class="mp-m" data-vermulta="'+ml[k]+'" aria-label="Ver la Multa '+esc(P.MULTA[ml[k]])+'">'+iconoMulta(ml[k],22)+'</button>':'<button class="mp-m mp-mv" data-vermultav="1" aria-label="Lugar para una Multa: tocá para saber qué va acá"></button>';
   return s+'</div></div></div></div>';
 }
 function manos(g,yo,verTodo){
   var l=[];if(yo!=null)l.push(g.jug[yo]);g.jug.forEach(function(q){if(q.id!==yo)l.push(q);});
   if(verTodo){l=g.jug.slice();}
   var ver=Math.min(ui.manoI||0,l.length-1);
-  return '<div class="p-mano"><div class="manos-nav" role="tablist" aria-label="Ver la mano de">'+l.map(function(q,i){var cq=colJ(q);return '<button role="tab" data-irmano="'+i+'" aria-selected="'+(i===ver)+'" style="--dtc:'+cq.color+';--dtt:'+cq.tinta+'">'+cono(q,16)+'<span>'+(q.id===yo?'Vos':esc(q.nombre))+'</span></button>';}).join('')+'</div><div class="manos" id="manos">'+l.map(function(q){return manoPanel(g,yo,q,verTodo);}).join('')+'</div></div>';
+  // Sin botones: se desliza. La mano de al lado asoma por el borde, abajo hay un puntito por DT y una flecha que invita a deslizar.
+  return '<div class="p-mano'+(ver===0?' al-ini':'')+(ver>=l.length-1?' al-fin':'')+'"><div class="manos" id="manos">'+l.map(function(q){return manoPanel(g,yo,q,verTodo);}).join('')+'</div><span class="mn-fl mn-der" aria-hidden="true">›</span><span class="mn-fl mn-izq" aria-hidden="true">‹</span><div class="mn-pts" aria-hidden="true">'+l.map(function(q,i){return '<i class="'+(i===ver?'on':'')+'" style="--dtc:'+colJ(q).color+'"></i>';}).join('')+'</div></div>';
 }
 function conectarManos(){
   var m=document.getElementById('manos');if(!m)return;
-  var bts=app.querySelectorAll('[data-irmano]');
-  function marca(i){bts.forEach(function(b,j){b.setAttribute('aria-selected',String(i===j));});}
-  m.style.scrollBehavior='auto';m.scrollLeft=(ui.manoI||0)*m.clientWidth;
-  var tm=null;m.onscroll=function(){clearTimeout(tm);tm=setTimeout(function(){var i=Math.round(m.scrollLeft/Math.max(1,m.clientWidth));ui.manoI=i;marca(i);},80);};
-  bts.forEach(function(b,i){b.onclick=function(){ui.manoI=i;marca(i);m.scrollTo({left:i*m.clientWidth,behavior:'smooth'});};});
+  var pm=m.parentNode,ps=m.querySelectorAll('.mano-p'),pts=pm.querySelectorAll('.mn-pts i');
+  function marca(i){pts.forEach(function(b,j){b.classList.toggle('on',i===j);});pm.classList.toggle('al-ini',i===0);pm.classList.toggle('al-fin',i>=ps.length-1);}
+  function cual(){var best=0,bd=1e9;ps.forEach(function(p,i){var d=Math.abs(p.offsetLeft-m.offsetLeft-m.scrollLeft);if(d<bd){bd=d;best=i;}});return best;}
+  m.style.scrollBehavior='auto';var pi=ps[Math.min(ui.manoI||0,ps.length-1)];m.scrollLeft=pi?pi.offsetLeft-ps[0].offsetLeft:0;
+  var tm=null;m.onscroll=function(){clearTimeout(tm);tm=setTimeout(function(){var i=cual();ui.manoI=i;marca(i);},80);};
+  // La flecha también se puede tocar
+  var fl=pm.querySelector('.mn-der');if(fl)fl.onclick=function(){var i=Math.min(ps.length-1,cual()+1);m.scrollTo({left:ps[i].offsetLeft-ps[0].offsetLeft,behavior:'smooth'});};
 }
 // Partido entre máquinas: se ve todo de todos
 function espectador(g,pa){
   return '<div class="acc-prim">'+pa.prim+'</div>'+manos(g,null,true);
 }
+// Negocios: todo lo que se hace con Recursos, en una sola ventana con cinco secciones que se abren al tocarlas
 function tabCanjes(g,yo,me){
-  var mio=yo===g.turno&&(g.fase==='canje'||g.fase==='mercado')&&!g.oferta,s='';
-  if(!mio&&!(yo===g.turno&&g.fase==='mover'&&P.contratados(me)>=g.meta))return '<div class="nota">Los canjes se hacen en tu turno, después de mover el cono.</div>'+precios(g);
-  // Multas
-  P.REC.forEach(function(r){if(!me.multas[r])return;
-    s+='<div class="op">'+iconoMulta(r,38)+'<div><b>Pagar '+P.MULTA[r]+'</b>'+precioIc(pagoDe(r),24)+'</div><button class="bt chico" data-pagar="'+r+'"'+(me.mano[r]>0?'':' disabled')+'>Pagar</button></div>';
-    var arq=P.hab(me,0);if(arq&&arq!==r)s+='<div class="op">'+iconoMulta(r,38)+'<div><b>Pagar '+P.MULTA[r]+' con tu Arquero</b>'+precioIc(pagoDe(arq),24)+'</div><button class="bt chico" data-pagar="'+r+'" data-con="'+arq+'"'+(me.mano[arq]>0&&!me.multas[arq]?'':' disabled')+'>Pagar</button></div>';});
-  if(!mio)return s||'<div class="nota">No tenés Multas para pagar.</div>';
-  if(me.amnistia)s+='<div class="aviso"><b>Amnistía activa</b>Tu próxima operación ignora las Multas.</div>';
-  // Mercado
-  var m=P.mercadoDe(me.pos);
-
+  var mio=yo===g.turno&&(g.fase==='canje'||g.fase==='mercado')&&!g.oferta,antes=yo===g.turno&&g.fase==='mover'&&P.contratados(me)>=g.meta;
+  var luego='<div class="nota">Se hace en tu turno, después de mover el cono.</div>';
+  if(ui.tuto){var ob=TUTO[ui.tuto.i].obj||'';ui.negAb=ob.indexOf('pagar')>=0?'multas':'tokens';}
+  function sec(k,ic,tit,pista,hay,html){var ab=ui.negAb===k;return '<details class="neg-sec'+(hay?' hay':'')+'" data-sec="'+k+'"'+(ab?' open':'')+'><summary><span class="ns-ic">'+ic+'</span><span class="ns-t"><b>'+tit+'</b><small>'+pista+'</small></span><i class="ns-fl" aria-hidden="true">›</i></summary><div class="ns-in">'+html+'</div></details>';}
+  var s=me.amnistia&&mio?'<div class="aviso"><b>Amnistía activa</b>Tu próxima operación ignora las Multas.</div>':'';
   // Tokens
-  s+='<div class="op">'+token('V',36)+'<div><b>Token de Victoria</b>'+precioIc(P.PRECIO.V,24)+faltaPara(me,P.PRECIO.V)+'</div><button class="bt chico" data-token="V"'+(g.tokens.V>0&&P.puedePagar(me,P.PRECIO.V)?'':' disabled')+'>Canjear</button></div>';
-  s+='<div class="op">'+token('E',36)+'<div><b>Token de Efectivo</b>'+precioIc(P.PRECIO.E,24)+faltaPara(me,P.PRECIO.E)+'</div><button class="bt chico" data-token="E"'+(g.tokens.E>0&&P.puedePagar(me,P.PRECIO.E)?'':' disabled')+'>Canjear</button></div>';
-  s+='<div class="op"><span class="ben-d">'+K.dorso('Beneficio')+'</span><div><b>Beneficio</b>'+precioIc(P.PRECIO.B,24)+faltaPara(me,P.PRECIO.B)+'<span class="sub">Quedan '+g.mazoB.length+' en el mazo.</span></div><button class="bt chico" id="comprarB"'+(g.mazoB.length&&P.puedePagar(me,P.PRECIO.B)?'':' disabled')+'>Comprar</button></div>';
+  var okV=g.tokens.V>0&&P.puedePagar(me,P.PRECIO.V),okE=g.tokens.E>0&&P.puedePagar(me,P.PRECIO.E);
+  var tk='<div class="op">'+token('V',36)+'<div><b>Token de Victoria</b>'+precioIc(P.PRECIO.V,24)+(mio?faltaPara(me,P.PRECIO.V):'')+'</div>'+(mio?'<button class="bt chico" data-token="V"'+(okV?'':' disabled')+'>Canjear</button>':'')+'</div><div class="op">'+token('E',36)+'<div><b>Token de Efectivo</b>'+precioIc(P.PRECIO.E,24)+(mio?faltaPara(me,P.PRECIO.E):'')+'</div>'+(mio?'<button class="bt chico" data-token="E"'+(okE?'':' disabled')+'>Canjear</button>':'')+'</div><p class="nota" style="margin:0">Con Tokens se contratan Jugadores: '+costoJugador(g)+'.</p>';
+  s+=sec('tokens',token('V',26)+token('E',26),'Canjear Tokens',mio?(okV||okE?'¡Te alcanza para uno!':'Recursos por Tokens'):'En tu turno',mio&&(okV||okE),(mio?'':luego)+tk);
+  // Beneficios
+  var okB=g.mazoB.length&&P.puedePagar(me,P.PRECIO.B);
+  s+=sec('benef','<span class="ben-d">'+K.dorso('Beneficio')+'</span>','Comprar Beneficios',mio?(okB?'¡Te alcanza para uno!':'Cartas sorpresa'):'En tu turno',mio&&okB,(mio?'':luego)+'<div class="op"><span class="ben-d">'+K.dorso('Beneficio')+'</span><div><b>Beneficio</b>'+precioIc(P.PRECIO.B,24)+(mio?faltaPara(me,P.PRECIO.B):'')+'<span class="sub">Quedan '+g.mazoB.length+' en el mazo. Se usa desde tu próximo turno.</span></div>'+(mio?'<button class="bt chico" id="comprarB"'+(okB?'':' disabled')+'>Comprar</button>':'')+'</div>');
+  // Multas
+  var nm=P.suma(me.multas),mu='',puedeM=mio||antes;
+  P.REC.forEach(function(r){if(!me.multas[r])return;
+    mu+='<div class="op">'+iconoMulta(r,38)+'<div><b>Pagar '+P.MULTA[r]+'</b>'+precioIc(pagoDe(r),24)+'</div>'+(puedeM?'<button class="bt chico" data-pagar="'+r+'"'+(me.mano[r]>0?'':' disabled')+'>Pagar</button>':'')+'</div>';
+    var arq=P.hab(me,0);if(puedeM&&arq&&arq!==r)mu+='<div class="op">'+iconoMulta(r,38)+'<div><b>Pagar '+P.MULTA[r]+' con tu Arquero</b>'+precioIc(pagoDe(arq),24)+'</div><button class="bt chico" data-pagar="'+r+'" data-con="'+arq+'"'+(me.mano[arq]>0&&!me.multas[arq]?'':' disabled')+'>Pagar</button></div>';});
+  s+=sec('multas',multaGenerica(30),'Pagar Multas',nm?'Tenés '+nm+' sin pagar':'No tenés Multas',puedeM&&nm>0,nm?(puedeM?'':luego)+mu:'<p class="nota" style="margin:0">No tenés Multas. Si te cae una, la pagás acá con 1 Recurso de su tipo.</p>');
   // Banco
-  var bo=P.boleDe(g,me.pos);
-  s+='<h3 style="font-size:16px;margin-top:4px">Cambiar con el Banco</h3><div class="nota">'+(bo?'Estás en la Boletería de '+P.NOMBRE_REC[bo]+': das '+P.tasaBanco(g,me,bo)+' de '+P.NOMBRE_REC[bo]+' y te llevás 1 del que quieras.':'En cualquier lugar: 4 iguales por 1.')+'</div>';
-  s+='<div class="nota" style="font-weight:700">Das:</div><div class="sel">'+P.REC.map(function(r){var t=P.tasaBanco(g,me,r),ok=me.mano[r]>=t&&P.usable(me,r);return '<button class="chip ic" data-da="'+r+'" aria-label="Dar '+t+' de '+P.NOMBRE_REC[r]+'" aria-pressed="'+(ui.bancoDa===r)+'"'+(ok?'':' disabled')+'>'+t+'×'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
-  if(ui.bancoDa)s+='<div class="nota" style="font-weight:700">Te llevás 1:</div><div class="sel">'+P.REC.filter(function(r){return r!==ui.bancoDa;}).map(function(r){return '<button class="chip ic" data-toma="'+r+'" aria-label="Llevarte '+P.NOMBRE_REC[r]+'"'+(g.banco[r]>0?'':' disabled')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
-  if(me.usados.length>=3)s+='<h3 style="font-size:16px;margin-top:4px">3 Beneficios usados por 1 Recurso</h3><div class="sel">'+P.REC.map(function(r){return '<button class="chip ic" data-usados="'+r+'" aria-label="'+P.NOMBRE_REC[r]+'"'+(g.banco[r]>0?'':' disabled')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
+  var bo=P.boleDe(g,me.pos),ba='';
+  if(mio){ba='<div class="nota">'+(bo?'Estás en la Boletería de '+P.NOMBRE_REC[bo]+': das '+P.tasaBanco(g,me,bo)+' de '+P.NOMBRE_REC[bo]+' y te llevás 1 del que quieras.':'En cualquier lugar: 4 iguales por 1. En la Boletería de un Recurso, 2 de ese por 1.')+'</div>';
+    ba+='<div class="nota" style="font-weight:700">Das:</div><div class="sel">'+P.REC.map(function(r){var t=P.tasaBanco(g,me,r),ok=me.mano[r]>=t&&P.usable(me,r);return '<button class="chip ic" data-da="'+r+'" aria-label="Dar '+t+' de '+P.NOMBRE_REC[r]+'" aria-pressed="'+(ui.bancoDa===r)+'"'+(ok?'':' disabled')+'>'+t+'×'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
+    if(ui.bancoDa)ba+='<div class="nota" style="font-weight:700">Te llevás 1:</div><div class="sel">'+P.REC.filter(function(r){return r!==ui.bancoDa;}).map(function(r){return '<button class="chip ic" data-toma="'+r+'" aria-label="Llevarte '+P.NOMBRE_REC[r]+'"'+(g.banco[r]>0?'':' disabled')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
+    if(me.usados.length>=3)ba+='<b style="margin-top:4px">3 Beneficios usados por 1 Recurso</b><div class="sel">'+P.REC.map(function(r){return '<button class="chip ic" data-usados="'+r+'" aria-label="'+P.NOMBRE_REC[r]+'"'+(g.banco[r]>0?'':' disabled')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';}
+  else ba=luego+'<p class="nota" style="margin:0">4 iguales por 1 del que quieras. En la Boletería de un Recurso, 2 de ese por 1; con el Volante de ese Recurso, 1 por 1.</p>';
+  s+=sec('banco','<span class="ns-banco">4<i>➜</i>1</span>','Cambiar con el Banco',bo&&mio?'Estás en una Boletería':'4 iguales por 1',false,ba);
+  // Negociar: la oferta del DT del turno es siempre para todos y se la lleva el primero que acepta
+  var ng,espera=!mio&&g.fase==='canje'&&!g.oferta&&yo!==g.turno;
+  if(g.oferta)ng='<p class="nota" style="margin:0">Hay una oferta en la mesa: se contesta en El Relator.</p>';
+  else if(mio)ng='<p style="margin:0">Ofrecés lo que te sobra y pedís lo que te falta. <b>La oferta va para todos los DTs y se la lleva el primero que acepte.</b></p><button class="bt oro" data-negociar>'+ICO_TRATO+' Armar una oferta</button>';
+  else if(espera)ng='<p style="margin:0">Ahora juega <b>'+esc(g.jug[g.turno].nombre)+'</b>: solo se negocia con el DT del turno. Si tenés algo que le sirve, ofrecéselo.</p><button class="bt oro" id="ofrecer">'+ICO_TRATO+' Ofrecerle un trato</button>';
+  else ng='<p class="nota" style="margin:0">Se negocia con el DT del turno, después de que mueve su cono.</p>';
+  s+=sec('nego',ICO_TRATO,'Negociar',mio?'Una oferta para todos':(espera?'Ofrecele al que juega':'Con el DT del turno'),false,ng);
   return s;
 }
 function pagoDe(r){var o={};o[r]=1;return o;}
@@ -954,12 +1006,15 @@ function usarBen(g,yo,b){var B=P.BENEF[b];
 function pintarModal(g,yo,me){
   var M=ui.modal,s='';
   if(M.tipo==='reglas')s='<h2>Reglas</h2>'+tabReglas(g,me)+'';
-  if(M.tipo==='canjes')s='<h2>Canjear</h2>'+tabCanjes(g,yo,me)+'';
+  if(M.tipo==='canjes')s='<h2 class="tit-ic">'+ICO_TRATO+'Negocios</h2>'+tabCanjes(g,yo,me)+'';
   if(M.tipo==='crear')s=modalCrear(M);
   if(M.tipo==='editDT')s=modalEditDT(M);
-  if(M.tipo==='colorCono')s=modalColorCono(M);
+  if(M.tipo==='pausa')s=modalPausa(g,yo);
+  if(M.tipo==='registro')s='<h2 class="tit-ic">'+ICO_REG+'Lo que fue pasando</h2><p class="nota" style="margin:0">Turno '+g.nTurnos+'. Lo último, arriba.</p>'+tabRegistro(g,yo);
+  if(M.tipo==='mas9')s=modalMas9(g,M);
+  if(M.tipo==='multaVacia')s=modalMultaVacia();
   if(M.tipo==='tok'){var tkV=M.tk==='V';s='<div class="multa-g">'+token(M.tk,150)+'</div><h2 style="margin:0">Token de '+(tkV?'Victoria':'Efectivo')+'</h2><div class="ej"><div class="ej-v">'+precioIc(P.PRECIO[M.tk],28)+ejFl()+token(M.tk,40)+'</div><small>Se canjea en tu turno.</small></div><p style="margin:0">Con Tokens se contratan los Jugadores, parado en un Mercado de Pases. '+(g&&g.modo==='rapido'&&g.meta===4?(tkV?'En este partido, el de Victoria paga a tu Arquero y a tu Defensor.':'En este partido, el de Efectivo paga a tu Volante y a tu Delantero.'):'Cada Jugador cuesta uno de Victoria y uno de Efectivo.')+' Cambiar a uno que ya tenés cuesta 1 Token.</p>';}
-  if(M.tipo==='pos'){var PD=[['Arquero','Con su Recurso pagás cualquier Multa.'],['Defensor','La Multa de su Recurso te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.'],['Volante','En cualquier lugar cambiás 2 de su Recurso por 1 a elección. En la Boletería de su Recurso, 1 por 1.'],['Delantero','Cuando cobrás su Recurso, levantás el doble.']][M.i];s='<div class="grande chica">'+K.dorso('Jugador')+'</div><h2 style="margin:0">'+PD[0]+'</h2><p style="margin:0"><b>Qué hace:</b> '+PD[1]+'</p><p class="nota" style="margin:0">Hay un '+PD[0]+' por cada club, y su habilidad usa el Recurso de ese club. Se contrata en un Mercado de Pases.</p>';}
+  if(M.tipo==='pos'){var PD=[['Arquero','Con su Recurso pagás cualquier Multa.'],['Defensor','Al contratarlo devolvés todas tus Multas de su Recurso. Desde ahí, esa Multa te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.'],['Volante','En cualquier lugar cambiás 2 de su Recurso por 1 a elección. En la Boletería de su Recurso, 1 por 1.'],['Delantero','Cuando cobrás su Recurso, levantás el doble.']][M.i];s='<div class="grande chica">'+K.dorso('Jugador')+'</div><h2 style="margin:0">'+PD[0]+'</h2><p style="margin:0"><b>Qué hace:</b> '+PD[1]+'</p><p class="nota" style="margin:0">Hay un '+PD[0]+' por cada club, y su habilidad usa el Recurso de ese club. Se contrata en un Mercado de Pases.</p>';}
   if(M.tipo==='usados'){var qu=g.jug[M.q];s='<h2>Beneficios usados</h2><p style="margin:0">'+dtN(qu)+' lleva <b>'+qu.usados.length+'</b>. Con 3 usados, cuando quiera, los entrega por 1 Recurso a elección.</p>'+(qu.usados.length?'<div class="pz-eq">'+qu.usados.map(function(b){return '<button class="cartita" data-verb="'+b+'" data-solo="1" aria-label="Ver '+esc(P.BENEF[b].n)+'">'+K.beneficio(P.BENEF[b].n)+'</button>';}).join('')+'</div>':'<p class="nota" style="margin:0">Todavía no usó ninguno.</p>');
     if(M.q===yo&&qu.usados.length>=3){if(yo===g.turno&&(g.fase==='canje'||g.fase==='mercado')&&!g.oferta)s+='<h3 style="font-size:16px;margin:4px 0 0">Entregá 3 y elegí tu Recurso</h3><div class="sel">'+P.REC.map(function(r){return '<button class="chip ic" data-usados="'+r+'" aria-label="'+P.NOMBRE_REC[r]+'"'+(g.banco[r]>0?'':' disabled')+'>'+iconoCirc(r,28)+'</button>';}).join('')+'</div>';
       else s+='<p class="nota" style="margin:0">No es obligatorio: los entregás cuando quieras, en tu turno, después de mover.</p>';}}
@@ -967,7 +1022,7 @@ function pintarModal(g,yo,me){
   if(M.tipo==='mercado')s=panelMercado(g,yo,me);
   if(M.tipo==='descarte')s=panelDescarte(g,yo,me);
   if(M.tipo==='rec'){var rr=M.r;s='<div class="grande">'+K.recurso(rr)+'</div><h2 style="margin:0">'+P.NOMBRE_REC[rr]+'</h2><p style="margin:0">El Recurso de <b>'+esc(P.CLUB[rr])+'</b>. Se cobra cuando sale el <b>'+P.NUM[rr]+'</b> y tu cono toca su estadio o su predio.'+(me&&me.multas[rr]?' <b>Ahora está trabado por una Multa:</b> pagala para poder usarlo.':'')+'</p>';}
-  if(M.tipo==='multa'){var mr=M.r;s='<div class="multa-g">'+iconoMulta(mr,210)+'</div><h2 style="margin:0">'+esc(P.MULTA[mr])+'</h2><p style="margin:0">Traba tus cartas de <b>'+P.NOMBRE_REC[mr]+'</b>: no las podés usar hasta pagarla. Se paga en Canjes, con 1 de '+P.NOMBRE_REC[mr]+'. Si un rival tiene al Defensor de '+P.NOMBRE_REC[mr]+', ese pago es para él.</p>';}
+  if(M.tipo==='multa'){var mr=M.r;s='<div class="multa-g">'+iconoMulta(mr,210)+'</div><h2 style="margin:0">'+esc(P.MULTA[mr])+'</h2><p style="margin:0">Traba tus cartas de <b>'+P.NOMBRE_REC[mr]+'</b>: no las podés usar hasta pagarla. Se paga en Negocios, con 1 de '+P.NOMBRE_REC[mr]+'. Si un rival tiene al Defensor de '+P.NOMBRE_REC[mr]+', ese pago es para él.</p>';}
   if(M.tipo==='pieza')s=modalPieza(g,M.pz);
   if(M.tipo==='qt')s=modalQt(g,M.j);
   if(M.tipo==='dorso'){var esR=M.k==='Recurso';s='<div class="grande">'+K.dorso(M.k)+'</div><h2 style="margin:0">Carta de '+M.k+', boca abajo</h2><p style="margin:0">'+(esR?'Así ven los demás tus Recursos: saben cuántos tenés, pero no de qué club son. Los Recursos se cobran con los dados y se usan para comprar, canjear y pagar Multas.':'Así ven los demás tus Beneficios: saben cuántos tenés, pero no cuáles. Cada uno es una sorpresa del mazo; se usa desde el turno siguiente a comprarlo, uno por turno.')+'</p>';}
@@ -992,7 +1047,8 @@ function pintarModal(g,yo,me){
     s+='<div class="fila"><button class="bt fuerte" id="confirmarB"'+(listo?'':' disabled')+'>Usar</button></div>';}
   if(M.tipo==='nego'){var o=M;
     s='<h2>'+(o.contra?'Contraoferta':'Negociar')+'</h2>';
-    if(!o.contra)s+='<div class="sel">'+(yo===g.turno?'<button class="chip" data-nda="-1" aria-pressed="'+(o.a===-1)+'">A todos: el primero que acepte</button>':'')+g.jug.filter(function(q){return q.id!==yo&&(yo===g.turno||q.id===g.turno);}).map(function(q){return '<button class="chip" data-nda="'+q.id+'" aria-pressed="'+(o.a===q.id)+'">'+esc(q.nombre)+'</button>';}).join('')+'</div>';
+    // La oferta del DT del turno va siempre para todos; los demás solo le pueden ofrecer al DT del turno
+    s+='<p class="nota neg-para" style="margin:0">'+(o.contra?'Le contestás a '+dtN(g.jug[o.a])+'.':(o.a<0?'Para <b>todos los DTs</b>: se la lleva el primero que acepte.':'Para '+dtN(g.jug[o.a])+', que está jugando su turno.'))+'</p>';
     s+='<div class="negocio"><div class="neg-f neg-cab"><b></b><b>Das</b><b>Pedís</b></div>'+P.REC.map(function(r){var tr=!P.usable(me,r);return '<div class="neg-f" style="--rc:'+COL[r]+';--rt:'+(r==='picardia'?INK:'#fff')+'"><span class="neg-i">'+icono(r,34)+'<span class="neg-tx"><b>'+P.NOMBRE_REC[r]+'</b><small>'+(tr?'Trabado · ':'')+'Tenés <em>'+me.mano[r]+'</em></small></span></span><div class="num"><button data-nd="'+r+'" data-s="-1" aria-label="Das menos de '+P.NOMBRE_REC[r]+'">−</button><span>'+o.doy[r]+'</span><button data-nd="'+r+'" data-s="1" aria-label="Das más de '+P.NOMBRE_REC[r]+'"'+(o.doy[r]>=me.mano[r]||tr?' disabled':'')+'>+</button></div><div class="num"><button data-np="'+r+'" data-s="-1" aria-label="Pedís menos de '+P.NOMBRE_REC[r]+'">−</button><span>'+o.pido[r]+'</span><button data-np="'+r+'" data-s="1" aria-label="Pedís más de '+P.NOMBRE_REC[r]+'">+</button></div></div>';}).join('')+'</div>';
     s+='<div class="fila"><button class="bt fuerte" id="enviarO"'+(o.a!=null&&P.suma(o.doy)&&P.suma(o.pido)?'':' disabled')+'>Ofrecer</button></div>';}
   // Se sale con la cruz o tocando afuera. La devolución del 1 es obligatoria.
@@ -1000,14 +1056,14 @@ function pintarModal(g,yo,me){
   var c2=el('<div class="modal'+(sobre?' con-mano':'')+'" role="dialog" aria-modal="true">'+sobre+'<div class="hoja">'+(conX?'<button class="x-cerrar" data-cerrar aria-label="Cerrar">✕</button>':'')+s+'</div></div>').firstChild;document.body.appendChild(c2);c2._m=M;
   if(ui.hojaDe===M)c2.querySelector('.hoja').scrollTop=ui.hojaTop||0;
   // Cerrar el Mercado es salir: se puede volver a entrar todas las veces que quieras
-  function cierra(){if(M.tipo==='mercado'&&!ui.tuto){ui.modal=null;ui.mercSel=null;limpiarModales();sala.enviar(yo,{t:'cerrar'});return;}ui.mercSel=M.tipo==='mercado'?null:ui.mercSel;ui.modal=M.volver||null;limpiarModales();pintar();avanzarBots();}
+  function cierra(){if(M.tipo==='pausa'&&ui.relPausa){var dp=Date.now()-ui.relPausa;ui.relPausa=null;if(g&&g.rel&&g.rel.pausa==null){g.rel.fin+=dp;if(g.rel.oferFin)g.rel.oferFin+=dp;}}
+    if(M.tipo==='mercado'&&!ui.tuto){ui.modal=null;ui.mercSel=null;limpiarModales();sala.enviar(yo,{t:'cerrar'});return;}ui.mercSel=M.tipo==='mercado'?null:ui.mercSel;ui.modal=M.volver||null;limpiarModales();pintar();avanzarBots();}
   if(conX)c2.addEventListener('click',function(e){if(e.target===c2)cierra();});
   if(g&&CON_BOTONES[M.tipo])conectarEn(c2,g,yo,me);
   if(ui.tuto&&ui.tutoHook)ui.tutoHook(c2,M);
   c2.querySelectorAll('[data-cerrar]').forEach(function(x){x.onclick=cierra;});
   if(M.tipo==='crear')conectarCrear(c2,M);
   if(M.tipo==='editDT')conectarEditDT(c2,M);
-  if(M.tipo==='colorCono')conectarColorCono(c2,M);
   var ub=c2.querySelector('#usarB');if(ub)ub.onclick=function(){limpiarModales();usarBen(g,yo,M.b);};
   c2.querySelectorAll('[data-par]').forEach(function(x){x.onclick=function(){var v=x.dataset.val;if(x.dataset.par==='dt'||x.dataset.par==='pos')v=+v;M.a[x.dataset.par]=v;limpiarModales();pintarModal(g,yo,me);};});
   var cb=c2.querySelector('#confirmarB');if(cb)cb.onclick=function(){var a=Object.assign({t:'usar',b:M.b},M.a);limpiarModales();ui.modal=null;sala.enviar(yo,a);};
@@ -1022,8 +1078,8 @@ function manoNego(me){
 }
 function limpiarModales(){document.querySelectorAll('.modal').forEach(function(m){var h=m.querySelector('.hoja');if(h){ui.hojaDe=m._m;ui.hojaTop=h.scrollTop;}m.remove();});}
 // Las ventanas que no cambian con el estado no se redibujan: así no pierden el lugar ni lo que abriste
-var QUIETOS={reglas:1,rec:1,multa:1,pieza:1,dt:1,jug:1,visto:1,mercados:1,tok:1,pos:1,usados:1,qt:1,dorso:1,cono:1,barra:1};
-var CON_BOTONES={canjes:1,mercados:1,mercado:1,descarte:1,reglas:1,jug:1,rec:1,multa:1,visto:1,pieza:1,usados:1};
+var QUIETOS={reglas:1,rec:1,multa:1,pieza:1,dt:1,jug:1,visto:1,mercados:1,tok:1,pos:1,usados:1,qt:1,dorso:1,cono:1,barra:1,mas9:1,multaVacia:1};
+var CON_BOTONES={canjes:1,mercados:1,mercado:1,descarte:1,reglas:1,jug:1,rec:1,multa:1,visto:1,pieza:1,usados:1,pausa:1,registro:1};
 // ---------- Creá tu propio DT ----------
 var RASGOS=[['pelo','Peinado',['Corto','Con entradas','Pelado','Revuelto','Medio','Largo','Ondas','Rodete']],['color','Color de pelo y barba',['Negro','Oscuro','Castaño','Claro','Rubio','Colorado','Gris','Canoso']],['barba','Barba',['Sin barba','Sombra','Barba corta','Barba larga','Candado','Chivita','Bigote','Bigote fino','Barba y bigote']],['ojos','Ojos',['Comunes','Sonrientes','Verdes','Azules','Miel']],['acc','Accesorios',['Nada','Anteojos redondos','Anteojos','Anteojos de sol','Silbato','Cresta de gallo']],['cara','Cara',['Ovalada','Redonda','Alargada','Cuadrada','Pera','En punta']],['gesto','Gesto',['Sonrisa','Sonrisa gigante','Canchero','Serio','Gritando']],['piel','Piel',['Muy clara','Clara','Media','Trigueña','Oscura']],['g','Es',['Varón','Mujer']],['ropa','Vestimenta',['Traje','Tracksuit','Musculosa','Camisa blanca','Delantal']],['pose','Pose',['Brazos cruzados','Festejando','Manos en los bolsillos','Dedo arriba','Manos arriba','Mostrando bíceps']]];
 function rasgosGuardados(){var d={g:'m',pelo:0,color:2,barba:0,ojos:0,acc:0,cara:0,gesto:0,piel:1,ropa:0,pose:0};try{var t=localStorage.getItem('pexa-midt');if(t)return Object.assign(d,JSON.parse(t));}catch(e){}return d;}
@@ -1059,14 +1115,6 @@ function modalEditDT(M){prepEditDT(M);var d=P.DTS[M.i],pz=PIZ[M.i]||{},r=M.r,tom
     if(M.cc!==M.i)conf.cc[M.i]=M.cc;else delete conf.cc[M.i];
     pantallaInicio();};
 }
-// El color del cono se elige tocando el cono de cada DT: se ven los cinco y los que ya usa otro DT aparecen apagados
-function modalColorCono(M){var tom=M.tomados||[];
-  return '<div class="multa-g">'+cono({cc:M.cc},90)+'</div><h2 style="margin:0">El cono de '+esc(M.nombre)+'</h2><p style="margin:0">Elegí de qué color va a ser su ficha en la isla.</p><div class="ed-cols cc-grande" role="group" aria-label="Color del cono">'+P.CONOS.map(function(c,i){var ocu=tom.indexOf(i)>=0&&i!==M.cc;return '<button class="ed-cc" data-cc="'+i+'" aria-pressed="'+(M.cc===i)+'" aria-label="Cono '+c.n+(ocu?', lo usa otro DT':'')+'"'+(ocu?' disabled':'')+'>'+cono({cc:i},34)+'<small>'+esc(c.n)+'</small></button>';}).join('')+'</div>'+(tom.length?'<p class="nota" style="margin:0">Los apagados ya los usa otro DT.</p>':'');}
-function conectarColorCono(c,M){
-  c.querySelectorAll('[data-cc]').forEach(function(b){b.onclick=function(){var v=+b.dataset.cc;limpiarModales();ui.modal=null;
-    if(M.online){var id=idCliente();sala.red.transaccion('lobby',function(cur){if(cur==null)return null;var x=JSON.parse(cur);x.a.forEach(function(q){if(q&&q.id===id)q.cc=v;});return JSON.stringify(x);},function(){});if(ui.lobby)pantallaLobby();return;}
-    conf.cc=conf.cc||{};if(v!==M.i)conf.cc[M.i]=v;else delete conf.cc[M.i];pantallaInicio();};});
-}
 function conectarCrear(c,M){
   c.querySelectorAll('[data-cr]').forEach(function(b){b.onclick=function(){var k=b.dataset.cr,v=+b.dataset.v;if(k==='g')M.r.g=v===1?'f':'m';else M.r[k]=v;var h=c.querySelector('.hoja'),top=h.scrollTop;limpiarModales();pintarModal(null,null,null);var n=document.querySelector('.modal .hoja');if(n)n.scrollTop=top;};});
   function fin(r){limpiarModales();ui.modal=null;
@@ -1088,7 +1136,7 @@ function conectarEn(raiz,g,yo,me){
   function on(id,fn){var x=$(id);if(x)x.onclick=fn;}
   function todos(sel,fn){raiz.querySelectorAll(sel).forEach(function(x){x.onclick=function(){fn(x);};});}
   on('otra',function(){dejarSala(true);sala.borrar();ui.modal=null;pantallaInicio();});
-  on('salir',function(){clearTimeout(timerBot);dejarSala(false);sala.g=null;ui.modal=null;pantallaInicio();});
+  on('salir',function(){clearTimeout(timerBot);ui.relPausa=null;limpiarModales();dejarSala(false);sala.g=null;ui.modal=null;pantallaInicio();});
   on('animTog',function(){ui.sinAnim=!ui.sinAnim;try{localStorage.setItem('pexa-sin-anim',ui.sinAnim?'1':'0');}catch(e){}pintar();});
   on('verFestejo',function(){mostrarMundial(g);});
 
@@ -1096,7 +1144,13 @@ function conectarEn(raiz,g,yo,me){
   on('abrCanjes',function(){ui.bancoDa=null;ui.modal={tipo:'canjes'};pintar();});
 
   on('abrMercados',function(){ui.modal={tipo:'mercados'};pintar();});
-  on('abrReglas',function(){ui.modal={tipo:'reglas'};pintar();});
+  var enPausa=ui.modal&&ui.modal.tipo==='pausa'?ui.modal:null;
+  on('abrReglas',function(){ui.modal={tipo:'reglas',volver:enPausa};pintar();});
+  on('abrRegistro',function(){ui.modal={tipo:'registro',volver:enPausa};pintar();});
+  // En la Pausa de un partido en este aparato también se frena el reloj
+  on('abrPausa',function(){ui.modal={tipo:'pausa'};if(!sala.red&&g.rel&&g.rel.pausa==null&&!ui.relPausa)ui.relPausa=Date.now();pintar();});
+  todos('[data-ver9]',function(x){ui.modal={tipo:'mas9',q:+x.dataset.ver9};pintar();});
+  todos('[data-vermultav]',function(){ui.modal={tipo:'multaVacia'};pintar();});
   todos('[data-mercsel]',function(x){ui.mercSel=+x.dataset.mercsel;pintar();});
   todos('[data-verdtj]',function(x){var q=g.jug[+x.dataset.verdtj];ui.modal={tipo:'dt',dt:q.dt,cus:q.cus,nom:q.nombre};pintar();});
   todos('[data-qt]',function(x){ui.modal={tipo:'qt',j:+x.dataset.qt};pintar();});
@@ -1117,8 +1171,10 @@ function conectarEn(raiz,g,yo,me){
 
   on('comprarB',function(){sala.enviar(yo,{t:'beneficio'});});
   on('descartar',function(){var d=ui.descarte;ui.descarte=null;sala.enviar(yo,{t:'descartar',mapa:d});});
-  todos('[data-negociar]',function(){ui.modal={tipo:'nego',a:-1,doy:P.vacio(),pido:P.vacio()};pintar();});
-  on('ofrecer',function(){if(!sala.red)clearTimeout(timerBot);ui.modal={tipo:'nego',a:g.turno,doy:P.vacio(),pido:P.vacio()};pintar();});
+  todos('[data-negociar]',function(){ui.modal={tipo:'nego',a:-1,doy:P.vacio(),pido:P.vacio(),volver:ui.modal&&ui.modal.tipo==='canjes'?ui.modal:null};pintar();});
+  on('ofrecer',function(){if(!sala.red)clearTimeout(timerBot);ui.modal={tipo:'nego',a:g.turno,doy:P.vacio(),pido:P.vacio(),volver:ui.modal&&ui.modal.tipo==='canjes'?ui.modal:null};pintar();});
+  // Las secciones de Negocios: una abierta a la vez
+  raiz.querySelectorAll('[data-sec]').forEach(function(x){x.ontoggle=function(){var k=x.dataset.sec;if(x.open){ui.negAb=k;raiz.querySelectorAll('[data-sec]').forEach(function(y){if(y!==x&&y.open)y.open=false;});}else if(ui.negAb===k)ui.negAb=null;};});
   on('contraof',function(){var o=g.oferta;ui.modal={tipo:'nego',contra:true,a:o.de,doy:Object.assign({},o.pido),pido:Object.assign({},o.doy)};pintar();});
 
   todos('[data-verdt]',function(x){var v=+x.dataset.verdt;ui.verDT=v===yo?null:v;pintar();});
@@ -1156,7 +1212,7 @@ function conectarAmigos(guardada){
 }
 function crearSala(nombre){
   var c=codigoNuevo(),red=PEXA_RED.abrir(c),id=idCliente();
-  var l={n:4,modo:'completo',host:id,t:Date.now(),a:[{id:id,nom:nombre},null,null,null,null]};
+  var l={n:2,modo:'completo',host:id,t:Date.now(),a:[{id:id,nom:nombre},null,null,null,null]};
   red.transaccion('lobby',function(cur){if(cur)return;return JSON.stringify(l);},function(ok){if(!ok){red.parar();crearSala(nombre);return;}conectarSala(c,red);});
 }
 function entrarSala(c,nombre){
@@ -1166,6 +1222,8 @@ function entrarSala(c,nombre){
     for(i=0;i<5;i++)if(l.a[i]&&l.a[i].id===id){if(nombre)l.a[i].nom=nombre;l.t=Date.now();return JSON.stringify(l);}
     if(l.empezo){err='Esa sala ya arrancó sin vos.';return;}
     for(i=0;i<l.n;i++)if(!l.a[i]){l.a[i]={id:id,nom:nombre};l.t=Date.now();return JSON.stringify(l);}
+    // Si no queda lugar libre, se suma un DT más (hasta 5)
+    if(l.n<5){l.a[l.n]={id:id,nom:nombre};l.n++;l.t=Date.now();return JSON.stringify(l);}
     err='La sala está llena.';return;},
     function(ok,val){if(vieja){cerrarSalaVieja(red);return;}if(err||!val){red.parar();mostrarError(err||'No existe una sala con ese código.');if(!err)marcarCodigoMal();return;}conectarSala(c,red);});
 }
@@ -1188,18 +1246,19 @@ function dejarSala(olvidar){if(sala.red){sala.red.parar();sala.red=null;sala.g=n
 function pantallaLobby(){
   var l=ui.lobby,id=idCliente(),host=l.host===id,c=sala.codigo,link=location.origin+location.pathname+'?sala='+c,listos=true,dts=l.dts||[0,1,2,3,4],i;
   for(i=0;i<l.n;i++)if(!l.a[i])listos=false;
-  var s='<div class="ini"><span class="logo logo-sala">'+K.logo('pexa')+'</span><h1 style="font-size:28px">Sala<small>'+esc(c)+'</small></h1>';
-  s+=caja('Pasales la sala a tus amigos','<div class="fila"><a class="bt chico compartir wa" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent('¿Jugamos a PEXA? Entrá acá: '+link)+'">'+icoWa(20)+'<span>Mandar por WhatsApp</span></a><button class="bt chico compartir" id="copiarLink">Copiar el link</button></div><p class="nota" style="margin:0">También pueden entrar con el código <b>'+esc(c)+'</b>.</p>');
-  if(host)s+=cajaCuantos(l.n,'data-ln')+botonesJuego(l.modo,l.limite||0,'data-lm','data-ll');
+  // El código de la sala, bien grande: una letra por casillero
+  var s='<div class="ini"><div class="sala-cab"><span class="logo logo-sala">'+K.logo('pexa')+'</span><div class="sala-cod" aria-label="Código de la sala: '+esc(c.split('').join(' '))+'"><small>Código de la sala</small><div>'+c.split('').map(function(x){return '<b>'+esc(x)+'</b>';}).join('')+'</div></div></div>';
+  s+=caja('Pasales la sala a tus amigos','<div class="fila"><a class="bt chico compartir wa" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent('¿Jugamos a PEXA? Entrá acá: '+link+' (código '+c+')')+'">'+icoWa(20)+'<span>Mandar por WhatsApp</span></a><button class="bt chico compartir" id="copiarLink">Copiar el link</button></div><p class="nota" style="margin:0">También pueden entrar con el código <b>'+esc(c)+'</b>.</p>');
+  if(host)s+=botonesJuego(l.modo,l.limite||0,'data-lm','data-ll');
   else s+='<p class="nota" style="margin:0">'+l.n+' DTs · '+(l.modo==='rapido'?'Partido rápido (Jugadores a 1 Token)':'Partido completo (Jugadores a 2 Tokens)')+' · '+(l.limite?'reloj de '+l.limite+' s por turno':'sin límite de tiempo')+'.</p>';
-  // Un solo lugar para elegir o cambiar de DT: cada DT aparece una vez
-  var filas='<p class="nota" style="margin:0">Tocá la cara del DT que querés y el + para conocerlo. Con el lápiz le cambiás la cara y el nombre; tocando tu cono, el color.</p>',miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
+  // Un solo lugar para elegir o cambiar de DT: cada DT aparece una vez. El que arma la sala suma o saca DTs con el botón de la izquierda: así se define cuántos juegan.
+  var filas='<p class="nota" style="margin:0">'+(host?'Con el botón de la izquierda sumás o sacás DTs: así se define cuántos juegan. ':'')+'Tocá la cara del DT que querés y el + para conocerlo. Con el lápiz le cambiás la cara y el nombre; tocando tu cono, el color.</p>',miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
   var lugarLibre=false,hayBot=false;for(i=0;i<l.n;i++){if(!l.a[i])lugarLibre=true;else if(l.a[i].bot)hayBot=true;}
-  for(var v=0;v<5;v++){var ix=dts.indexOf(v),en=ix<l.n,a=en?l.a[ix]:null,mio=a&&a.id===id,gente=a&&!a.bot,est=mio?esc(a.nom||'Vos')+' (vos)':(a?(a.bot?'La Máquina':esc(a.nom||'Otro DT')+(a.id===l.host?' · armó la sala':'')):(en||lugarLibre?'Libre':'No juega'));
-    filas+='<div class="dtelige'+(a?' on':'')+(mio?' mio':'')+'"><div class="dt-cara"><button class="dt-tog" data-lpick="'+v+'" aria-label="Elegir a '+P.DTS[v].nombre+'" aria-pressed="'+(!!mio)+'"'+((gente&&!mio)||miSi<0?' disabled':'')+'>'+(a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v))+'</button>'+(mio?'<button class="dt-lapiz" data-ledit="'+v+'" aria-label="Editar mi DT">'+LAPIZ+'</button>':'<button class="dt-mas" data-verficha="'+v+'" aria-label="Conocer a '+P.DTS[v].nombre+'">+</button>')+'</div><div class="dt-dat"><b>'+P.DTS[v].nombre+'</b><span class="nota">'+est+'</span></div>'+(host&&en&&(!a||a.bot)?'<button class="bt chico lb-maq" data-lb="'+ix+'">'+(a?'Dejar lugar':'Máquina')+'</button>':(host&&!en&&(lugarLibre||hayBot)?'<button class="bt chico lb-maq" data-lfuera="'+v+'">Máquina</button>':(mio?'<button class="dt-cono" data-lcc="'+v+'" aria-label="Color de tu cono. Tocá para cambiarlo">'+cono({cc:a.cc!=null?a.cc:v},24)+'</button>':cono({cc:a&&a.cc!=null?a.cc:v},22))))+'</div>';}
+  for(var v=0;v<5;v++){var ix=dts.indexOf(v),en=ix<l.n,a=en?l.a[ix]:null,mio=a&&a.id===id,gente=a&&!a.bot,est=mio?esc(a.nom||'Vos')+' (vos)':(a?(a.bot?'La Máquina':esc(a.nom||'Otro DT')+(a.id===l.host?' · armó la sala':'')):(en?'Libre: esperando a un amigo':'No juega'));
+    filas+='<div class="dtelige'+(en?' on':'')+(mio?' mio':'')+'">'+(host?'<button class="dt-add" data-ltog="'+v+'" aria-pressed="'+en+'" aria-label="'+(en?'Sacar a ':'Sumar a ')+P.DTS[v].nombre+'"'+(gente?' disabled':'')+'>'+(en?'✓':'+')+'</button>':'')+'<div class="dt-cara"><button class="dt-tog" data-lpick="'+v+'" aria-label="Elegir a '+P.DTS[v].nombre+'" aria-pressed="'+(!!mio)+'"'+((gente&&!mio)||miSi<0?' disabled':'')+'>'+(a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v))+'</button>'+(mio?'<button class="dt-lapiz" data-ledit="'+v+'" aria-label="Editar mi DT">'+LAPIZ+'</button>':'<button class="dt-mas" data-verficha="'+v+'" aria-label="Conocer a '+P.DTS[v].nombre+'">+</button>')+'</div><div class="dt-dat"><b>'+P.DTS[v].nombre+'</b><span class="nota">'+est+'</span></div>'+(host&&en&&(!a||a.bot)?'<button class="bt chico lb-maq" data-lb="'+ix+'">'+(a?'Dejar lugar':'Máquina')+'</button>':(!en?'':(mio?'<button class="dt-cono" data-lcc="'+v+'" aria-label="Color de tu cono. Tocá para cambiarlo">'+cono({cc:a.cc!=null?a.cc:v},24)+'</button>':cono({cc:a&&a.cc!=null?a.cc:v},22))))+'</div>';}
   var miCus=miSi>=0&&l.a[miSi]&&l.a[miSi].cus;
   s+=caja('Elegí a tu DT',filas);
-  if(host)s+='<button class="bt oro" id="arrancar"'+(listos?'':' disabled')+'>'+(listos?'¡Arrancar el partido!':'Faltan lugares por completar')+'</button>';
+  if(host)s+='<button class="bt bt-empezar" id="arrancar"'+(listos?'':' disabled')+'>'+(listos?PELOTA+'<span>¡Arrancar el partido!</span>'+PELOTA:'<span>Faltan lugares por completar</span>')+'</button>';
   else s+='<div class="aviso"><b>Ya estás adentro</b>Esperá a que arranque el que armó la sala.</div>';
   s+='<button class="bt chico" id="dejarLobby">Salir de la sala</button></div>';
   app.innerHTML=s;
@@ -1208,18 +1267,23 @@ function pantallaLobby(){
   app.querySelectorAll('[data-ledit]').forEach(function(x){x.onclick=function(){var v4=+x.dataset.ledit,yoA=l.a[miSi]||{},tom=[];
     for(var k4=0;k4<l.n;k4++)if(k4!==miSi&&l.a[k4])tom.push(l.a[k4].cc!=null?l.a[k4].cc:dts[k4]);
     ui.modal={tipo:'editDT',online:true,i:v4,r:miCus?JSON.parse(JSON.stringify(miCus)):null,nombre:yoA.nom||miNombre()||P.DTS[v4].nombre,cc:yoA.cc!=null?yoA.cc:v4,tomados:tom};pintarModal(null,null,null);};});
-  app.querySelectorAll('[data-lcc]').forEach(function(x){x.onclick=function(){var v4=+x.dataset.lcc,yoA=l.a[miSi]||{},tom=[];
-    for(var k4=0;k4<l.n;k4++)if(k4!==miSi&&l.a[k4])tom.push(l.a[k4].cc!=null?l.a[k4].cc:dts[k4]);
-    ui.modal={tipo:'colorCono',online:true,i:v4,nombre:yoA.nom||miNombre()||P.DTS[v4].nombre,cc:yoA.cc!=null?yoA.cc:v4,tomados:tom};pintarModal(null,null,null);};});
+  // Tocando tu cono pasa al color siguiente que no use otro DT
+  app.querySelectorAll('[data-lcc]').forEach(function(x){x.onclick=function(){lob(function(y){var dd=y.dts||[0,1,2,3,4],me=-1,tom=[];y.a.forEach(function(q,k){if(q&&q.id===id&&k<y.n)me=k;});if(me<0)return;
+    for(var k4=0;k4<y.n;k4++)if(k4!==me&&y.a[k4])tom.push(y.a[k4].cc!=null?y.a[k4].cc:dd[k4]);
+    y.a[me].cc=colorSiguiente(y.a[me].cc!=null?y.a[me].cc:dd[me],tom);});};});
+  // Sumar o sacar un DT: los que juegan son los primeros n de la lista
+  app.querySelectorAll('[data-ltog]').forEach(function(x){x.onclick=function(){var v5=+x.dataset.ltog,ixv=dts.indexOf(v5);
+    if(ixv<l.n&&l.n<=2){mostrarAviso('Tienen que jugar 2 DTs como mínimo.');return;}
+    lob(function(y){var dd=y.dts||[0,1,2,3,4],o=dd.indexOf(v5);
+      if(o<y.n){if(y.n<=2||(y.a[o]&&!y.a[o].bot))return;dd.splice(o,1);dd.push(v5);y.a.splice(o,1);y.a.push(null);y.n--;}
+      else{if(y.n>=5)return;var t=dd[y.n];dd[y.n]=v5;dd[o]=t;y.a[y.n]=null;y.n++;}
+      y.dts=dd;});};});
   document.getElementById('copiarLink').onclick=function(){try{navigator.clipboard.writeText(link).then(function(){mostrarAviso('Link copiado.');},function(){mostrarAviso(link);});}catch(e){mostrarAviso(link);}};
   document.getElementById('dejarLobby').onclick=function(){if(!host)lob(function(x){x.a=x.a.map(function(q){return q&&q.id===id?null:q;});});dejarSala(true);pantallaInicio();};
-  app.querySelectorAll('[data-ln]').forEach(function(x){x.onclick=function(){var n=+x.dataset.ln;lob(function(y){for(var k=n;k<5;k++)if(y.a[k]&&!y.a[k].bot)return;for(var k2=n;k2<5;k2++)y.a[k2]=null;y.n=n;});};});
   app.querySelectorAll('[data-ll]').forEach(function(x){x.onclick=function(){lob(function(y){y.limite=+x.dataset.ll;});};});
   app.querySelectorAll('[data-lm]').forEach(function(x){x.onclick=function(){lob(function(y){y.modo=x.dataset.lm;});};});
   app.querySelectorAll('[data-verficha]').forEach(function(x){x.onclick=function(){ui.modal={tipo:'dt',dt:+x.dataset.verficha};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-lpick]').forEach(function(x){x.onclick=function(){var v2=+x.dataset.lpick;lob(function(y){var dd=y.dts||[0,1,2,3,4],me=-1;y.a.forEach(function(q,ix2){if(q&&q.id===id&&ix2<y.n)me=ix2;});if(me<0)return;var o=dd.indexOf(v2);if(o===me)return;if(o<y.n&&y.a[o]&&!y.a[o].bot)return;var t=dd[me];dd[me]=v2;dd[o]=t;y.dts=dd;});};});
-  // Un DT que todavía no tiene lugar: entra como Máquina, en el primer lugar libre o en el de otra Máquina
-  app.querySelectorAll('[data-lfuera]').forEach(function(x){x.onclick=function(){var v3=+x.dataset.lfuera;lob(function(y){var dd=y.dts||[0,1,2,3,4],k=-1,q;for(q=0;q<y.n;q++)if(!y.a[q]){k=q;break;}if(k<0)for(q=y.n-1;q>=0;q--)if(y.a[q]&&y.a[q].bot){k=q;break;}if(k<0)return;var o=dd.indexOf(v3),t=dd[k];dd[k]=v3;dd[o]=t;y.dts=dd;y.a[k]={bot:true};});};});
   app.querySelectorAll('[data-lb]').forEach(
 function(x){x.onclick=function(){var k=+x.dataset.lb;lob(function(y){if(y.a[k]&&!y.a[k].bot)return;y.a[k]=y.a[k]?null:{bot:true};});};});
   var ar=document.getElementById('arrancar');if(ar)ar.onclick=function(){
@@ -1263,14 +1327,14 @@ var TUTO=[
     tap:function(g,k){g.jug[0].pos=k;var pos=P.ANILLO.indexOf(g.barras[0]),sig=P.ANILLO[(pos+1)%15];if(g.jug.some(function(q){return q.pos===sig;}))sig=P.ANILLO[(pos+2)%15];g.barras=[sig];}},
   {tit:'Los Barrabravas avanzan solos',txt:function(){return 'El ñoqui avanzó una esquina en sentido horario. Este es su recorrido entero, la <b>Avenida Circunvalación</b>. Nadie puede pasar por donde está, así que a veces te cierra el camino que querías.';},
     encima:function(){return '<polygon class="ruta" points="'+P.ANILLO.map(function(k){return XY[k][0].toFixed(1)+','+XY[k][1].toFixed(1);}).join(' ')+'" pointer-events="none"/>';},boton:'Seguir'},
-  {tit:'¡Cuidado con las zonas oscuras!',txt:function(){return 'Tu cono toca una zona de <b>Mala Fama</b> y salió su número: te cayó una <b>Multa</b>. Traba las cartas de ese Recurso (mirá las grises en tu mano) hasta que la pagues. Tocá <b>Canjear</b> y pagala.';},
+  {tit:'¡Cuidado con las zonas oscuras!',txt:function(){return 'Tu cono toca una zona de <b>Mala Fama</b> y salió su número: te cayó una <b>Multa</b>. Traba las cartas de ese Recurso (mirá las grises en tu mano) hasta que la pagues. Tocá <b>Negocios</b> y pagala.';},
     prep:function(g){var me=g.jug[0],z=11+P.NODOS[me.pos].i;cobraTuto(g,[g.num[z],g.num[z]===2?3:2]);var r=tutoRec(g);me.multas[r]=1;g.ultTiro.mul.push({j:0,r:r});},
-    boton:'Canjear',claseBoton:'c-canje',abre:'canjes',obj:'[data-pagar]',acc:function(g){var me=g.jug[0],r=P.REC.filter(function(k){return me.multas[k];})[0];me.multas[r]=0;me.mano[r]--;mostrarPagoMulta(g,{j:0,r:r});}},
-  {tit:'Canjeá Recursos por Tokens',txt:function(){return 'Con Recursos se compran <b>Tokens</b>, y con Tokens se contratan Jugadores. Para que no tengas que esperar, te adelantamos lo que falta. Tocá <b>Canjear</b> y comprá el de Victoria.';},
+    boton:'Negocios',claseBoton:'bt-neg',abre:'canjes',obj:'[data-pagar]',acc:function(g){var me=g.jug[0],r=P.REC.filter(function(k){return me.multas[k];})[0];me.multas[r]=0;me.mano[r]--;mostrarPagoMulta(g,{j:0,r:r});}},
+  {tit:'Canjeá Recursos por Tokens',txt:function(){return 'Con Recursos se compran <b>Tokens</b>, y con Tokens se contratan Jugadores. Para que no tengas que esperar, te adelantamos lo que falta. Tocá <b>Negocios</b> y comprá el de Victoria.';},
     prep:function(g){var me=g.jug[0];P.REC.forEach(function(r){me.mano[r]=Math.max(me.mano[r],(P.PRECIO.V[r]||0)+(P.PRECIO.E[r]||0));});},
-    boton:'Canjear',claseBoton:'c-canje',abre:'canjes',obj:'[data-token="V"]',acc:function(g){var me=g.jug[0];for(var r in P.PRECIO.V)me.mano[r]-=P.PRECIO.V[r];me.V=1;mostrarToken(g,{j:0,tk:'V'});}},
-  {tit:'Y otro de Efectivo',txt:function(){return 'En el Partido completo, cada Jugador cuesta uno de cada uno. En el Partido rápido, 1 solo. Tocá <b>Canjear</b> y comprá el de Efectivo.';},
-    boton:'Canjear',claseBoton:'c-canje',abre:'canjes',obj:'[data-token="E"]',acc:function(g){var me=g.jug[0];for(var r in P.PRECIO.E)me.mano[r]-=P.PRECIO.E[r];me.E=1;mostrarToken(g,{j:0,tk:'E'});}},
+    boton:'Negocios',claseBoton:'bt-neg',abre:'canjes',obj:'[data-token="V"]',acc:function(g){var me=g.jug[0];for(var r in P.PRECIO.V)me.mano[r]-=P.PRECIO.V[r];me.V=1;mostrarToken(g,{j:0,tk:'V'});}},
+  {tit:'Y otro de Efectivo',txt:function(){return 'En el Partido completo, cada Jugador cuesta uno de cada uno. En el Partido rápido, 1 solo. Tocá <b>Negocios</b> y comprá el de Efectivo.';},
+    boton:'Negocios',claseBoton:'bt-neg',abre:'canjes',obj:'[data-token="E"]',acc:function(g){var me=g.jug[0];for(var r in P.PRECIO.E)me.mano[r]-=P.PRECIO.E[r];me.E=1;mostrarToken(g,{j:0,tk:'E'});}},
   {tit:'Contratá a tu primer Jugador',txt:function(){return 'Estás parado en un Mercado de Pases. Entrá, tocá un Jugador y contratalo. Podés entrar y salir todas las veces que quieras en tu turno.';},
     boton:'Entrar al Mercado de Pases',claseBoton:'rojo',abre:'mercado',
     elige:function(g,i){var me=g.jug[0],m=g.mercados[g.mercadoAbierto],c=m.splice(i,1)[0];me.eq[c.pos]=c;me.V=0;me.E=0;g.mercadoAbierto=null;ui.mercSel=null;mostrarFichaje(g,{j:0,c:c,cambio:false});}},
@@ -1296,15 +1360,16 @@ function tutoSalir(){ui.tuto=null;ui.tutoHook=null;ui.modal=null;ui.oferta=null;
 function pintarTuto(){
   var t=ui.tuto,g=t.g,p=TUTO[t.i],me=g.jug[0],m=p.marc?p.marc(g):[],val=function(x){return typeof x==='function'?x(g):x;},c=P.DTS[0];
   var h='<div class="juego tuto"><div class="barra">'+cono(0,28)+'<div class="q"><b>Tutorial</b><span>Paso '+(t.i+1)+' de '+TUTO.length+'</span></div><button class="x-cerrar" id="tutoX" aria-label="Salir del Tutorial">✕</button></div>';
-  h+='<div class="col-mesa">'+conDT(g,'<div class="relator" style="--dtc:'+c.color+';--dtt:'+c.tinta+'"><span class="rel-tag">El Relator</span><b class="rel-tit">'+val(p.tit)+'</b><div class="rel-x">'+p.txt(g)+'</div>'+(p.oferta&&g.oferta?panelOferta(g,0):'')+'</div>')+'<div class="tuto-barra"><i style="width:'+Math.round((t.i+1)/TUTO.length*100)+'%"></i></div><div class="mesa">'+tiradaCol(g)+dibujarTablero(g,m,p.encima?p.encima():'')+historial(g)+'<button class="vista-tab" id="vistaTab">'+(ui.vista==='det'?(ui.arteHaciendo?'Armando el tablero…':'Ver tablero simplificado'):'Ver tablero detallado')+'</button></div></div>';
+  h+='<div class="col-mesa">'+conDT(g,'<div class="relator" style="--dtc:'+c.color+';--dtt:'+c.tinta+'"><span class="rel-tag">El Relator</span><b class="rel-tit">'+val(p.tit)+'</b><div class="rel-x">'+p.txt(g)+'</div>'+(p.oferta&&g.oferta?panelOferta(g,0):'')+'</div>')+'<div class="tuto-barra"><i style="width:'+Math.round((t.i+1)/TUTO.length*100)+'%"></i></div><div class="mesa">'+tiradaCol(g)+dibujarTablero(g,m,p.encima?p.encima():'')+historial(g)+'<button class="vista-tab" id="vistaTab">'+(ui.vista==='det'?(ui.arteHaciendo?'Armando el tablero…':'Ver tablero simplificado'):'Ver tablero detallado')+'</button>'+(p.boton==='Tirar los dados'?dadosMesa('tutoDados'):'')+'</div></div>';
   h+='<div class="col-der">'+(p.extra?'<div class="panel tuto-extra">'+p.extra(g)+'</div>':'')+manos(g,0,false);
   if(p.fin)h+='<div class="acc-prim"><button class="bt gr fuerte ancho" id="tutoVolver">Volver al inicio</button></div>';
-  else h+='<div class="acc-prim">'+(t.i?'<button class="bt gr" id="tutoAtras">Atrás</button>':'')+(p.boton?'<button class="bt gr '+(p.claseBoton||'oro')+'" id="tutoSig">'+esc(p.boton)+'</button>':'<span class="tuto-toca">'+(p.tap?'Tocá en el tablero':'Contestá la oferta')+'</span>')+'</div>';
+  else h+='<div class="acc-prim">'+(t.i?'<button class="bt gr" id="tutoAtras">Atrás</button>':'')+(p.boton==='Tirar los dados'?'<span class="tuto-toca">Tocá los dados en el tablero</span>':p.boton?'<button class="bt gr '+(p.claseBoton||'oro')+'" id="tutoSig">'+(p.claseBoton==='bt-neg'?ICO_TRATO+'<span>'+esc(p.boton)+'</span>':esc(p.boton))+'</button>':'<span class="tuto-toca">'+(p.tap?'Tocá en el tablero':'Contestá la oferta')+'</span>')+'</div>';
   app.innerHTML=h+'</div></div>';
   conectarEn(app,g,0,me);conectarManos();conectarAsa(g);
   function on(id,fn){var x=document.getElementById(id);if(x)x.onclick=fn;}
   on('tutoX',tutoSalir);on('tutoVolver',tutoSalir);
   on('tutoAtras',function(){t.i--;t.g=JSON.parse(t.hist.pop());ui.modal=null;ui.mercSel=null;var v=document.querySelector('.mundial');if(v)v.remove();pintarTuto();window.scrollTo(0,0);});
+  on('tutoDados',function(){tutoHacer(function(x){if(p.acc)p.acc(x);});});
   on('tutoSig',function(){if(p.abre){if(p.abre==='mercado')g.mercadoAbierto=P.NODOS[me.pos].i;ui.modal={tipo:p.abre};pintarTuto();return;}tutoHacer(function(x){if(p.acc)p.acc(x);});});
   on('vistaTab',function(){ui.vista=ui.vista==='det'?'simple':'det';try{localStorage.setItem('pexa-vista',ui.vista);}catch(e){}pintarTuto();});
   // La oferta se contesta en serio; la contraoferta queda para cuando juegues
