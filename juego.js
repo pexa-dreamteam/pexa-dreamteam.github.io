@@ -365,12 +365,13 @@ function canjearUsados(g,j,toma){
 function verCartas(g,j,m,txt){g.jug[j].conoce[m]={t:g.nTurnos,c:g.mercados[m].slice()};if(txt)anotar(g,g.jug[j].nombre+' '+txt+' un Mercado de Pases.');}
 function abrirMercado(g,j){
   var p=g.jug[j],m=mercadoDe(p.pos);if(m<0)falla('Tenés que estar parado en un Mercado de Pases.');
-  if(p.contrato)falla('Una contratación por turno.');
+  // Se puede entrar y salir todas las veces que quieras durante el turno, también después de contratar (para mirar)
   if(!g.mercados[m].length)falla('Este Mercado se quedó sin cartas.');
   p.miro=true;g.mercadoAbierto=m;g.fase='mercado';verCartas(g,j,m);
 }
 function contratar(g,j,ix2){
   var p=g.jug[j],m=g.mercadoAbierto,c=g.mercados[m][ix2];if(!c)falla('Esa carta no está.');
+  if(p.contrato)falla('Ya contrataste en este turno: una contratación por turno.');
   if(p.eq[c.pos])falla('Ya tenés esa posición: podés cambiarlo.');
   if(contratados(p)>=g.meta)falla('Tu equipo ya está completo.');
   if(!puedeFichar(g,p,c)){var tq=tokenDe(g,c);falla(tq?'Este Jugador se paga con 1 Token de '+(tq==='V'?'Victoria':'Efectivo')+'.':'Se paga con 1 Token de Victoria y 1 de Efectivo.');}
@@ -385,6 +386,7 @@ function devuelveConDefensor(g,p,c){
 }
 function cambiarJugador(g,j,ix2,tk){
   var p=g.jug[j],m=g.mercadoAbierto,c=g.mercados[m][ix2];if(!c)falla('Esa carta no está.');
+  if(p.contrato)falla('Ya contrataste en este turno: una contratación por turno.');
   if(!p.eq[c.pos])falla('No tenés esa posición: se contrata, no se cambia.');
   if(p[tk]<1)falla('No tenés ese Token.');
   var viejo=p.eq[c.pos];g.mercados[m].splice(ix2,1);g.mercados[m].push(viejo);p.eq[c.pos]=c;p[tk]--;g.tokens[tk]++;p.contrato=true;st(p).cambios++;
