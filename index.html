@@ -733,8 +733,8 @@ svg.dd.dd-t{display:inline-block;vertical-align:-.28em;margin:0 .08em}
 @keyframes conoGira{0%{transform:scale(.4) rotate(-40deg)}100%{transform:none}}
 /* Inicio: Empezar el partido y Seguir el partido guardado */
 .bt-empezar{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;background:linear-gradient(180deg,#ffe58a,#f0b92c 55%,#d99a12);color:var(--tinta);border:3px solid var(--tinta);border-radius:14px;font:400 19px var(--d);letter-spacing:.03em;box-shadow:0 4px 0 var(--tinta),0 0 18px rgba(255,216,58,.55);position:relative;overflow:hidden;cursor:pointer}
-.bt-empezar::after{content:"";position:absolute;inset:-40% auto -40% -30%;width:30%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-20deg);animation:brillo 2.6s ease-in-out infinite}
-@keyframes brillo{0%,55%{left:-35%}100%{left:120%}}
+.bt-empezar::after{content:"";position:absolute;inset:-40% auto -40% -30%;width:30%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-20deg);animation:brilloBoton 2.6s ease-in-out infinite}
+@keyframes brilloBoton{0%,55%{left:-35%}100%{left:120%}}
 .bt-empezar .ic-pelota{width:26px;height:26px;flex:none;animation:pelotaGira 2.2s linear infinite}
 .bt-empezar .ic-pelota:last-child{animation-direction:reverse}
 @keyframes pelotaGira{to{transform:rotate(360deg)}}
@@ -788,9 +788,11 @@ svg.dd.dd-t{display:inline-block;vertical-align:-.28em;margin:0 .08em}
 .mano-p{flex:0 0 calc(100% - 22px)}
 .mn-fl{position:absolute;top:42%;z-index:3;display:grid;place-items:center;width:26px;height:44px;border-radius:13px;background:var(--tinta);color:var(--crema);font:700 24px/1 var(--t);box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;opacity:.85}
 .mn-der{right:2px;animation:mnInvita 1.6s ease-in-out 3}
-.mn-izq{left:2px;pointer-events:none;opacity:0;width:18px}
-.p-mano:not(.al-ini) .mn-izq{opacity:.45}
-.p-mano.al-fin .mn-der{opacity:0;pointer-events:none}
+.mn-fl{padding:0;border:0}
+.mn-izq{left:2px}
+.p-mano.al-ini .mn-izq,.p-mano.al-fin .mn-der{opacity:0;pointer-events:none}
+.p-mano .mn-pts{gap:2px;padding:1px 0 0}
+.mn-pts button{display:grid;place-items:center;width:26px;height:18px;padding:0;border:0;background:none;cursor:pointer}
 @keyframes mnInvita{0%,100%{transform:translateX(0)}50%{transform:translateX(-7px)}}
 .mn-pts{display:flex;justify-content:center;gap:6px;padding:4px 0 0}
 .mn-pts i{width:9px;height:9px;border-radius:50%;background:var(--dtc);border:1.5px solid var(--tinta);opacity:.45;transition:transform .2s,opacity .2s}

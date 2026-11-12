@@ -934,17 +934,21 @@ function manos(g,yo,verTodo){
   if(verTodo){l=g.jug.slice();}
   var ver=Math.min(ui.manoI||0,l.length-1);
   // Sin botones: se desliza. La mano de al lado asoma por el borde, abajo hay un puntito por DT y una flecha que invita a deslizar.
-  return '<div class="p-mano'+(ver===0?' al-ini':'')+(ver>=l.length-1?' al-fin':'')+'"><div class="manos" id="manos">'+l.map(function(q){return manoPanel(g,yo,q,verTodo);}).join('')+'</div><span class="mn-fl mn-der" aria-hidden="true">›</span><span class="mn-fl mn-izq" aria-hidden="true">‹</span><div class="mn-pts" aria-hidden="true">'+l.map(function(q,i){return '<i class="'+(i===ver?'on':'')+'" style="--dtc:'+colJ(q).color+'"></i>';}).join('')+'</div></div>';
+  return '<div class="p-mano'+(ver===0?' al-ini':'')+(ver>=l.length-1?' al-fin':'')+'"><div class="manos" id="manos">'+l.map(function(q){return manoPanel(g,yo,q,verTodo);}).join('')+'</div><button class="mn-fl mn-der" aria-label="Ver la mano siguiente">›</button><button class="mn-fl mn-izq" aria-label="Ver la mano anterior">‹</button><div class="mn-pts" role="group" aria-label="Ver la mano de">'+l.map(function(q,i){return '<button data-irmano="'+i+'" aria-label="Ver la mano de '+(q.id===yo?'vos':esc(q.nombre))+'" aria-pressed="'+(i===ver)+'"><i class="'+(i===ver?'on':'')+'" style="--dtc:'+colJ(q).color+'"></i></button>';}).join('')+'</div></div>';
 }
 function conectarManos(){
   var m=document.getElementById('manos');if(!m)return;
-  var pm=m.parentNode,ps=m.querySelectorAll('.mano-p'),pts=pm.querySelectorAll('.mn-pts i');
-  function marca(i){pts.forEach(function(b,j){b.classList.toggle('on',i===j);});pm.classList.toggle('al-ini',i===0);pm.classList.toggle('al-fin',i>=ps.length-1);}
+  var pm=m.parentNode,ps=m.querySelectorAll('.mano-p'),pts=pm.querySelectorAll('.mn-pts i'),pbs=pm.querySelectorAll('[data-irmano]');
+  function marca(i){pts.forEach(function(b,j){b.classList.toggle('on',i===j);});pbs.forEach(function(b,j){b.setAttribute('aria-pressed',String(i===j));});pm.classList.toggle('al-ini',i===0);pm.classList.toggle('al-fin',i>=ps.length-1);}
+  function ir(i){i=Math.max(0,Math.min(ps.length-1,i));ui.manoI=i;marca(i);m.scrollTo({left:ps[i].offsetLeft-ps[0].offsetLeft,behavior:'smooth'});}
+  // Las flechas van a la mano de al lado y los puntitos, a la de cada DT
+  var fi=pm.querySelector('.mn-izq');if(fi)fi.onclick=function(){ir(cual()-1);};
+  pbs.forEach(function(b){b.onclick=function(){ir(+b.dataset.irmano);};});
   function cual(){var best=0,bd=1e9;ps.forEach(function(p,i){var d=Math.abs(p.offsetLeft-m.offsetLeft-m.scrollLeft);if(d<bd){bd=d;best=i;}});return best;}
   m.style.scrollBehavior='auto';var pi=ps[Math.min(ui.manoI||0,ps.length-1)];m.scrollLeft=pi?pi.offsetLeft-ps[0].offsetLeft:0;
   var tm=null;m.onscroll=function(){clearTimeout(tm);tm=setTimeout(function(){var i=cual();ui.manoI=i;marca(i);},80);};
   // La flecha también se puede tocar
-  var fl=pm.querySelector('.mn-der');if(fl)fl.onclick=function(){var i=Math.min(ps.length-1,cual()+1);m.scrollTo({left:ps[i].offsetLeft-ps[0].offsetLeft,behavior:'smooth'});};
+  var fl=pm.querySelector('.mn-der');if(fl)fl.onclick=function(){ir(cual()+1);};
 }
 // Partido entre máquinas: se ve todo de todos
 function espectador(g,pa){
