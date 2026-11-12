@@ -16,21 +16,21 @@ var ZONA=['Estacionamiento La Canterita','Rotisería El Chulengo','Cementerio de
 var POS=['Arquero','Defensor','Volante','Delantero'];
 var HABILIDAD=['Podés usar su Recurso para pagar cualquier Multa.','Al contratarlo devolvés todas tus Multas de su Recurso. Desde ahí, esa Multa te rebota: no te cae. Y si un rival la paga, ese pago es tuyo.','En cualquier lugar cambiás 2 de su Recurso por 1 a elección. En la Boletería de su Recurso, 1 por 1.','Cuando cobrás su Recurso, levantás el doble.'];
 var PLANTEL={gol:['Polaco','Moncho','Nano','Cocho'],suerte:['Caba','Mosca','Tanos','Topo'],picardia:['Pipes','Tomo','Krupo','Chun'],fans:['Tuki','Joaquinho','Baigo','Juane'],sponsors:['Nico','Falso Topo','Guido','Cale']};
-var DTS=[{id:'abuelo',nombre:'El Abuelo',color:'#f4f1ea',tinta:'#2b2620'},{id:'mister',nombre:'El Míster',color:'#26231f',tinta:'#f6efe0'},{id:'dona',nombre:'La Doña',color:'#e77fb3',tinta:'#2b2620'},{id:'loco',nombre:'El Terror del Río',color:'#7b4fa3',tinta:'#f6efe0'},{id:'profe',nombre:'El Gallo',color:'#7cc4e4',tinta:'#2b2620'}];
-// Los colores de cono que se pueden elegir: los cinco de siempre primero, en el orden de los DTs
-var CONOS=[{c:'#f4f1ea',t:'#2b2620',n:'Blanco'},{c:'#26231f',t:'#f6efe0',n:'Negro'},{c:'#e77fb3',t:'#2b2620',n:'Rosa'},{c:'#7b4fa3',t:'#f6efe0',n:'Violeta'},{c:'#7cc4e4',t:'#2b2620',n:'Celeste'},{c:'#a5d94a',t:'#2b2620',n:'Verde lima'},{c:'#1fa89a',t:'#f6efe0',n:'Turquesa'},{c:'#f5ec6e',t:'#2b2620',n:'Amarillo limón'},{c:'#7a1f3d',t:'#f6efe0',n:'Bordó'},{c:'#9a9890',t:'#2b2620',n:'Gris'}];
-// Los colores de los conos no repiten los de los Recursos (azul, verde, dorado, naranja y rojo): son otros tonos
+var DTS=[{id:'abuelo',nombre:'El Abuelo',color:'#233a7a',tinta:'#f6efe0'},{id:'mister',nombre:'El Míster',color:'#26231f',tinta:'#f6efe0'},{id:'dona',nombre:'La Doña',color:'#e77fb3',tinta:'#2b2620'},{id:'loco',nombre:'El Terror del Río',color:'#ee2a24',tinta:'#fff'},{id:'profe',nombre:'El Gallo',color:'#1fa89a',tinta:'#f6efe0'}];
+// Las cinco Cábalas (las fichas de los DTs), cada una de su color: por defecto, una por DT en el orden de los DTs
+var CONOS=[{c:'#233a7a',t:'#f6efe0',n:'Cono',o:'cono',col:'azul Piluso'},{c:'#26231f',t:'#f6efe0',n:'Muleta',o:'muleta',col:'negra'},{c:'#e77fb3',t:'#2b2620',n:'Piluso',o:'piluso',col:'rosa'},{c:'#ee2a24',t:'#fff',n:'Botín',o:'botin',col:'rojo'},{c:'#1fa89a',t:'#f6efe0',n:'Guante',o:'guante',col:'turquesa'}];
+// El azul del Cono y el rojo del Botín se parecen a Gol y Sponsors, pero la forma las distingue
 var BENEF={
   tactica:{n:'Cambio de Táctica',t:'Después de tirar, elegí con qué dado mover.',g:'mov'},
-  ganador:{n:'Equipo que gana no se toca',t:'Después de tirar, podés no mover tu cono.',g:'mov'},
+  ganador:{n:'Equipo que gana no se toca',t:'Después de tirar, podés no mover tu Cábala.',g:'mov'},
   contra:{n:'Contraataque',t:'Después de tirar, mové la suma de los dos dados.',g:'mov'},
-  libre:{n:'Cancha Libre',t:'Este turno tu cono puede pasar por encima de conos y Barrabravas.',g:'mov'},
+  libre:{n:'Cancha Libre',t:'Este turno tu Cábala puede pasar por encima de Cábalas y Barrabravas.',g:'mov'},
   volador:{n:'Arquero Volador',t:'Después de tirar, mové una intersección más o una menos de lo que marca el dado blanco.',g:'mov'},
-  jet:{n:'Jet Privado',t:'En vez de mover, poné tu cono en cualquier intersección libre. También sirve para levantar la Copa en el centro del Palco si ya cumplís todo para ganar.',g:'mov'},
+  jet:{n:'Jet Privado',t:'En vez de mover, poné tu Cábala en cualquier intersección libre. También sirve para levantar la Copa en el centro del Palco si ya cumplís todo para ganar.',g:'mov'},
   extra:{n:'Recurso Extra',t:'Tomá del Banco 1 Recurso a elección.',p:['r']},
   uno:{n:'Intercambio 1:2',t:'Devolvé 1 Recurso al Banco y tomá 2 a elección.',p:['da','r','r2']},
   asistencia:{n:'Asistencia Forzosa',t:'Robale 1 Recurso al azar a cada DT.'},
-  descuento:{n:'Alargue',t:'Tirá el dado azul. Solo vos cobrás, y solo Recursos. Si tu cono no toca un hexágono con ese número, no cobrás nada; si lo toca, levantás el doble.'},
+  descuento:{n:'Alargue',t:'Tirá el dado azul. Solo vos cobrás, y solo Recursos. Si tu Cábala no toca un hexágono con ese número, no cobrás nada; si lo toca, levantás el doble.'},
   barrida:{n:'Barrida',t:'Elegí un DT y nombrá un Recurso: te llevás todos los que tenga de ese tipo. Si no tiene ninguno, perdiste el Beneficio.',p:['dt','r']},
   penal:{n:'Penal Burdo',t:'Tirá un dado. Con 4, 5 o 6, tomá un Token de Victoria. Con 1, 2 o 3, lo atajaron.'},
   dudoso:{n:'Penal Dudoso',t:'Tirá un dado. Con 4, 5 o 6, tomá un Token de Efectivo. Con 1, 2 o 3, lo atajaron.'},
@@ -44,9 +44,9 @@ var BENEF={
   espionaje:{n:'Espionaje',t:'Mirá en secreto las cartas de un Mercado de Pases.',p:['m']},
   figuritas:{n:'Cambio de Figuritas',t:'Elegí un DT que tenga un Jugador de una posición que vos también tenés: se cambian esos dos Jugadores.',p:['dt','pos']},
   dame:{n:'Dame un Beneficio',t:'Robale al azar 1 Beneficio sin usar a otro DT.',p:['dt']},
-  roja:{n:'Tarjeta Roja',t:'Elegí un DT: en su próximo turno no mueve su cono.',p:['dt']},
+  roja:{n:'Tarjeta Roja',t:'Elegí un DT: en su próximo turno no mueve su Cábala.',p:['dt']},
   gas:{n:'Gas Pimienta',t:'Reubicá a todos los Barrabravas en intersecciones libres de la Avenida Circunvalación.',p:['nodos']},
-  arreglo:{n:'Sospechoso Arreglo',t:'Este turno movés los Barrabravas antes que tu cono.',g:'mov'}
+  arreglo:{n:'Sospechoso Arreglo',t:'Este turno movés los Barrabravas antes que tu Cábala.',g:'mov'}
 };
 
 // ---------- Tablero ----------
@@ -120,7 +120,7 @@ function nuevaPartida(cfg){
   for(var m=0;m<5;m++)g.mercados.push(cartas.slice(m*4,m*4+4));
   cfg.dts.forEach(function(d,j){var ini=DTS[d.dt];g.jug.push({id:j,cid:d.cid||null,dt:d.dt,nombre:d.nombre||ini.nombre,bot:!!d.bot,pos:-1,mano:vacio(),multas:vacio(),V:0,E:0,eq:[null,null,null,null],
     benef:[],nuevos:[],usados:[],conoce:{},roja:false,usoB:false,amnistia:false,contrato:false,miro:false,cus:d.cus||null,cc:d.cc!=null&&CONOS[d.cc]?d.cc:d.dt});});
-  // Dos conos del mismo color no: el que llega después toma el primero libre
+  // Dos DTs con la misma Cábala no: el que llega después toma el primero libre
   // (primero se respetan los colores elegidos a mano, después los de siempre)
   var usados={},elegido=function(j){return cfg.dts[j].cc!=null&&!!CONOS[cfg.dts[j].cc];};
   [true,false].forEach(function(pasada){g.jug.forEach(function(p,j){if(elegido(j)!==pasada)return;if(usados[p.cc]){for(var c=0;c<CONOS.length;c++)if(!usados[c]){p.cc=c;break;}}usados[p.cc]=1;});});
@@ -485,10 +485,10 @@ function usarBeneficio(g,j,b,a){
     case 'espionaje':if(!g.mercados[a.m]||!g.mercados[a.m].length)falla('Ese Mercado está vacío.');st(p).espio++;verCartas(g,j,a.m);g.ultimaVista={j:j,m:a.m};break;
     case 'figuritas':q=otro(g,j,a.dt);if(!p.eq[a.pos]||!q.eq[a.pos])falla('Los dos tienen que tener esa posición.');var tc=p.eq[a.pos];p.eq[a.pos]=q.eq[a.pos];q.eq[a.pos]=tc;golpe(g,p.nombre+' te cambió a tu '+POS[a.pos]+' con Cambio de Figuritas.',q.id);ef={q:q.id,c1:tc,c2:p.eq[a.pos]};break;
     case 'dame':q=otro(g,j,a.dt);var lb=q.benef.concat(q.nuevos);if(!lb.length)falla('Ese DT no tiene Beneficios sin usar.');var rb=lb[Math.floor(az(g)*lb.length)];var ib=q.benef.indexOf(rb);if(ib>=0)q.benef.splice(ib,1);else q.nuevos.splice(q.nuevos.indexOf(rb),1);p.nuevos.push(rb);anotar(g,'Le sacaste '+BENEF[rb].n+'.',j);st(p).robo++;st(q).robado++;totales(g).robB++;golpe(g,p.nombre+' te robó '+BENEF[rb].n+' con Dame un Beneficio.',q.id);ef={q:q.id,rb:rb};break;
-    case 'roja':q=otro(g,j,a.dt);q.roja=true;st(q).rojas++;anotar(g,'Tarjeta Roja para '+q.nombre+': en su próximo turno no mueve el cono.');golpe(g,p.nombre+' te sacó Tarjeta Roja: en tu próximo turno no movés.',q.id);ef={q:q.id};break;
+    case 'roja':q=otro(g,j,a.dt);q.roja=true;st(q).rojas++;anotar(g,'Tarjeta Roja para '+q.nombre+': en su próximo turno no mueve su Cábala.');golpe(g,p.nombre+' te sacó Tarjeta Roja: en tu próximo turno no movés.',q.id);ef={q:q.id};break;
     case 'gas':if(!a.nodos||a.nodos.length!==g.barras.length)falla('Elegí un lugar para cada Barrabrava.');var viejos=g.barras;g.barras=[];
       for(var i2=0;i2<a.nodos.length;i2++){if(!NODOS[a.nodos[i2]]||!enRecorrido(a.nodos[i2])||ocupado(g,a.nodos[i2])){g.barras=viejos;falla('Tienen que ser intersecciones libres y distintas, en la Avenida Circunvalación.');}g.barras.push(a.nodos[i2]);}break;
-    case 'arreglo':usaYAnota(g,p,b);anotar(g,'Los Barrabravas avanzan antes que el cono de '+p.nombre+'.');g.mv.arreglo=true;iniciarBarras(g,true);return;
+    case 'arreglo':usaYAnota(g,p,b);anotar(g,'Los Barrabravas avanzan antes que la Cábala de '+p.nombre+'.');g.mv.arreglo=true;iniciarBarras(g,true);return;
   }
   // Primero se cuenta qué Beneficio se usó y después qué pasó
   usaYAnota(g,p,b);adelantar(g,nl0);
@@ -519,7 +519,7 @@ function textoEfecto(g,p,b,ef,q,a){
     case 'tactica':return p.nombre+' elige con qué dado mover.';
     case 'ganador':return p.nombre+' puede quedarse donde está.';
     case 'contra':return p.nombre+' camina la suma de los dados: '+(g.dados[0]+g.dados[1])+'.';
-    case 'libre':return 'Este turno el cono de '+p.nombre+' pasa por encima de todo.';
+    case 'libre':return 'Este turno la Cábala de '+p.nombre+' pasa por encima de todo.';
     case 'volador':return p.nombre+' puede caminar '+g.mv.pasos.join(' o ')+'.';
     case 'jet':return p.nombre+' puede ir a cualquier intersección libre.';
     case 'amnistia':return 'La próxima operación de '+p.nombre+' no mira las Multas.';

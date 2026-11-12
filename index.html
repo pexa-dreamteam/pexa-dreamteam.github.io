@@ -908,6 +908,74 @@ g.fig{transform-box:fill-box;transform-origin:50% 100%}
 .ng-oferta:disabled{background:#e4ddcc;box-shadow:none;opacity:.7;cursor:default}.ng-oferta:disabled svg{animation:none}
 @media (prefers-reduced-motion:reduce){.hoja.entra,.of.sale,.ng-bt.ok::after,.ng-oferta svg,.hoja.entra .ng{animation:none}}
 @media (prefers-reduced-motion:reduce){.dm-1,.dm-2,.dados-mesa,.bt-empezar::after,.bt-empezar .ic-pelota,.mp-alarma,.m9-alarma,.m9-c.sale,.ar-luces,.ar-pelota,.mn-der{animation:none}}
+/* ===== Ronda 44 ===== */
+/* Las ventanas son un cajón pegado abajo: sube al abrir, baja al cerrar, y se arrastra con el dedo. Sin cruz. */
+@media (max-width:999px){
+  .modal{padding:0}
+  .hoja{border-radius:20px 20px 0 0;max-height:calc(100dvh - 54px);padding:6px 14px max(16px,calc(env(safe-area-inset-bottom) + 12px));box-shadow:0 -6px 24px rgba(0,0,0,.35)}
+  .con-mano .hoja{max-height:calc(100dvh - 184px)}
+  .modal.con-mano .neg-mano{margin-bottom:6px}
+}
+.modal.se-va{transition:background .23s ease;background:rgba(20,20,30,0)!important}
+.hoja-asa{position:sticky;top:-6px;z-index:3;display:grid;place-items:center;width:calc(100% + 28px);height:22px;margin:-6px -14px -6px;padding:0;border:0;background:linear-gradient(var(--crema) 60%,transparent);cursor:grab;touch-action:none}
+.hoja-asa i{width:52px;height:6px;border-radius:3px;background:var(--tinta);opacity:.35}
+.hoja-asa:active{cursor:grabbing}.hoja-asa:active i{opacity:.6}
+.hoja>.x-cerrar{display:none}
+/* Las pestañas de las manos: una por DT, con su nombre. La elegida se pega a la mano; la del DT que juega, iluminada. */
+.mn-pts{display:none}
+.mn-tabs{position:relative;z-index:2;display:flex;gap:3px;margin:0 10px 0 12px;padding:0 9px}
+.mn-tab{position:relative;flex:1 1 0;min-width:0;height:21px;margin-top:-3px;padding:3px 4px 0;border:0;border-radius:0 0 9px 9px;background:var(--dtc);color:var(--dtt);font:700 11px/18px var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.62;cursor:pointer;box-shadow:inset 0 3px 3px -2px rgba(0,0,0,.35);transition:opacity .2s,height .2s}
+.mn-tab span{display:block;overflow:hidden;text-overflow:ellipsis}
+.mn-tab.on{opacity:1;height:24px;background:color-mix(in srgb,var(--dtc) 30%,var(--crema));color:var(--tinta);box-shadow:inset 3px 0 0 var(--dtc),inset -3px 0 0 var(--dtc),inset 0 -3px 0 var(--dtc)}
+.mn-tab.turno{opacity:1;outline:2.5px solid #ffd83a;outline-offset:-2.5px;animation:tabTurno 1.6s ease-in-out infinite}
+.mn-tab.turno::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);background-size:250% 100%;animation:tabBrillo 2.4s linear infinite;pointer-events:none}
+.mn-tab.turno.on{outline:none;box-shadow:inset 3px 0 0 var(--dtc),inset -3px 0 0 var(--dtc),inset 0 -3px 0 var(--dtc),0 3px 10px 1px rgba(255,200,40,.85)}
+@keyframes tabTurno{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18) drop-shadow(0 0 4px #ffd83a)}}
+@keyframes tabBrillo{from{background-position:150% 0}to{background-position:-100% 0}}
+/* Las cartas de la mano un poquito más arriba: el abanico no agranda el cuadro */
+.mano-p .abanico{margin-top:-6px}
+/* El lugar vacío de un Jugador: los de esa posición que viste */
+.pos-vistos{display:grid;gap:7px;background:#eef2fb;border:2px solid var(--piluso);border-radius:12px;padding:8px 10px}
+.pos-vistos>b{display:flex;align-items:center;gap:7px;font:400 15px var(--d);color:var(--piluso)}
+.pv-l{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.pv-c{display:grid;gap:3px;justify-items:center;padding:0;border:0;background:none;cursor:pointer;color:var(--tinta)}
+.pv-c .cartita{display:block;width:100%}.pv-c .cartita svg{display:block;width:100%;height:auto}
+.pv-c small{display:flex;align-items:center;gap:3px;font-size:11px;line-height:1.1;text-align:left}
+.pv-c small svg{flex:none}
+@media (prefers-reduced-motion:reduce){.mn-tab.turno,.mn-tab.turno::before{animation:none}}
+/* ===== Ronda 45 ===== */
+/* Un Jugador entra en acción */
+.fichaje.jug-ayuda{background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--dtc) 40%,#14182c),rgba(14,16,30,.94) 70%)}
+.ay-escena{position:relative;display:grid;place-items:center;width:min(230px,58vw);aspect-ratio:410/630}
+.ay-rayos{position:absolute;inset:-45%;background:repeating-conic-gradient(rgba(255,216,58,.32) 0 9deg,transparent 9deg 22deg);border-radius:50%;-webkit-mask:radial-gradient(circle,#000 30%,transparent 68%);mask:radial-gradient(circle,#000 30%,transparent 68%);animation:ayRayos 6s linear infinite}
+.ay-jug{position:relative;display:block;width:100%;animation:ayEntra .9s cubic-bezier(.2,1.5,.4,1) both;filter:drop-shadow(0 10px 18px rgba(0,0,0,.55))}
+.ay-jug svg{display:block;width:100%;height:auto}
+.ay-pos{position:absolute;left:50%;bottom:-14px;transform:translateX(-50%) rotate(-4deg);background:#ffd83a;color:var(--tinta);border:3px solid var(--tinta);border-radius:10px;padding:3px 12px;font:400 20px var(--d);white-space:nowrap;animation:aySello .5s .7s cubic-bezier(.2,1.8,.4,1) both;box-shadow:0 4px 0 var(--tinta)}
+.ay-mesa{display:flex;align-items:center;justify-content:center;gap:10px;min-height:96px;margin-top:6px}
+.ay-c{display:block;width:62px;animation:ayCarta .6s 1.1s cubic-bezier(.2,1.4,.4,1) both}.ay-c svg{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
+.ay-c2{animation-delay:1.5s}.ay-c3{margin-left:-36px;animation-delay:1.7s}
+.ay-sale{animation:ayCarta .6s 1.6s cubic-bezier(.2,1.6,.4,1) both}
+.ay-x{font:400 34px var(--d);color:#ffd83a;text-shadow:0 3px 0 var(--tinta);animation:ayCarta .5s 1.35s cubic-bezier(.2,1.8,.4,1) both}
+.ay-fl{font-style:normal;font-size:30px;color:#ffd83a;animation:ayCarta .4s 1.4s both}
+.ay-mu{position:relative;display:block;animation:ayCarta .6s 1.2s both}.ay-mu .sello{animation-delay:1.8s}
+.ay-rebota{animation:ayRebota 1.6s 1s ease-in both}
+@keyframes ayRayos{to{transform:rotate(360deg)}}
+@keyframes ayEntra{0%{transform:translateY(60px) scale(.4) rotate(-12deg);opacity:0}60%{opacity:1}100%{transform:none}}
+@keyframes aySello{from{transform:translateX(-50%) scale(2.4) rotate(-14deg);opacity:0}to{transform:translateX(-50%) rotate(-4deg);opacity:1}}
+@keyframes ayCarta{from{transform:translateY(30px) scale(.5);opacity:0}to{transform:none;opacity:1}}
+@keyframes ayRebota{0%{transform:translate(-160px,-120px) rotate(-30deg);opacity:0}15%{opacity:1}45%{transform:translate(0,0) rotate(0)}60%{transform:translate(0,0) scale(1.12,.86)}100%{transform:translate(180px,-200px) rotate(40deg);opacity:0}}
+/* Revolear los dados */
+.revoleo{position:fixed;inset:0;z-index:46;pointer-events:none}
+.rv-d{position:absolute;left:0;top:0;width:52px;height:52px;will-change:transform;filter:drop-shadow(0 7px 5px rgba(0,0,0,.4))}
+.rv-d svg{display:block}
+.rv-d.cae svg{animation:rvCae .5s cubic-bezier(.2,1.8,.4,1)}
+.revoleo.listo .rv-d{filter:drop-shadow(0 0 10px #ffd83a) drop-shadow(0 6px 4px rgba(0,0,0,.35))}
+.revoleo.listo{animation:rvSale .5s ease-in 1.6s both}
+@keyframes rvCae{0%{transform:scale(1.35)}100%{transform:none}}
+@keyframes rvSale{to{opacity:0}}
+.dados-mesa.agarrado .dm-dados{opacity:.2}.dados-mesa.agarrado b{opacity:0}
+.dados-mesa{touch-action:none;cursor:grab}
+@media (prefers-reduced-motion:reduce){.ay-rayos,.ay-jug,.ay-pos,.ay-c,.ay-x,.ay-fl,.ay-mu,.ay-rebota{animation:none}}
 </style>
 </head>
 <body>
