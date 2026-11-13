@@ -1033,6 +1033,40 @@ g.fig{transform-box:fill-box;transform-origin:50% 100%}
 .fd-in{display:flex;gap:10px;align-items:center}.fd-carta{flex:none;width:86px;padding:0;border:0;background:none;cursor:pointer}.fd-carta svg{display:block;width:100%;height:auto;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3))}
 .fd-in b{display:block;font:400 17px var(--d)}.fd-in small{display:block;font-size:12.5px;color:#5e5446}.fd-in p{margin:4px 0 0;font-size:13.5px;line-height:1.3}
 .fd-carta{animation:fdBaila 3s ease-in-out infinite}@keyframes fdBaila{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) translateY(-3px)}}
+/* ===== Ronda 49 ===== */
+/* Pestañas del inicio: cada una de su color, y el cuadro de abajo del color de la elegida. La elegida se funde con el cuadro, sin taparlo. */
+.ini-com .ini-tabs{gap:6px;margin-bottom:0}
+.ini-com .ini-tabs button[data-itab]{color:#fff;box-shadow:none!important;border-radius:14px 14px 0 0!important;border-bottom:0;transition:opacity .2s,transform .2s}
+.ini-com .ini-tabs button[data-itab=online]{background:#2f5d9e;border-color:#2f5d9e}
+.ini-com .ini-tabs button[data-itab=local]{background:#7a3f8f;border-color:#7a3f8f}
+.ini-com .ini-tabs button[aria-selected=false]{opacity:.5;transform:translateY(5px)}
+.ini-com .ini-tabs button[aria-selected=true]{opacity:1;z-index:1}
+.ini-com .ini-tabs button[data-itab] b,.ini-com .ini-tabs button[data-itab] span{color:#fff}
+.ini-com .ini-panel{margin-top:-14px;border-top:0;border-radius:0 0 14px 14px}
+.ini-com .ini-panel.p-online{background:#2f5d9e;border-color:#2f5d9e}
+.ini-com .ini-panel.p-local{background:#7a3f8f;border-color:#7a3f8f}
+.ini-com .ini-panel>.nota,.ini-com .ini-panel>p{color:#fff}
+/* Salir de la sala: botón de salida, rojo y con borde */
+.bt-salir{background:#fff!important;color:#b23f3c!important;border:2.5px solid #b23f3c!important;box-shadow:0 3px 0 #b23f3c!important}
+.bt-salir:active{transform:translateY(2px);box-shadow:0 1px 0 #b23f3c!important}
+/* Elegir DT: flechas grandes a los costados de la cara */
+.dt-ed .dt-fl{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#fff;border:2px solid var(--tinta);box-shadow:0 2px 0 var(--tinta);font:700 22px/1 var(--t);opacity:1;padding:0 0 3px;margin:0 -4px;position:relative;z-index:1}
+.dt-ed .dt-fl:active{transform:translateY(2px);box-shadow:none}
+.dt-ed .dt-caraed .dt-tog{width:44px;height:44px}
+/* Un solo botón: Desactivado, Persona o Máquina */
+.dt-estado{display:inline-flex;align-items:center;gap:4px;min-height:27px;padding:2px 8px 2px 6px;border:2px solid var(--tinta);border-radius:16px;font:700 12px var(--t);cursor:pointer;box-shadow:0 2px 0 var(--tinta)}
+.dt-estado .ic-i{width:17px;height:17px}.dt-estado .de-fl{font-style:normal;opacity:.55;font-size:11px}
+.dt-estado.e-off{background:#e9e3d6;color:#6e6457;border-color:#8a7f6e;box-shadow:0 2px 0 #8a7f6e}
+.dt-estado.e-per{background:var(--piluso);color:var(--crema)}
+.dt-estado.e-maq{background:#fff;color:var(--tinta)}
+.dt-estado.cambia{animation:deCambia .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes deCambia{from{transform:scale(.8)}to{transform:none}}
+.dtelige.dt-ed:not(.on){opacity:1}.dtelige.dt-ed:not(.on) .dt-caraed,.dtelige.dt-ed:not(.on) .dt-nomw,.dtelige.dt-ed:not(.on) .dt-cono{opacity:.55}
+/* La ventana grande del DT con flechas */
+.dtg-ed{display:flex;align-items:center;justify-content:center;gap:6px}
+.dtg-fl{flex:none;width:46px;height:46px;border-radius:50%;background:#fff;border:2.5px solid var(--tinta);box-shadow:0 3px 0 var(--tinta);font:700 30px/1 var(--t);padding:0 0 4px;cursor:pointer}
+.dtg-fl:active{transform:translateY(2px);box-shadow:none}
+.dtg-ed{width:100%;min-width:0}.dtg-ed .dt-grande{flex:1 1 0;min-width:0;max-width:calc(100% - 104px)}.dtg-ed .dt-grande svg{width:100%;height:auto}
 /* Ventanas: el gesto es de la ventana, no del navegador */
 .modal{overscroll-behavior:contain}.hoja{overscroll-behavior-y:contain}.hoja-asa{height:30px;margin:-6px -14px -10px}
 /* El botón del Mercado de Pases, en el tablero */

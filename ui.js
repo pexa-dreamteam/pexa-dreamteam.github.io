@@ -783,13 +783,6 @@ var IC={
   entrar:icI('<path d="M11 3.5h7.5v17H11" fill="none" stroke="'+TI+'" stroke-width="1.8" stroke-linejoin="round"/><path d="M2.5 12H13M10 9l3 3-3 3" fill="none" stroke="#2f7a3a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>')
 };
 // ---------- Inicio ----------
-// Lo que suma la pestaña online: cómo se arma un partido en tres pasos y la figurita del día (un Jugador al azar, con lo que hace)
-var FIG_DIA=(function(){var r=P.REC[Math.floor(Math.random()*5)];return {club:r,pos:Math.floor(Math.random()*4)};})();
-function extraOnline(){
-  var pasos=[[IC.sala,'Uno arma la sala','y elige modo y tiempo.'],[IC.copiar,'Pasá el link','o el código de 4 letras.'],[IC.online,'Cada uno en su celu','elige su DT y a jugar.']];
-  var c=FIG_DIA;
-  return '<section class="caja on-pasos"><h3>Así se juega online</h3><ol>'+pasos.map(function(p,i){return '<li><span class="op-n">'+(i+1)+'</span><span class="op-ic">'+p[0].replace('width="20" height="20"','width="30" height="30"')+'</span><b>'+p[1]+'</b><small>'+p[2]+'</small></li>';}).join('')+'</ol></section>'+
-    '<section class="caja fig-dia"><h3>La figurita del día</h3><div class="fd-in"><button class="cartita fd-carta" data-vercarta="'+c.club+'-'+c.pos+'" aria-label="Ver a '+esc(P.nombreCarta(c))+'">'+K.jugador(c.club,c.pos)+'</button><div><b>'+esc(P.nombreCarta(c))+'</b><small>'+P.POS[c.pos]+' de '+esc(P.CLUB[c.club])+'</small><p>'+habilidadCarta(c)+'</p></div></div></section>';}
 // Jugadores escondidos en el inicio, en lugares raros: uno se asoma al lado del logo, otro cuelga de las pestañas,
 // otro hace jueguito arriba de todo y otro duerme la siesta sobre el botón de empezar. Cambian cada vez que se abre el juego.
 var LJ_SEL=(function(){var l=[];P.REC.forEach(function(r){for(var p=0;p<4;p++)l.push([r,p]);});for(var i=l.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),x=l[i];l[i]=l[j];l[j]=x;}return l.slice(0,4);})();
@@ -831,14 +824,13 @@ function pantallaInicio(){
   if(!ui.iniTab)ui.iniTab=redOk?'online':'local';
   var s='<div class="ini ini-com'+(hay?' con-guardado':'')+'"><div class="ini-cab"><span class="logo">'+K.logo('copa')+'</span><h1>PEXA<small>DREAM TEAM</small></h1>'+ljAsoma()+ljJueguito()+'</div>';
   s+='<div class="hero"><h2>Armá tu Dream Team y levantá la Copa antes que nadie.</h2><ol class="hero-pasos"><li><div class="hp-vis hp-esc">'+P.REC.map(function(r){return iconoCirc(r,30);}).join('')+'</div><b>Juntá Recursos</b><span>Tirás los dados y cobran todos.</span></li><li><div class="hp-vis hp-car">'+[['fans',0],['gol',1],['picardia',2],['sponsors',3]].map(function(x){return '<span>'+K.jugador(x[0],x[1])+'</span>';}).join('')+'</div><b>Contratá 4 Jugadores</b><span>Uno por posición, a tu gusto.</span></li><li><div class="hp-vis">'+COPA.replace('class="copa"','class="hp-copa"')+'</div><b>Levantá la Copa</b><span>El primero en el Palco gana.</span></li></ol><div class="hero-dato">2 a 5 DTs · 30 a 45 minutos</div><div class="hero-bts"><button class="bt oro bt-ic" id="verTuto">'+IC.tuto+'<span>Tutorial</span></button><button class="bt bt-ic" id="verReglas">'+IC.reglas+'<span>¿Cómo se juega?</span></button></div></div>';
-  s+='<div class="ini-tabs" role="tablist">'+(ui.iniTab==='online'?ljColgado():'')+'<button role="tab" data-itab="online" aria-selected="'+(ui.iniTab==='online')+'"><b>Juego online</b><span>'+IC.online+'Cada uno desde su celu</span></button><button role="tab" data-itab="local" aria-selected="'+(ui.iniTab==='local')+'"><b>Juego local</b><span>'+IC.local+'Todos en este aparato</span></button></div><div class="ini-panel">';
+  s+='<div class="ini-tabs" role="tablist">'+(ui.iniTab==='online'?ljColgado():'')+'<button role="tab" data-itab="online" aria-selected="'+(ui.iniTab==='online')+'"><b>Juego online</b><span>'+IC.online+'Cada uno desde su celu</span></button><button role="tab" data-itab="local" aria-selected="'+(ui.iniTab==='local')+'"><b>Juego local</b><span>'+IC.local+'Todos en este aparato</span></button></div><div class="ini-panel p-'+ui.iniTab+'">';
   if(ui.iniTab==='online'){
     if(redOk){
       s+='<label class="ent-ic">'+IC.nombre+'<input class="ent" id="miNombre" aria-label="Tu nombre" placeholder="Tu nombre" maxlength="12" value="'+esc(miNombre())+'"></label>';
       if(salaGuardada)s+='<button class="bt oro" id="volverSala">Volver a la sala '+esc(salaGuardada)+'</button>';
       s+=caja('¿Te pasaron un código?','<div class="fila"><input class="ent" id="codSala" aria-label="Código de la sala" placeholder="Código de 4 letras" maxlength="4" autocapitalize="characters"><button class="bt fuerte bt-ic" id="unirme">'+IC.entrar+'<span>Entrar</span></button></div>');
       s+=caja('¿Sos el que arma el partido?','<button class="bt oro bt-ic" id="crearSala">'+IC.sala+'<span>Armar una sala online</span></button><p class="nota" style="margin:0">Te damos un link y un código para pasarles a tus amigos.</p>');
-      s+=extraOnline();
     } else s+='<div class="aviso"><b>Para jugar cada uno desde su celu</b>Entrá por el link público: <a href="https://pexa-dreamteam.github.io/">pexa-dreamteam.github.io</a></div>';
   } else {
     s+=botonesJuego(conf.modo,conf.limite,'data-m','data-lim');
@@ -846,9 +838,9 @@ function pantallaInicio(){
     var filas='';
     for(var k5=0;k5<5;k5++){var i=ORDEN_DT[k5],d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0,nom=conf.nombres[i]||d.nombre;
       // Todo en el mismo renglón: flechas a los costados de la cara para cambiarla, el nombre se escribe ahí mismo y el dado inventa uno
-      filas+='<div class="dtelige dt-ed'+(on?' on':'')+'"><button class="dt-add" data-togdt="'+i+'" aria-pressed="'+on+'" aria-label="'+(on?'Sacar a ':'Sumar a ')+esc(nom)+'">'+(on?'✓':'+')+'</button>'+
+      filas+='<div class="dtelige dt-ed'+(on?' on':'')+'">'+
         '<div class="dt-caraed"><button class="dt-fl" data-carafl="-1" data-i="'+i+'" aria-label="Cara anterior de '+esc(nom)+'">‹</button><button class="dt-tog" data-verdt="'+i+'" aria-label="Ver a '+esc(nom)+' de cuerpo entero">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-fl" data-carafl="1" data-i="'+i+'" aria-label="Otra cara para '+esc(nom)+'">›</button></div>'+
-        '<div class="dt-dat"><div class="dt-nomw"><input class="dt-nom" data-nom="'+i+'" value="'+esc(nom)+'" maxlength="12" aria-label="Nombre del DT: tocá para cambiarlo" spellcheck="false"><button class="dt-dado" data-nomazar="'+i+'" aria-label="Un nombre al azar">'+DADO_NOM+'</button></div>'+(on?'<button class="dt-quien'+(h?' per':'')+'" data-h="'+i+'" data-v="'+(h?0:1)+'" aria-label="Lo juega '+(h?'una persona':'la Máquina')+'. Tocá para cambiar">'+(h?IC.persona+'Persona':IC.maquina+'Máquina')+'</button>':'<span class="nota">No juega</span>')+'</div><button class="dt-cono" data-ccdt="'+i+'" aria-label="Cábala de '+esc(nom)+': '+P.CONOS[ccLocal(i)].n+'. Tocá para cambiarla">'+cono({cc:ccLocal(i)},24)+'</button></div>';}    s+='<section class="caja lj-caja">'+ljEspia()+'<h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><div class="lj-cama">'+ljSiesta()+'<button class="bt bt-empezar" id="empezar">'+PELOTA+'<span>Empezar el partido</span>'+PELOTA+'</button></div>';
+        '<div class="dt-dat"><div class="dt-nomw"><input class="dt-nom" data-nom="'+i+'" value="'+esc(nom)+'" maxlength="12" aria-label="Nombre del DT: tocá para cambiarlo" spellcheck="false"><button class="dt-dado" data-nomazar="'+i+'" aria-label="Un nombre al azar">'+DADO_NOM+'</button></div>'+botonEstado(i,on,h,nom)+'</div><button class="dt-cono" data-ccdt="'+i+'" aria-label="Cábala de '+esc(nom)+': '+P.CONOS[ccLocal(i)].n+'. Tocá para cambiarla">'+cono({cc:ccLocal(i)},24)+'</button></div>';}    s+='<section class="caja lj-caja">'+ljEspia()+'<h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><div class="lj-cama">'+ljSiesta()+'<button class="bt bt-empezar" id="empezar">'+PELOTA+'<span>Empezar el partido</span>'+PELOTA+'</button></div>';
   }
   s+='</div>'+(hay?'<button class="bt bt-seguir" id="seguir">'+ICO_PLAY+'<span>Seguir el partido guardado</span></button>':'')+'</div>';
   app.innerHTML=s;
@@ -860,10 +852,13 @@ function pantallaInicio(){
   if(redOk&&ui.iniTab==='online')conectarAmigos(salaGuardada);
   app.querySelectorAll('[data-vercarta]').forEach(function(x){x.onclick=function(){guardarNombreInput();var q=x.dataset.vercarta.split('-');ui.modal={tipo:'jug',club:q[0],pos:+q[1]};pintarModal(null,null,null);};});
   // Cara: cada flecha muestra otra combinación al azar; volviendo para atrás aparecen las que ya viste (la primera es el original)
-  app.querySelectorAll('[data-carafl]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.i,dl=+x.dataset.carafl;conf.hist=conf.hist||{};conf.cus=conf.cus||{};var H=conf.hist[i3]||(conf.hist[i3]={h:[conf.cus[i3]||null],i:0});
-    if(dl>0){if(H.i<H.h.length-1)H.i++;else{H.h.push(comboAzar(i3));H.i=H.h.length-1;}}else{if(H.i>0)H.i--;else{H.h.unshift(comboAzar(i3));}}
-    var r=H.h[H.i];if(r)conf.cus[i3]=JSON.parse(JSON.stringify(r));else delete conf.cus[i3];pantallaInicio();};});
-  app.querySelectorAll('[data-verdt]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.verdt;ui.modal={tipo:'dt',dt:i3,cus:conf.cus&&conf.cus[i3]||null,nom:conf.nombres[i3]||P.DTS[i3].nombre};pintarModal(null,null,null);};});
+  // Desactivado → Persona → Máquina → Desactivado. Siempre juegan 2 como mínimo y al menos una persona.
+  app.querySelectorAll('[data-estado]').forEach(function(x){x.onclick=function(){leerNombres();var v=+x.dataset.estado,ix=conf.sel.indexOf(v),h=conf.filas[v].h;
+    if(ix<0){conf.sel.push(v);ordenarSel();liberarCC(v);conf.filas[v].h=true;}
+    else if(h){conf.filas[v].h=false;if(!conf.sel.some(function(q){return conf.filas[q].h;})){conf.filas[v].h=true;mostrarAviso('Tiene que jugar al menos una persona.');return;}}
+    else{if(conf.sel.length<=2){conf.filas[v].h=true;mostrarAviso('Tienen que jugar 2 DTs como mínimo.');}else conf.sel.splice(ix,1);}
+    pantallaInicio();var b2=app.querySelector('[data-estado="'+v+'"]');if(b2)b2.classList.add('cambia');};});  app.querySelectorAll('[data-carafl]').forEach(function(x){x.onclick=function(){leerNombres();cambiarCara(+x.dataset.i,+x.dataset.carafl);pantallaInicio();};});
+  app.querySelectorAll('[data-verdt]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.verdt;ui.modal={tipo:'dt',dt:i3,ed:true,cus:conf.cus&&conf.cus[i3]||null,nom:conf.nombres[i3]||P.DTS[i3].nombre};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-nomazar]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.nomazar,usados=conf.sel.map(function(q){return conf.nombres[q]||P.DTS[q].nombre;});conf.nombres[i3]=nombreAzar(usados);pantallaInicio();var n2=app.querySelector('[data-nomazar="'+i3+'"]');if(n2)n2.classList.add('rueda-dado');};});
   app.querySelectorAll('[data-nom]').forEach(function(x){x.onchange=function(){leerNombres();};x.onkeydown=function(e){if(e.key==='Enter')x.blur();};});
   // Tocando el cono pasa al color siguiente que no use otro DT
@@ -883,9 +878,16 @@ function pantallaInicio(){
     sala.g=P.nuevaPartida({dts:d,modo:conf.modo,limite:conf.limite,semilla:Math.floor(Math.random()*1e9),t0:Date.now()});ui.yo=null;reiniciarVista();ui.verDT=null;sala.guardar();actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
 }
 // Nombres de DT al azar (hasta 12 letras)
-var NOMBRES_DT=['El Profe','El Mago','El Flaco','El Sabio','El Tata','El Bigote','El Turbo','El Loco','El Capo','El Dire','El Patrón','El Pelado','El Mostro','El Toto','El Bocha','El Pibe','Don Tito','Don Coco','Don Pepe','El Lungo','El Zurdo','El Chueco','El Petiso','El Gringo','El Charro','La Jefa','La Profe','La Maga','La Capi','La Tana','La Flaca','Doña Pocha','Doña Tota','La Patrona','La Rubia','La Gringa','La Turbo','La Dire','La Doctora'];
+var NOMBRES_DT=['El Profe','El Mago','El Flaco','El Sabio','El Tata','El Bigote','El Turbo','El Loco','El Capo','El Dire','El Patrón','El Pelado','El Mostro','El Toto','El Bocha','El Pibe','Don Tito','Don Coco','Don Pepe','El Lungo','El Zurdo','El Chueco','El Petiso','El Gringo','El Charro','El Tano','El Vasco','El Polaco','El Payaso','El Pato','El Gato','El Toro','El Lobo','El Halcón','El Oso','El Bicho','El Tigre','El Pichi','El Chapa','El Ruso','El Colo','El Facha','El Bombón','El Galán','El Nene','El Abuelito','El Maestro','El Doctor','El Ingeniero','El Pastor','El Brujo','El Sheriff','El Capitán','El Duque','El Conde','El Mister X','El Guapo','El Ninja','El Rayo','El Trueno','El Tornado','El Cohete','El Motor','El Tractor','El Tanque','El Muro','El Pulpo','Don Ramón','Don Julio','Don Lucho','Don Cacho','Don Beto','Don Chicho','La Jefa','La Profe','La Maga','La Capi','La Tana','La Flaca','Doña Pocha','Doña Tota','La Patrona','La Rubia','La Gringa','La Turbo','La Dire','La Doctora','La Leona','La Tigresa','La Pantera','La Reina','La Duquesa','La Bruja','La Colo','La Chiqui','La Morocha','La Pocha','La Petisa','La Turca','La Vasca','La Polaca','Doña Rosa','Doña Chela','Doña Cata','La Maestra','La Rayo','La Cohete','La Ingeniera','La Capitana','La Sheriff','La Ninja'];
 function nombreAzar(usados){var l=NOMBRES_DT.filter(function(n){return usados.indexOf(n)<0;});if(!l.length)l=NOMBRES_DT;return l[Math.floor(Math.random()*l.length)];}
-var DADO_NOM='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5" fill="#fff" stroke="#2b2620" stroke-width="2"/><circle cx="8.2" cy="8.2" r="1.7" fill="#b23f3c"/><circle cx="12" cy="12" r="1.7" fill="#b23f3c"/><circle cx="15.8" cy="15.8" r="1.7" fill="#b23f3c"/></svg>';function ccLocal(i){return conf.cc&&conf.cc[i]!=null?conf.cc[i]:i;}
+var DADO_NOM='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5" fill="#fff" stroke="#2b2620" stroke-width="2"/><circle cx="8.2" cy="8.2" r="1.7" fill="#b23f3c"/><circle cx="12" cy="12" r="1.7" fill="#b23f3c"/><circle cx="15.8" cy="15.8" r="1.7" fill="#b23f3c"/></svg>';// Un solo botón por DT que pasa por los tres estados: Desactivado, Persona y Máquina
+function botonEstado(i,on,h,nom){var e=on?(h?'per':'maq'):'off',tx={off:'Desactivado',per:'Persona',maq:'Máquina'}[e],ic={off:IC_OFF,per:IC.persona,maq:IC.maquina}[e];
+  return '<button class="dt-estado e-'+e+'" data-estado="'+i+'" aria-label="'+esc(nom)+': '+tx+'. Tocá para cambiar">'+ic+'<span>'+tx+'</span><i class="de-fl" aria-hidden="true">⇄</i></button>';}
+var IC_OFF='<svg class="ic-i" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#fff" stroke="#8a7f6e" stroke-width="2"/><path d="M6 18L18 6" stroke="#8a7f6e" stroke-width="2.2" stroke-linecap="round"/></svg>';
+// Cambiar la cara de un DT: cada flecha muestra otra combinación al azar; volviendo para atrás aparecen las que ya viste (la primera es el original)
+function cambiarCara(i3,dl){conf.hist=conf.hist||{};conf.cus=conf.cus||{};var H=conf.hist[i3]||(conf.hist[i3]={h:[conf.cus[i3]||null],i:0});
+  if(dl>0){if(H.i<H.h.length-1)H.i++;else{H.h.push(comboAzar(i3));H.i=H.h.length-1;}}else{if(H.i>0)H.i--;else{H.h.unshift(comboAzar(i3));}}
+  var r=H.h[H.i];if(r)conf.cus[i3]=JSON.parse(JSON.stringify(r));else delete conf.cus[i3];}function ccLocal(i){return conf.cc&&conf.cc[i]!=null?conf.cc[i]:i;}
 // Al sumar un DT, si su Cábala ya la tiene otro de los que juegan, se lleva la primera libre (así no hay dos iguales)
 function liberarCC(v){var tom=conf.sel.filter(function(q){return q!==v;}).map(ccLocal);if(tom.indexOf(ccLocal(v))<0)return;for(var c=0;c<P.CONOS.length;c++)if(tom.indexOf(c)<0){conf.cc=conf.cc||{};if(c===v)delete conf.cc[v];else conf.cc[v]=c;return;}}
 function colorSiguiente(cur,tom){for(var k=1;k<=P.CONOS.length;k++){var c=(cur+k)%P.CONOS.length;if(tom.indexOf(c)<0)return c;}return cur;}
@@ -1202,6 +1204,8 @@ function pintarModal(g,yo,me){
   if(M.tipo==='barra')s='<div class="multa-g">'+icoBarra(150)+'</div><h2 style="margin:0">Barrabrava</h2><p style="margin:0">Después de que movés tu Cábala, cada Barrabrava avanza <b>solo</b> una intersección en sentido horario, por su recorrido. Si adelante hay una Cábala, la salta; si hay otro Barrabrava, se queda donde está.</p><p style="margin:0">Nadie puede pasar ni pararse donde hay un Barrabrava.</p>';
 
   if(M.tipo==='dt'){var zd=PIZ[M.dt],dd=P.DTS[M.dt];s=M.cus?'<div class="dt-grande">'+K.dtCustom(M.cus,true)+'</div><h2 style="margin:0">'+esc(M.nom||dd.nombre)+'</h2><p class="dt-frase">Un DT hecho a medida.</p>':'<div class="dt-grande">'+K.dtEntero(M.dt)+'</div><h2 style="margin:0">'+esc(dd.nombre)+'</h2><p class="dt-frase">"'+esc(zd.frase)+'"</p><p style="margin:0">'+esc(zd.como)+'</p><p style="margin:0"><b>Cómo juega.</b> '+esc(zd.estilo)+'</p>';}
+  // Si se abre desde la elección de DT, la cara se cambia acá también con flechas grandes
+  if(M.tipo==='dt'&&M.ed){s=s.replace('<div class="dt-grande">','<div class="dtg-ed"><button class="dtg-fl" data-dtfl="-1" aria-label="Cara anterior">‹</button><div class="dt-grande">').replace('</div>','</div><button class="dtg-fl" data-dtfl="1" aria-label="Otra cara">›</button></div>');s+='<p class="nota" style="margin:0;text-align:center">Con las flechas le cambiás la cara. Volviendo para atrás aparece la original.</p>';}
   if(M.tipo==='jug'){var c={club:M.club,pos:M.pos};s='<div class="grande">'+K.jugador(c.club,c.pos)+'</div><p style="margin:0"><b>'+P.POS[c.pos]+' de '+P.NOMBRE_REC[c.club]+'.</b> '+habilidadCarta(c)+'</p>';}
   if(M.tipo==='ben'){if(ui.tuto)M.solo=true;var ok=!M.solo&&!M.nuevo&&P.puedeUsarB(g,yo,M.b)&&!g.oferta;
     s='<div class="grande">'+K.beneficio(P.BENEF[M.b].n)+'</div>';
@@ -1243,6 +1247,7 @@ function pintarModal(g,yo,me){
   c2.querySelectorAll('[data-cerrar]').forEach(function(x){x.onclick=baja;});
   if(M.tipo==='crear')conectarCrear(c2,M);
   if(M.tipo==='editDT')conectarEditDT(c2,M);
+  c2.querySelectorAll('[data-dtfl]').forEach(function(b){b.onclick=function(){cambiarCara(M.dt,+b.dataset.dtfl);M.cus=conf.cus&&conf.cus[M.dt]||null;pantallaInicio();var h=c2.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;};});
   var ub=c2.querySelector('#usarB');if(ub)ub.onclick=function(){limpiarModales();usarBen(g,yo,M.b);};
   c2.querySelectorAll('[data-par]').forEach(function(x){x.onclick=function(){var v=x.dataset.val;if(x.dataset.par==='dt'||x.dataset.par==='pos')v=+v;M.a[x.dataset.par]=v;limpiarModales();pintarModal(g,yo,me);};});
   var cb=c2.querySelector('#confirmarB');if(cb)cb.onclick=function(){var a=Object.assign({t:'usar',b:M.b},M.a);limpiarModales();ui.modal=null;sala.enviar(yo,a);};
@@ -1459,7 +1464,7 @@ function pantallaLobby(){
   s+=caja('Elegí a tu DT',filas);
   if(host)s+='<button class="bt bt-empezar" id="arrancar"'+(listos?'':' disabled')+'>'+(listos?PELOTA+'<span>¡Arrancar el partido!</span>'+PELOTA:'<span>Faltan lugares por completar</span>')+'</button>';
   else s+='<div class="aviso"><b>Ya estás adentro</b>Esperá a que arranque el que armó la sala.</div>';
-  s+='<button class="bt chico bt-ic" id="dejarLobby">'+IC.salir+'<span>Salir de la sala</span></button></div>';
+  s+='<button class="bt chico bt-ic bt-salir" id="dejarLobby">'+IC.salir+'<span>Salir de la sala</span></button></div>';
   app.innerHTML=s;
   function lob(fn){sala.red.transaccion('lobby',function(cur){if(cur==null)return null;var x=JSON.parse(cur);fn(x);x.t=Date.now();return JSON.stringify(x);},function(){});}
   // Mi DT se edita igual que en el juego local: flechas, nombre y color del cono
