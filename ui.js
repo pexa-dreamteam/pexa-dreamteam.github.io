@@ -444,22 +444,41 @@ function mostrarPagoMulta(g,e){
 // El festejo: como si hubiera ganado el Mundial
 function festejarSiToca(){var g=sala.g;if(!g||g.fase!=='fin'||ui.festejo)return;ui.festejo=true;mostrarMundial(g);}
 var COPA='<svg class="copa" viewBox="0 0 120 170" aria-hidden="true"><defs><linearGradient id="oroCopa" x1="0" x2="1"><stop offset="0" stop-color="#a8761d"/><stop offset=".45" stop-color="#ffe27a"/><stop offset="1" stop-color="#b8862b"/></linearGradient></defs><path d="M28 16H6c0 32 10 48 30 52M92 16h22c0 32-10 48-30 52" fill="none" stroke="#b8862b" stroke-width="7"/><path d="M26 8h68c2 44-8 72-34 82C34 80 24 52 26 8Z" fill="url(#oroCopa)" stroke="#2b2620" stroke-width="3"/><path d="M38 16q-2 34 12 54" fill="none" stroke="#fff" stroke-width="5" opacity=".55" stroke-linecap="round"/><path d="M50 90h20l3 26H47Z" fill="url(#oroCopa)" stroke="#2b2620" stroke-width="3"/><path d="M34 116h52l7 22H27Z" fill="url(#oroCopa)" stroke="#2b2620" stroke-width="3"/><rect x="20" y="138" width="80" height="20" rx="3" fill="#22305a" stroke="#2b2620" stroke-width="3"/><text x="60" y="153" text-anchor="middle" font-family="Bowlby One SC,sans-serif" font-size="13" fill="#ffe27a">PEXA</text><path d="M60 26l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1Z" fill="#fff8d6" stroke="#2b2620" stroke-width="1.6"/></svg>';
+// El festejo del campeón, por etapas: se apagan las luces y baja el foco, cae la Copa, el sello de ¡CAMPEÓN!, el DT la levanta, llegan sus Jugadores y estallan los fuegos artificiales
+function duracionPartido(g){if(!g.t0||!g.t1)return '';var m=Math.max(1,Math.round((g.t1-g.t0)/60000));return m>=60?Math.floor(m/60)+' h '+(m%60)+' min':m+' min';}
 function mostrarMundial(g){
   var v=document.querySelector('.mundial');if(v)v.remove();
-  var p=g.jug[g.ganador],cs=p.eq.filter(Boolean).map(function(c,i){return '<span class="mu-carta" style="animation-delay:'+(1+i*.28).toFixed(2)+'s">'+K.jugador(c.club,c.pos)+'</span>';}).join('');
-  var t=el('<div class="mundial" role="dialog" aria-modal="true" aria-label="Campeón"><canvas></canvas><div class="mu-rayos"></div><div class="mu-in"><div class="mu-est">★ ★ ★</div>'+COPA+'<h1>¡Campeón del mundo!</h1><h2>'+esc(p.nombre)+'</h2><div class="mu-cono">'+cono(p,34)+'</div><p>¡Dale campeón, dale campeón! Levantó la Copa en el turno '+g.nTurnos+'.</p><div class="mu-eq">'+cs+'</div><button class="bt oro" id="muListo">Ver el certificado</button></div></div>').firstChild;
+  var p=g.jug[g.ganador],cs=p.eq.filter(Boolean).map(function(c,i){return '<span class="mu-carta" style="animation-delay:'+(3.1+i*.22).toFixed(2)+'s">'+K.jugador(c.club,c.pos)+'</span>';}).join('');
+  var dur=duracionPartido(g),dt=p.cus?K.dtCopaCus(p.cus):K.dtCopa(p.dt),cj=colJ(p);
+  var t=el('<div class="mundial epico" role="dialog" aria-modal="true" aria-label="'+esc(p.nombre)+' es el campeón" style="--dtc:'+cj.color+'"><canvas></canvas><div class="mu-rayos"></div><div class="mu-foco"></div><div class="mu-in">'+
+    '<div class="mu-escena"><div class="mu-copa-cae">'+COPA+'</div><div class="mu-dt">'+dt+'</div><b class="mu-sello">¡CAMPEÓN!</b></div>'+
+    '<div class="mu-est">★ ★ ★</div><h2 class="mu-nom">'+esc(p.nombre)+'</h2><div class="mu-sub"><span class="mu-cono">'+cono(p,30)+'</span><span>Levantó la Copa de la Liga PEXA</span></div>'+
+    '<div class="mu-datos"><span><b>'+g.nTurnos+'</b>turnos</span>'+(dur?'<span><b>'+dur+'</b>de partido</span>':'')+'<span><b>'+g.jug.length+'</b>DTs</span></div>'+
+    '<div class="mu-eq">'+cs+'</div><p class="mu-canto">¡Dale campeón, dale campeón!</p><button class="bt oro mu-listo" id="muListo">Ver el certificado y los premios</button></div></div>').firstChild;
   document.body.appendChild(t);
   var fin=false;t.querySelector('#muListo').onclick=function(){fin=true;t.remove();var r=document.getElementById('resumen');if(r)r.scrollIntoView();};
-  // Papelitos con los colores de los clubes
+  // Papelitos con los colores de los clubes y fuegos artificiales
   var cv=t.querySelector('canvas'),c=cv.getContext('2d');if(!c||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches))return;
   function medir(){cv.width=innerWidth;cv.height=innerHeight;}medir();
-  var cols=['#3f6aa6','#4d7a3a','#d9a61c','#d4692a','#b23f3c','#fbf8f1','#ffe27a'],pap=[];
+  var cols=['#3f6aa6','#4d7a3a','#d9a61c','#d4692a','#b23f3c','#fbf8f1','#ffe27a'],pap=[],chis=[],t0=performance.now(),prox=1500;
   for(var i=0;i<160;i++)pap.push({x:Math.random()*cv.width,y:-Math.random()*cv.height*1.4,w:5+Math.random()*7,h:8+Math.random()*9,v:1.6+Math.random()*3,o:Math.random()*6.3,f:Math.random()*.12+.03,col:cols[i%cols.length]});
-  (function cuadro(){if(fin||!t.isConnected)return;c.clearRect(0,0,cv.width,cv.height);pap.forEach(function(q){q.y+=q.v;q.o+=q.f;q.x+=Math.sin(q.o)*1.3;if(q.y>cv.height+20){q.y=-20;q.x=Math.random()*cv.width;}c.save();c.translate(q.x,q.y);c.rotate(q.o);c.scale(Math.cos(q.o*2),1);c.fillStyle=q.col;c.fillRect(-q.w/2,-q.h/2,q.w,q.h);c.restore();});requestAnimationFrame(cuadro);})();
-}
-// El resumen del final
+  function estalla(){var x=cv.width*(.15+Math.random()*.7),y=cv.height*(.08+Math.random()*.35),col=cols[Math.floor(Math.random()*cols.length)],n=46;for(var k=0;k<n;k++){var a=k/n*Math.PI*2,s=2+Math.random()*3.2;chis.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,v:1,col:col});}}
+  (function cuadro(now){if(fin||!t.isConnected)return;c.clearRect(0,0,cv.width,cv.height);var dtm=(now||t0)-t0;
+    if(dtm>2200)pap.forEach(function(q){q.y+=q.v;q.o+=q.f;q.x+=Math.sin(q.o)*1.3;if(q.y>cv.height+20){q.y=-20;q.x=Math.random()*cv.width;}c.save();c.translate(q.x,q.y);c.rotate(q.o);c.scale(Math.cos(q.o*2),1);c.fillStyle=q.col;c.fillRect(-q.w/2,-q.h/2,q.w,q.h);c.restore();});
+    if(dtm>prox){estalla();if(Math.random()<.5)estalla();prox=dtm+500+Math.random()*900;}
+    chis=chis.filter(function(q){q.x+=q.vx;q.y+=q.vy;q.vy+=.05;q.vx*=.985;q.v-=.012;if(q.v<=0)return false;c.globalAlpha=q.v;c.fillStyle=q.col;c.beginPath();c.arc(q.x,q.y,2.4,0,6.3);c.fill();c.globalAlpha=1;return true;});
+    requestAnimationFrame(cuadro);})();
+}// El resumen del final
 var MEN_IC={'Comerciante':'🤝','La vio':'🔮','Directo al Tribunal de Faltas':'⚖️','El Contador':'🧮','Mano larga':'🦝','Lo dejaron en patas':'🩴','El Cuponero':'🎟️','Mufa':'🐈‍⬛','Buchón':'🕵️','Modo Carrera':'🎮','Maratonista':'🏃','Amigo del Cajero':'🏦','Calesita':'🎠','Cobrador de Multas':'🧾','Seguro de Multas':'🛡️','Dados cargados':'🎲','No le compra a nadie':'🙅','Último orejón del tarro':'👂','Fútbol Champagne':'🍾','Rejunte':'🧲'};
-var FILAS_DT=[['cobro','Recursos cobrados'],['ajenas','Pagos cobrados con su Defensor'],['frenadas','Multas rebotadas'],['multas','Multas que le cayeron'],['pago','Multas pagadas'],['tokens','Tokens canjeados'],['tratos','Tratos con otros DTs'],['banco','Cambios con el Banco'],['compro','Beneficios comprados'],['uso','Beneficios usados'],['robo','Cosas que robó'],['robado','Cosas que le robaron'],['espio','Mercados espiados'],['cambios','Jugadores cambiados'],['pasos','Intersecciones caminadas'],['tiros','Tiradas'],['unos','Unos sacados'],['devolvio','Recursos devueltos por el 1'],['enchufo','Multas enchufadas'],['rojas','Tarjetas Rojas recibidas']];
+// Las menciones agrupadas por tipo, cada grupo de un color
+var MEN_CAT=[{k:'gloria',t:'Gloria',ic:'🏆',c:'#d9a61c'},{k:'plata',t:'La billetera',ic:'💰',c:'#4d7a3a'},{k:'picardia',t:'Picardía',ic:'🦊',c:'#d4692a'},{k:'cancha',t:'En la cancha',ic:'⚽',c:'#3f6aa6'},{k:'mala',t:'Mala leche',ic:'🌧️',c:'#b23f3c'}];
+var MEN_DE={'Fútbol Champagne':'gloria','Rejunte':'gloria','Sobrado':'gloria','Pagó en la puerta':'gloria','Comerciante':'plata','La vio':'plata','El Contador':'plata','El Cuponero':'plata','Amigo del Cajero':'plata','No le compra a nadie':'plata','Mano larga':'picardia','Buchón':'picardia','Cobrador de Multas':'picardia','Seguro de Multas':'picardia','Modo Carrera':'picardia','Maratonista':'cancha','Dados cargados':'cancha','Pies de plomo':'cancha','Limpito':'cancha','Directo al Tribunal de Faltas':'mala','Lo dejaron en patas':'mala','Mufa':'mala','Calesita':'mala','Último orejón del tarro':'mala'};
+MEN_IC['Sobrado']='✈️';MEN_IC['Pagó en la puerta']='🚪';MEN_IC['Pies de plomo']='🐢';MEN_IC['Limpito']='🧼';
+// Dos más, calculadas acá: el que menos caminó y los que terminaron sin ninguna Multa
+function mencionesExtra(g){var S=P.estadisticas,l=[];
+  var mn=-1,q=[];g.jug.forEach(function(p){var v=S(p).pasos||0;if(mn<0||v<mn){mn=v;q=[p.id];}else if(v===mn)q.push(p.id);});if(q.length<g.jug.length)l.push({t:'Pies de plomo',d:mn===0?'No caminó ni una intersección.':'Caminó apenas '+mn+' intersecciones en todo el partido.',j:q});
+  var lim=g.jug.filter(function(p){return (S(p).multas||0)===0;});if(lim.length&&lim.length<g.jug.length)l.push({t:'Limpito',d:'No le cayó ni una Multa en todo el partido.',j:lim.map(function(p){return p.id;})});
+  return l;}var FILAS_DT=[['cobro','Recursos cobrados'],['ajenas','Pagos cobrados con su Defensor'],['frenadas','Multas rebotadas'],['multas','Multas que le cayeron'],['pago','Multas pagadas'],['tokens','Tokens canjeados'],['tratos','Tratos con otros DTs'],['banco','Cambios con el Banco'],['compro','Beneficios comprados'],['uso','Beneficios usados'],['robo','Cosas que robó'],['robado','Cosas que le robaron'],['espio','Mercados espiados'],['cambios','Jugadores cambiados'],['pasos','Intersecciones caminadas'],['tiros','Tiradas'],['unos','Unos sacados'],['devolvio','Recursos devueltos por el 1'],['enchufo','Multas enchufadas'],['rojas','Tarjetas Rojas recibidas']];
 // Qué tanto pesó cada Jugador en el partido
 function influencia(p,c){
   var o=(p.inf&&p.inf[c.club+c.pos])||{},R=P.NOMBRE_REC[c.club],d,n;
@@ -477,10 +496,15 @@ function resumen(g,tableroH){
   var car=g.caras||[],s='<div class="res" id="resumen">';
   // El Certificado va primero
   s+='<button class="cert-vista" id="certToca" aria-label="Certificado de campeón: tocalo para compartirlo o bajarlo" aria-expanded="'+(!!ui.certAb)+'">'+svgCertificado(g).replace(/ width="1080" height="1080"/,'')+'</button><div class="cert-pista" id="certPista"'+(ui.certAb?' hidden':'')+'>Tocá el certificado para compartirlo</div><div class="cert-bts" id="certBts"'+(ui.certAb?'':' hidden')+'><button class="bt wa" id="certWa">'+icoWa(22)+'<span>Compartir por WhatsApp</span></button><button class="bt chico" id="certPng">Bajar imagen</button></div>';
-    // Primero las del campeón, de la más importante a la menos; después las de los demás
-  var mens=P.menciones(g).map(function(m,i){m.o=i;return m;}).sort(function(a,b){var ga=a.j.indexOf(g.ganador)>=0?0:1,gb=b.j.indexOf(g.ganador)>=0?0:1;if(ga!==gb)return ga-gb;if(!ga&&(a.top?0:1)!==(b.top?0:1))return (a.top?0:1)-(b.top?0:1);return a.o-b.o;});
-  s+=plega('Menciones honoríficas','<div class="res-men">'+mens.map(function(m,i){return '<div class="men'+(m.top?' top':'')+'" style="--gira:'+(i%2?1.2:-1.2)+'deg"><span class="men-ic">'+(MEN_IC[m.t]||'🏅')+'</span><b>'+esc(m.t)+'</b><span>'+esc(m.d)+'</span><div class="men-dt">'+m.j.map(function(id){return dtN(g.jug[id]);}).join('')+'</div></div>';}).join('')+'</div>','men',false,'gol');
-  s+=plega('Números de cada DT','<div class="res-tabla"><table><thead><tr><th></th>'+g.jug.map(function(p){return '<th'+(p.id===g.ganador?' class="gano"':'')+'>'+dtN(p)+'</th>';}).join('')+'</tr></thead><tbody><tr><td>Jugadores</td>'+g.jug.map(function(p){return '<td>'+P.contratados(p)+'</td>';}).join('')+'</tr>'+FILAS_DT.map(function(f){var mx=0;g.jug.forEach(function(p){mx=Math.max(mx,S(p)[f[0]]||0);});return '<tr><td>'+f[1]+'</td>'+g.jug.map(function(p){var v=S(p)[f[0]]||0;return '<td'+(mx&&v===mx?' class="max"':'')+'>'+v+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>','num',false,'suerte');
+  // Cómo terminaron: el campeón y después el que quedó más cerca (más Jugadores, más Tokens, más Recursos)
+  var mens=P.menciones(g).concat(mencionesExtra(g)),medallas={};mens.forEach(function(m){m.j.forEach(function(id){medallas[id]=(medallas[id]||0)+1;});});
+  var orden=g.jug.slice().sort(function(a,b){if(a.id===g.ganador)return -1;if(b.id===g.ganador)return 1;var d=P.contratados(b)-P.contratados(a);if(d)return d;d=(b.V+b.E)-(a.V+a.E);if(d)return d;return P.suma(b.mano)-P.suma(a.mano);});
+  s+=plega('Cómo terminaron','<div class="podio">'+orden.map(function(p,n){var cj=colJ(p);return '<div class="pod pod-'+(n+1)+'" style="--dtc:'+cj.color+'"><span class="pod-n">'+(n===0?'🏆':(n+1)+'º')+'</span><span class="pod-cara">'+retratoJ(p)+'</span><div class="pod-dat"><b>'+esc(p.nombre)+'</b><span>'+(n===0?'Levantó la Copa':(P.contratados(p)===g.meta?'Equipo completo: le faltó llegar al Palco':'Le faltaron '+(g.meta-P.contratados(p))+' Jugador'+(g.meta-P.contratados(p)>1?'es':'')))+'</span><div class="pod-chips"><i>⚽ '+P.contratados(p)+'/'+g.meta+'</i><i>'+token('V',14)+token('E',14)+' '+(p.V+p.E)+'</i><i>🃏 '+P.suma(p.mano)+'</i><i>🏅 '+(medallas[p.id]||0)+'</i></div></div>'+cono(p,22)+'</div>';}).join('')+'</div>','fin',true,'sponsors');
+  // Las menciones, por tipo y con filtro por DT
+  var fil=ui.menFil!=null&&g.jug[ui.menFil]?ui.menFil:null,vis=mens.filter(function(m){return fil==null||m.j.indexOf(fil)>=0;});
+  var chips='<div class="men-fil" role="group" aria-label="Ver las menciones de"><button data-menfil="" aria-pressed="'+(fil==null)+'">Todas <small>'+mens.length+'</small></button>'+g.jug.map(function(p){return '<button data-menfil="'+p.id+'" aria-pressed="'+(fil===p.id)+'" style="--dtc:'+colJ(p).color+'"><span class="mf-cara">'+retratoJ(p)+'</span>'+esc(nombreCorto(p.nombre))+' <small>'+(medallas[p.id]||0)+'</small></button>';}).join('')+'</div>';
+  var cuerpo=MEN_CAT.map(function(ct){var l=vis.filter(function(m){return (MEN_DE[m.t]||'cancha')===ct.k;});if(!l.length)return '';return '<div class="men-cat" style="--mc:'+ct.c+'"><h4>'+ct.ic+' '+ct.t+'</h4><div class="res-men">'+l.map(function(m,n){return '<div class="men'+(m.top?' top':'')+'" style="--gira:'+(n%2?1:-1)+'deg"><span class="men-ic">'+(MEN_IC[m.t]||'🏅')+'</span><b>'+esc(m.t)+'</b><span>'+esc(m.d)+'</span><div class="men-dt">'+m.j.map(function(id){return dtN(g.jug[id]);}).join('')+'</div></div>';}).join('')+'</div></div>';}).join('');
+  s+=plega('Menciones honoríficas',chips+(cuerpo||'<p class="nota" style="margin:0">'+(fil!=null?esc(g.jug[fil].nombre)+' no se llevó ninguna mención.':'No hubo menciones.')+'</p>'),'men',true,'gol');  s+=plega('Números de cada DT','<div class="res-tabla"><table><thead><tr><th></th>'+g.jug.map(function(p){return '<th'+(p.id===g.ganador?' class="gano"':'')+'>'+dtN(p)+'</th>';}).join('')+'</tr></thead><tbody><tr><td>Jugadores</td>'+g.jug.map(function(p){return '<td>'+P.contratados(p)+'</td>';}).join('')+'</tr>'+FILAS_DT.map(function(f){var mx=0;g.jug.forEach(function(p){mx=Math.max(mx,S(p)[f[0]]||0);});return '<tr><td>'+f[1]+'</td>'+g.jug.map(function(p){var v=S(p)[f[0]]||0;return '<td'+(mx&&v===mx?' class="max"':'')+'>'+v+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>','num',false,'suerte');
   s+=plega('Los equipos',g.jug.map(function(p){var cs=p.eq.filter(Boolean);return '<div class="res-eq"><div class="res-eq-t">'+dtN(p)+'</div>'+(cs.length?'<div class="inf-l">'+cs.map(function(c){var f=influencia(p,c);return '<div class="inf"><button class="cartita" data-vercarta="'+c.club+'-'+c.pos+'" aria-label="Ver a '+esc(P.nombreCarta(c))+'">'+K.jugador(c.club,c.pos)+'</button><div><b>'+esc(P.nombreCarta(c))+'</b><span class="inf-e" aria-label="Influencia: '+f.e+' de 3">'+'★★★'.slice(0,f.e)+'<em>'+'★★★'.slice(f.e)+'</em></span><span>'+esc(f.d)+'</span></div></div>';}).join('')+'</div>':'<span class="nota">Sin Jugadores.</span>')+'</div>';}).join(''),'eq',false,'picardia');
   var cu=[[suma('tiros'),'Tiradas'],[suma('tratos')/2,'Tratos'],[suma('multas'),'Multas'],[suma('compro'),'Beneficios comprados'],[T.robR+T.robB,'Robos'],[suma('cobro'),'Recursos cobrados'],[T.robR,'Recursos robados'],[T.robB,'Beneficios robados'],[suma('banco'),'Tratos con el Banco'],[T.dob,'Dobles'],[T.rebotes,'Multas rebotadas'],[suma('ajenas'),'Pagos que cobró un Defensor'],[suma('devolvio'),'Recursos devueltos por el 1'],[T.goles,'Penales adentro'],[T.atajados,'Penales atajados'],[suma('espio'),'Espiadas a un Mercado'],[suma('pasos'),'Intersecciones caminadas'],[suma('cambios'),'Jugadores cambiados']];
   s+=plega('Curiosidades','<h4>Cuántas veces salió cada dado</h4>'+barras([1,2,3,4,5,6].map(function(n){return [dado(n,'b',24),car[n]||0];}))+'<h4>Multas que cayeron, por color</h4>'+barras(P.REC.map(function(r){return [iconoMulta(r,26),T.mul[r]||0,COL[r]];}))+'<h4>Recursos cobrados</h4>'+barras(P.REC.map(function(r){return [iconoCirc(r,26),T.cob[r]||0,COL[r]];}))+'<div class="res-datos cur">'+cu.map(function(x){return '<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join('')+'</div>','cur',false,'fans');
@@ -728,29 +752,47 @@ function textoResumen(g){
 }
 function escXml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function ubicarSvg(svg,x,y,w,h){return svg.replace('<svg ','<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" ');}
-// El Certificado: cuadrado, sobre fondo dorado, con el DT levantando la Copa y sus cuatro Jugadores festejando alrededor
+// El Certificado: cuadrado, dorado, con rayos y laureles detrás del DT que levanta la Copa, sus cuatro Jugadores festejando,
+// una cinta con el nombre y abajo los datos del partido: a quiénes les ganó, la figura, los turnos, cuánto duró y la fecha
 function svgCertificado(g){
-  var p=g.jug[g.ganador],W=1080,H=1080,D='font-family="Bowlby One SC, sans-serif"',cs=p.eq.filter(Boolean),hoy=new Date(g.t1||Date.now());
+  var p=g.jug[g.ganador],W=1080,H=1080,D='font-family="Bowlby One SC, sans-serif"',T='font-family="Atkinson Hyperlegible, sans-serif"',cs=p.eq.filter(Boolean),hoy=new Date(g.t1||Date.now());
   var fecha=hoy.getDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][hoy.getMonth()]+' de '+hoy.getFullYear();
-  var nom='¡'+p.nombre+' CAMPEÓN!',fs=Math.min(92,Math.floor(1000/(nom.length*.68)));
-  var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'"><defs><radialGradient id="certOro" cx=".5" cy=".45" r=".78"><stop offset="0" stop-color="#ffeb9c"/><stop offset=".55" stop-color="#ecc452"/><stop offset="1" stop-color="#b8862b"/></radialGradient></defs><rect width="'+W+'" height="'+H+'" fill="url(#certOro)"/>';
+  var nom=p.nombre.toUpperCase(),fs=Math.min(84,Math.floor(760/(nom.length*.66)));
+  var rivales=g.jug.filter(function(q){return q.id!==g.ganador;}).map(function(q){return q.nombre;}),lista=rivales.length>1?rivales.slice(0,-1).join(', ')+' y '+rivales[rivales.length-1]:(rivales[0]||'');
+  var fig=null,fv=-1;cs.forEach(function(c){var f=influencia(p,c);if(f.n>fv){fv=f.n;fig=c;}});var dur=duracionPartido(g);
+  var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'"><defs><radialGradient id="certOro" cx=".5" cy=".42" r=".8"><stop offset="0" stop-color="#fff3c0"/><stop offset=".5" stop-color="#f0cc5c"/><stop offset="1" stop-color="#b8862b"/></radialGradient><linearGradient id="certCinta" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2f4580"/><stop offset="1" stop-color="#1b2647"/></linearGradient></defs><rect width="'+W+'" height="'+H+'" fill="url(#certOro)"/>';
+  // Rayos desde atrás del DT
+  var ry='';for(var k=0;k<24;k++){var a1=k*15*Math.PI/180,a2=(k*15+7)*Math.PI/180;ry+='M540 470L'+(540+Math.cos(a1)*900).toFixed(0)+' '+(470+Math.sin(a1)*900).toFixed(0)+'L'+(540+Math.cos(a2)*900).toFixed(0)+' '+(470+Math.sin(a2)*900).toFixed(0)+'Z';}
+  s+='<path d="'+ry+'" fill="#fff8d6" opacity=".28"/>';
   // Papelitos: siempre los mismos para el mismo partido
   var sem=(g.t1||1)%9973,cols=['#3f6aa6','#4d7a3a','#fbf8f1','#d4692a','#b23f3c','#22305a'];
   function az(){sem=(sem*16807+11)%2147483647;return (sem%1000)/1000;}
-  for(var i=0;i<70;i++){var px=Math.round(40+az()*1000),py=Math.round(130+az()*840);s+='<rect x="'+px+'" y="'+py+'" width="'+Math.round(9+az()*8)+'" height="'+Math.round(14+az()*10)+'" rx="2" fill="'+cols[i%cols.length]+'" transform="rotate('+Math.round(az()*180)+' '+px+' '+py+')" opacity=".85"/>';}
-  s+='<rect x="20" y="20" width="'+(W-40)+'" height="'+(H-40)+'" rx="18" fill="none" stroke="#22305a" stroke-width="9"/>';
-  s+='<text x="540" y="122" text-anchor="middle" '+D+' font-size="'+fs+'" fill="#22305a" stroke="#fff8d6" stroke-width="10" paint-order="stroke" stroke-linejoin="round">'+escXml(nom)+'</text>';
+  for(var i=0;i<60;i++){var px=Math.round(40+az()*1000),py=Math.round(190+az()*640);s+='<rect x="'+px+'" y="'+py+'" width="'+Math.round(9+az()*8)+'" height="'+Math.round(14+az()*10)+'" rx="2" fill="'+cols[i%cols.length]+'" transform="rotate('+Math.round(az()*180)+' '+px+' '+py+')" opacity=".8"/>';}
+  // Laureles a los dos lados del DT
+  function laurel(lado){var h='';for(var q=0;q<12;q++){var th=(lado<0?98+q*12:82-q*12),rad=th*Math.PI/180,x=540+Math.cos(rad)*330,y=560+Math.sin(rad)*330,rot=th+90+(lado<0?-28:28);h+='<ellipse cx="'+x.toFixed(0)+'" cy="'+y.toFixed(0)+'" rx="30" ry="12" fill="'+(q%2?'#5b8a44':'#4d7a3a')+'" stroke="#2b2620" stroke-width="3" transform="rotate('+rot.toFixed(0)+' '+x.toFixed(0)+' '+y.toFixed(0)+')"/>';}return h;}
+  s+=laurel(1)+laurel(-1);
+  s+='<rect x="20" y="20" width="'+(W-40)+'" height="'+(H-40)+'" rx="22" fill="none" stroke="#22305a" stroke-width="10"/><rect x="38" y="38" width="'+(W-76)+'" height="'+(H-76)+'" rx="14" fill="none" stroke="#fff8d6" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>';
+  s+='<text x="540" y="92" text-anchor="middle" '+D+' font-size="30" letter-spacing="6" fill="#22305a">CERTIFICADO DE CAMPEÓN · LIGA PEXA</text>';
+  // La cinta con el nombre
+  s+='<path d="M120 112H960L930 152L960 192H120L150 152Z" fill="url(#certCinta)" stroke="#2b2620" stroke-width="4"/><path d="M120 112L70 128L96 152L70 176L120 192Z" fill="#1b2647" stroke="#2b2620" stroke-width="4"/><path d="M960 112L1010 128L984 152L1010 176L960 192Z" fill="#1b2647" stroke="#2b2620" stroke-width="4"/>';
+  s+='<text x="540" y="'+(152+fs*.36).toFixed(0)+'" text-anchor="middle" '+D+' font-size="'+fs+'" fill="#ffe27a" stroke="#2b2620" stroke-width="5" paint-order="stroke">'+escXml(nom)+'</text>';
   // Dos Jugadores de cada lado del DT: los de atrás primero, para que los de adelante queden encima
-  var lugar=[[-4,566,300,330],[112,590,350,385],[618,590,350,385],[784,566,300,330]];
-  function jugadorEn(i){if(cs[i]){var l=lugar[i];s+=ubicarSvg(K.festejo(cs[i].club,cs[i].pos),l[0],l[1],l[2],l[3]);}}
+  var lugar=[[0,500,290,320],[118,522,330,362],[632,522,330,362],[790,500,290,320]];
+  function jugadorEn(n){if(cs[n]){var l=lugar[n];s+=ubicarSvg(K.festejo(cs[n].club,cs[n].pos),l[0],l[1],l[2],l[3]);}}
   jugadorEn(0);jugadorEn(3);
-  s+=ubicarSvg(p.cus?K.dtCopaCus(p.cus):K.dtCopa(p.dt),312,140,456,820);
+  s+=ubicarSvg(p.cus?K.dtCopaCus(p.cus):K.dtCopa(p.dt),330,190,420,756);
   jugadorEn(1);jugadorEn(2);
-  s+=ubicarSvg(K.logo('copa'),44,950,86,86);
-  s+='<text x="540" y="1032" text-anchor="middle" '+D+' font-size="38" fill="#22305a" stroke="#fff8d6" stroke-width="6" paint-order="stroke" stroke-linejoin="round">'+fecha+'</text>';
+  // Abajo, los datos del partido
+  s+='<rect x="70" y="868" width="940" height="160" rx="22" fill="#fff8d6" stroke="#22305a" stroke-width="5"/>';
+  s+='<text x="560" y="912" text-anchor="middle" '+T+' font-weight="700" font-size="30" fill="#22305a">'+escXml(lista?'Le ganó a '+lista:'')+'</text>';
+  var dat=[g.nTurnos+' turnos'];if(dur)dat.push(dur);if(fig&&fv>0)dat.push('Figura: '+P.nombreCarta(fig));
+  s+='<text x="560" y="960" text-anchor="middle" '+D+' font-size="30" fill="#b23f3c">'+escXml(dat.join('  ·  '))+'</text>';
+  s+='<text x="560" y="1006" text-anchor="middle" '+T+' font-size="26" fill="#5e5446">'+fecha+' · pexa-dreamteam.github.io</text>';
+  s+=ubicarSvg(K.logo('copa'),88,880,124,124);
+  // El sello dorado
+  s+='<g transform="translate(930 820) rotate(-12)"><circle r="78" fill="#d9a61c" stroke="#2b2620" stroke-width="5"/><circle r="64" fill="none" stroke="#fff8d6" stroke-width="3" stroke-dasharray="4 6"/><path d="M0-34l9 19 21 2-16 14 5 21-19-11-19 11 5-21-16-14 21-2Z" fill="#fff8d6" stroke="#2b2620" stroke-width="2.5"/><text y="30" text-anchor="middle" '+D+' font-size="17" fill="#22305a">CAMPEÓN</text><text y="50" text-anchor="middle" '+D+' font-size="13" fill="#22305a">EST. 2020</text></g>';
   return s+'</svg>';
-}
-function certificadoCanvas(g,cb){svgAImagen(svgCertificado(g),function(im,u){if(!im){cb(null);return;}var cv=document.createElement('canvas');cv.width=1080;cv.height=1080;cv.getContext('2d').drawImage(im,0,0);URL.revokeObjectURL(u);cb(cv);});}
+}function certificadoCanvas(g,cb){svgAImagen(svgCertificado(g),function(im,u){if(!im){cb(null);return;}var cv=document.createElement('canvas');cv.width=1080;cv.height=1080;cv.getContext('2d').drawImage(im,0,0);URL.revokeObjectURL(u);cb(cv);});}
 function bajar(blob,nombre){var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},4000);}
 function conCertificado(g,fn){if(ui.cert&&ui.cert.g===g.t1){fn(ui.cert.cv);return;}certificadoCanvas(g,function(cv){if(!cv){mostrarError('No se pudo armar el certificado.');return;}ui.cert={g:g.t1,cv:cv};fn(cv);});}
 function nombreCert(g){return 'Campeon-PEXA-'+g.jug[g.ganador].nombre.normalize('NFD').replace(/[^\w]+/g,'-');}
@@ -839,8 +881,8 @@ function pantallaInicio(){
     for(var k5=0;k5<5;k5++){var i=ORDEN_DT[k5],d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0,nom=conf.nombres[i]||d.nombre;
       // Todo en el mismo renglón: flechas a los costados de la cara para cambiarla, el nombre se escribe ahí mismo y el dado inventa uno
       filas+='<div class="dtelige dt-ed'+(on?' on':'')+'">'+
-        '<div class="dt-caraed"><button class="dt-fl" data-carafl="-1" data-i="'+i+'" aria-label="DT anterior">‹</button><span class="dt-carab"><button class="dt-tog" data-verdt="'+i+'" aria-label="Ver a '+esc(nom)+' de cuerpo entero">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-azar" data-caraazar="'+i+'" aria-label="Una cara al azar para '+esc(nom)+'">'+ICO_CARA_AZAR+'</button></span><button class="dt-fl" data-carafl="1" data-i="'+i+'" aria-label="DT siguiente">›</button></div>'+
-        '<div class="dt-dat"><div class="dt-nomw"><input class="dt-nom" data-nom="'+i+'" value="'+esc(nom)+'" maxlength="12" aria-label="Nombre del DT: tocá para cambiarlo" spellcheck="false"><button class="dt-dado" data-nomazar="'+i+'" aria-label="Un nombre al azar">'+DADO_NOM+'</button></div>'+botonEstado(i,on,h,nom)+'</div><button class="dt-cono" data-ccdt="'+i+'" aria-label="Cábala de '+esc(nom)+': '+P.CONOS[ccLocal(i)].n+'. Tocá para cambiarla">'+cono({cc:ccLocal(i)},24)+'</button></div>';}    s+='<section class="caja lj-caja">'+ljEspia()+'<h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><div class="lj-cama">'+ljSiesta()+'<button class="bt bt-empezar" id="empezar">'+PELOTA+'<span>Empezar el partido</span>'+PELOTA+'</button></div>';
+        '<div class="dt-caraed"><button class="dt-fl" data-carafl="-1" data-i="'+i+'" aria-label="DT anterior">‹</button><span class="dt-carab"><button class="dt-tog" data-verdt="'+i+'" aria-label="Ver a '+esc(nom)+' de cuerpo entero">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button></span><button class="dt-fl" data-carafl="1" data-i="'+i+'" aria-label="DT siguiente">›</button></div>'+
+        '<div class="dt-dat"><div class="dt-nomw"><input class="dt-nom" data-nom="'+i+'" value="'+esc(nom)+'" maxlength="12" aria-label="Nombre del DT: tocá para cambiarlo" spellcheck="false"></div>'+botonEstado(i,on,h,nom)+'</div><button class="dt-cono" data-ccdt="'+i+'" aria-label="Cábala de '+esc(nom)+': '+P.CONOS[ccLocal(i)].n+'. Tocá para cambiarla">'+cono({cc:ccLocal(i)},24)+'</button></div>';}    s+='<section class="caja lj-caja">'+ljEspia()+'<h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3><p class="dt-pista">Flechas: elegís el DT. Tocá la cara: cara o nombre al azar.</p>'+filas+'</section><div class="lj-cama">'+ljSiesta()+'<button class="bt bt-empezar" id="empezar">'+PELOTA+'<span>Empezar el partido</span>'+PELOTA+'</button></div>';
   }
   s+='</div>'+(hay?'<button class="bt bt-seguir" id="seguir">'+ICO_PLAY+'<span>Seguir el partido guardado</span></button>':'')+'</div>';
   app.innerHTML=s;
@@ -939,7 +981,7 @@ function pintar(){
   if(!ui.modal&&g.fase==='descarte'&&yo!=null&&g.descartes[yo]!=null)ui.modal={tipo:'descarte'};
   var h='',turno=g.fase==='ubicar'?g.jug[g.faltaUbicar[0]]:g.fase==='barraIni'?g.jug[deben[0]]:g.jug[g.turno];
   var esFin=g.fase==='fin';confeti(esFin);var tabVista='',cT=colJ(turno);
-  h+=esFin?'<div class="juego es-fin"><span id="reloj" hidden></span>':'<div class="juego"><div class="barra barra-dt" style="--dtc:'+cT.color+';--dtt:'+cT.tinta+'"><button class="barra-cara" data-verdtj="'+turno.id+'" aria-label="Ver a '+esc(turno.nombre)+'">'+retratoJ(turno)+'</button><div class="q"><b>'+esc(turno.nombre)+'</b><span>'+(g.nTurnos?'Turno '+g.nTurnos+' · ':'')+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span><button class="barra-pausa" id="abrPausa" aria-label="Pausa: reglas, animaciones, lo que fue pasando y salir" title="Pausa">'+ICO_PAUSA+'</button></div>';
+  h+=esFin?'<div class="juego es-fin"><span id="reloj" hidden></span>':'<div class="juego"><div class="barra barra-dt" style="--dtc:'+cT.color+';--dtt:'+cT.tinta+'"><button class="barra-cara" data-verdtj="'+turno.id+'" aria-label="Ver a '+esc(turno.nombre)+'">'+retratoJ(turno)+'</button><div class="q"><b>'+esc(turno.nombre)+'</b><span>'+(g.nTurnos?'Turno '+g.nTurnos+' · ':'')+esc(textoFase(g,yo))+'</span></div><span id="reloj" class="reloj" role="timer" aria-label="Tiempo del turno" hidden></span><button class="barra-pausa" id="abrPausa" aria-label="Menú: reglas, lo que fue pasando, animaciones y salir" title="Menú">'+ICO_MENU+'</button></div>';
   // Al final: el Certificado arriba de todo y el tablero, plegado
   var finH=esFin?resumen(g,'<div class="mesa mesa-fin">'+dibujarTablero(g,[])+tabVista+'</div>'):'';
   // qué se puede tocar
@@ -1021,10 +1063,18 @@ function acciones(g,yo,me,miTurno,pa){
 }
 // Reglas, animaciones, lo que fue pasando y salir: todo adentro de la Pausa
 function pieDePagina(g,yo){return '';}
+// El Menú: cada opción con su dibujo, su nombre y para qué sirve. En el juego local el reloj se frena mientras está abierto.
+var ICO_MENU='<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
 function modalPausa(g,yo){
-  return '<h2 class="pausa-tit">'+ICO_PAUSA+'Pausa</h2><p class="nota" style="margin:0;text-align:center">'+(sala.red?'El partido sigue para los demás: volvé pronto.':'El partido está frenado hasta que vuelvas.')+'</p><div class="pausa-bts"><button class="cuad c-reglas" id="abrReglas" title="Reglas" aria-label="Ver las reglas">'+icoReglas()+'</button><button class="cuad c-reg" id="abrRegistro" title="Lo que fue pasando" aria-label="Lo que fue pasando">'+ICO_REG+'</button><button class="cuad c-anim'+(ui.sinAnim?' off':'')+'" id="animTog" title="'+(ui.sinAnim?'Animaciones apagadas: tocá para prenderlas':'Animaciones prendidas: tocá para apagarlas')+'" aria-label="'+(ui.sinAnim?'Prender las animaciones':'Apagar las animaciones')+'" aria-pressed="'+(!ui.sinAnim)+'">'+icoAnim(ui.sinAnim)+'</button><button class="cuad c-salir" id="salir" title="Salir: el partido queda guardado" aria-label="Salir. El partido queda guardado">'+icoSalir()+'</button></div><button class="bt oro" data-cerrar>Seguir jugando</button>';
-}
-function panelDescarte(g,yo,me){
+  function op(id,cls,ic,tit,txt,extra){return '<button class="men-op '+cls+'" id="'+id+'"'+(extra||'')+'><span class="mo-ic">'+ic+'</span><span class="mo-tx"><b>'+tit+'</b><small>'+txt+'</small></span><i class="mo-fl" aria-hidden="true">›</i></button>';}
+  var on=!ui.sinAnim;
+  return '<h2 class="pausa-tit">'+ICO_MENU+'Menú</h2><p class="nota" style="margin:0;text-align:center">'+(sala.red?'Ojo: en la sala online el partido sigue para los demás mientras mirás el menú.':'El partido y el reloj quedan frenados mientras mirás el menú.')+'</p><div class="men-ops">'+
+    op('abrReglas','c-reglas',icoReglas(),'Reglas','Todo el juego explicado por tema, con ejemplos: cómo se cobra, las Multas, los Jugadores, los Beneficios y cómo se gana. Si tocás una pieza del tablero, también te cuenta qué hace.')+
+    op('abrRegistro','c-reg',ICO_REG,'Lo que fue pasando','El relato del partido turno por turno: qué salió en los dados, quién cobró, los tratos, las Multas y los Beneficios. Lo último está arriba.')+
+    op('animTog','c-anim'+(on?'':' off'),icoAnim(ui.sinAnim),'Animaciones: '+(on?'prendidas':'apagadas'),on?'Ves rodar los dados, los cobros, los fichajes y los festejos. Tocá para apagarlas y que el juego vaya más rápido.':'El juego va más rápido, sin festejos. Tocá para prenderlas y ver los dados, los cobros y los fichajes.',' aria-pressed="'+on+'"')+
+    op('salir','c-salir',icoSalir(),sala.red?'Salir de la sala':'Salir al inicio',sala.red?'Volvés al inicio. Si es una sala online, los demás pueden seguir jugando sin vos.':'Volvés al inicio. El partido queda guardado y lo seguís cuando quieras con «Seguir el partido guardado».')+
+    '</div><button class="bt oro" data-cerrar>Seguir jugando</button>';
+}function panelDescarte(g,yo,me){
   var c=g.descartes[yo];if(!ui.descarte)ui.descarte=P.vacio();var d=ui.descarte,t=P.suma(d);
   return '<h2>Salió un 1: devolvé '+c+' Recursos</h2><p class="nota" style="margin:0">Tenés más de 9 en la mano. Elegí cuáles ('+t+' de '+c+').</p>'+P.REC.map(function(r){return '<div class="num"><span style="text-align:left;flex:1;font-family:var(--t);font-weight:700;display:flex;align-items:center;gap:6px">'+icono(r,28)+'× '+me.mano[r]+'</span><button data-dm="'+r+'" aria-label="Menos">−</button><span>'+d[r]+'</span><button data-dp="'+r+'" aria-label="Más">+</button></div>';}).join('')+'<button class="bt fuerte" id="descartar"'+(t===c?'':' disabled')+'>Devolver</button>';
 }
@@ -1226,7 +1276,7 @@ function pintarModal(g,yo,me){
 
   if(M.tipo==='dt'){var zd=PIZ[M.dt],dd=P.DTS[M.dt];s=M.cus?'<div class="dt-grande">'+K.dtCustom(M.cus,true)+'</div><h2 style="margin:0">'+esc(M.nom||dd.nombre)+'</h2><p class="dt-frase">Un DT hecho a medida.</p>':'<div class="dt-grande">'+K.dtEntero(M.dt)+'</div><h2 style="margin:0">'+esc(dd.nombre)+'</h2><p class="dt-frase">"'+esc(zd.frase)+'"</p><p style="margin:0">'+esc(zd.como)+'</p><p style="margin:0"><b>Cómo juega.</b> '+esc(zd.estilo)+'</p>';}
   // Si se abre desde la elección de DT, la cara se cambia acá también con flechas grandes
-  if(M.tipo==='dt'&&M.ed){s=s.replace('<div class="dt-grande">','<div class="dtg-ed"><button class="dtg-fl" data-dtfl="-1" aria-label="DT anterior">‹</button><div class="dt-grande">').replace('</div>','</div><button class="dtg-fl" data-dtfl="1" aria-label="DT siguiente">›</button></div>');s+='<div class="dtg-pie"><span>DT '+(preLocal(M.seat)>=0?(preLocal(M.seat)+1)+' de '+PRESETS.length:'con cara al azar')+'</span><button class="bt chico bt-ic" data-dtazar="1">'+ICO_CARA_AZAR+'<span>Cara al azar</span></button></div>';}
+  if(M.tipo==='dt'&&M.ed){s=s.replace('<div class="dt-grande">','<div class="dtg-ed"><button class="dtg-fl" data-dtfl="-1" aria-label="DT anterior">‹</button><div class="dt-grande">').replace('</div>','</div><button class="dtg-fl" data-dtfl="1" aria-label="DT siguiente">›</button></div>');var pk0=M.online?(ui.lobAcc?ui.lobAcc.pre0():0):preLocal(M.seat);s=s.replace(/<h2[^>]*>[\s\S]*?<\/h2>/,'<div class="dtg-nom"><input class="dt-nom" id="mNom" value="'+esc(M.nom||'')+'" maxlength="12" aria-label="Nombre del DT: tocá para cambiarlo" spellcheck="false"><button class="dt-dado" data-dtnom="1" aria-label="Un nombre al azar">'+DADO_NOM+'</button></div>');s+='<div class="dtg-pie"><span>DT '+(pk0>=0?(pk0+1)+' de '+PRESETS.length:'con cara al azar')+'</span><button class="bt chico bt-ic" data-dtazar="1">'+ICO_CARA_AZAR+'<span>Cara al azar</span></button></div>';}
   if(M.tipo==='jug'){var c={club:M.club,pos:M.pos};s='<div class="grande">'+K.jugador(c.club,c.pos)+'</div><p style="margin:0"><b>'+P.POS[c.pos]+' de '+P.NOMBRE_REC[c.club]+'.</b> '+habilidadCarta(c)+'</p>';}
   if(M.tipo==='ben'){if(ui.tuto)M.solo=true;var ok=!M.solo&&!M.nuevo&&P.puedeUsarB(g,yo,M.b)&&!g.oferta;
     s='<div class="grande">'+K.beneficio(P.BENEF[M.b].n)+'</div>';
@@ -1268,7 +1318,8 @@ function pintarModal(g,yo,me){
   c2.querySelectorAll('[data-cerrar]').forEach(function(x){x.onclick=baja;});
   if(M.tipo==='crear')conectarCrear(c2,M);
   if(M.tipo==='editDT')conectarEditDT(c2,M);
-  c2.querySelectorAll('[data-dtfl],[data-dtazar]').forEach(function(b){b.onclick=function(){if(b.dataset.dtazar!=null)caraAzarLocal(M.seat);else cambiarPreset(M.seat,+b.dataset.dtfl);Object.assign(M,mDT(M.seat));pantallaInicio();var h=c2.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;};});
+  c2.querySelectorAll('[data-dtfl],[data-dtazar],[data-dtnom]').forEach(function(b){b.onclick=function(){if(M.online&&ui.lobAcc){if(b.dataset.dtazar!=null)ui.lobAcc.azar();else if(b.dataset.dtnom!=null)ui.lobAcc.nomAzar();else ui.lobAcc.pre(+b.dataset.dtfl);return;}if(b.dataset.dtazar!=null)caraAzarLocal(M.seat);else if(b.dataset.dtnom!=null){var us=conf.sel.map(function(q){return conf.nombres[q]||P.DTS[q].nombre;});conf.nombres[M.seat]=nombreAzar(us);}else cambiarPreset(M.seat,+b.dataset.dtfl);Object.assign(M,mDT(M.seat));pantallaInicio();var h=c2.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;};});
+  var mn=c2.querySelector('#mNom');if(mn&&M.ed){mn.onfocus=function(){mn.select();};mn.onkeydown=function(e){if(e.key==='Enter')mn.blur();};mn.onchange=function(){var v=(mn.value||'').trim().slice(0,12);if(!v)return;if(M.online&&ui.lobAcc){ui.lobAcc.nom(v);return;}conf.nombres[M.seat]=v;M.nom=v;pantallaInicio();};}
   var ub=c2.querySelector('#usarB');if(ub)ub.onclick=function(){limpiarModales();usarBen(g,yo,M.b);};
   c2.querySelectorAll('[data-par]').forEach(function(x){x.onclick=function(){var v=x.dataset.val;if(x.dataset.par==='dt'||x.dataset.par==='pos')v=+v;M.a[x.dataset.par]=v;limpiarModales();pintarModal(g,yo,me);};});
   var cb=c2.querySelector('#confirmarB');if(cb)cb.onclick=function(){var a=Object.assign({t:'usar',b:M.b},M.a);limpiarModales();ui.modal=null;sala.enviar(yo,a);};
@@ -1361,6 +1412,7 @@ function conectarEn(raiz,g,yo,me){
   on('salir',function(){clearTimeout(timerBot);ui.relPausa=null;limpiarModales();dejarSala(false);sala.g=null;ui.modal=null;pantallaInicio();});
   on('animTog',function(){ui.sinAnim=!ui.sinAnim;try{localStorage.setItem('pexa-sin-anim',ui.sinAnim?'1':'0');}catch(e){}pintar();});
   on('verFestejo',function(){mostrarMundial(g);});
+  todos('[data-menfil]',function(x){ui.menFil=x.dataset.menfil===''?null:+x.dataset.menfil;ui.resAb=ui.resAb||{};ui.resAb.men=true;var y=window.scrollY;pintar();window.scrollTo(0,y);});
 
   on('vistaTab',function(){ui.vista=ui.vista==='det'?'simple':'det';try{localStorage.setItem('pexa-vista',ui.vista);}catch(e){}pintar();});
   on('abrCanjes',function(){ui.bancoDa=null;ui.modal={tipo:'canjes'};pintar();});
@@ -1480,13 +1532,13 @@ function pantallaLobby(){
   // Igual que en el juego local: un renglón por DT. Tu DT se elige con las flechas entre los 10 de la lista (o cara al azar), con tu nombre y tu Cábala.
   // El que arma la sala define cada lugar con un solo botón: Desactivado, Libre (para un amigo) o Máquina.
   var miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
-  var filas='<p class="nota" style="margin:0">'+(host?'Con el botón de cada DT elegís si está Desactivado, Libre para un amigo o lo juega la Máquina. ':'')+'Con las flechas elegís tu DT; el dado de la cara te da una al azar y el otro dado, un nombre.</p>';
+  var filas='<p class="nota" style="margin:0">'+(host?'Con el botón de cada DT elegís si está Desactivado, Libre para un amigo o lo juega la Máquina. ':'')+'Con las flechas elegís tu DT. Tocá tu cara para verlo grande, sortear otra cara o un nombre.</p>';
   for(var k5=0;k5<5;k5++){var v=ORDEN_DT[k5],ix=dts.indexOf(v),en=ix<l.n,a=en?l.a[ix]:null,mio=!!(a&&a.id===id),gente=!!(a&&!a.bot);
     var e=!en?'off':(!a?'libre':(a.bot?'maq':'per')),nomV=a&&a.nom&&!a.bot?a.nom:P.DTS[v].nombre,cara=a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v);
     var txE={off:'Desactivado',libre:'Libre',maq:'Máquina',per:mio?'Vos':'Persona'}[e],icE={off:IC_OFF,libre:IC.online,maq:IC.maquina,per:IC.persona}[e];
     var estado=host&&e!=='per'?'<button class="dt-estado e-'+e+'" data-lest="'+v+'" aria-label="'+esc(P.DTS[v].nombre)+': '+txE+'. Tocá para cambiar">'+icE+'<span>'+txE+'</span><i class="de-fl" aria-hidden="true">⇄</i></button>':'<span class="dt-estado e-'+e+' fijo">'+icE+'<span>'+txE+(e==='per'&&a.id===l.host&&!mio?' · armó la sala':'')+'</span></span>';
-    filas+='<div class="dtelige dt-ed'+(en?' on':'')+(mio?' mio':'')+'"><div class="dt-caraed'+(mio?'':' sin')+'"><button class="dt-fl"'+(mio?' data-lpre="-1" aria-label="DT anterior"':' tabindex="-1" disabled aria-hidden="true"')+'>‹</button><span class="dt-carab"><button class="dt-tog" data-verficha="'+v+'" aria-label="Ver a '+esc(nomV)+'">'+cara+'</button>'+(mio?'<button class="dt-azar" data-lazar="1" aria-label="Una cara al azar">'+ICO_CARA_AZAR+'</button>':'')+'</span><button class="dt-fl"'+(mio?' data-lpre="1" aria-label="DT siguiente"':' tabindex="-1" disabled aria-hidden="true"')+'>›</button></div>'+
-      '<div class="dt-dat"><div class="dt-nomw">'+(mio?'<input class="dt-nom" id="lNom" value="'+esc(nomV)+'" maxlength="12" aria-label="Tu nombre de DT: tocá para cambiarlo" spellcheck="false"><button class="dt-dado" id="lNomAzar" aria-label="Un nombre al azar">'+DADO_NOM+'</button>':'<span class="dt-nomtx">'+esc(e==='libre'?'Esperando a un amigo':nomV)+'</span>')+'</div>'+estado+'</div>'+
+    filas+='<div class="dtelige dt-ed'+(en?' on':'')+(mio?' mio':'')+'"><div class="dt-caraed'+(mio?'':' sin')+'"><button class="dt-fl"'+(mio?' data-lpre="-1" aria-label="DT anterior"':' tabindex="-1" disabled aria-hidden="true"')+'>‹</button><span class="dt-carab"><button class="dt-tog" data-verficha="'+v+'" aria-label="Ver a '+esc(nomV)+'">'+cara+'</button></span><button class="dt-fl"'+(mio?' data-lpre="1" aria-label="DT siguiente"':' tabindex="-1" disabled aria-hidden="true"')+'>›</button></div>'+
+      '<div class="dt-dat"><div class="dt-nomw">'+(mio?'<input class="dt-nom" id="lNom" value="'+esc(nomV)+'" maxlength="12" aria-label="Tu nombre de DT: tocá para cambiarlo" spellcheck="false">':'<span class="dt-nomtx">'+esc(e==='libre'?'Esperando a un amigo':nomV)+'</span>')+'</div>'+estado+'</div>'+
       (en&&a?(mio?'<button class="dt-cono" data-lcc="'+v+'" aria-label="Tu Cábala. Tocá para cambiarla">'+cono({cc:ccEf[ix]!=null?ccEf[ix]:v},24)+'</button>':'<span class="dt-cono fijo">'+cono({cc:ccEf[ix]!=null?ccEf[ix]:v},24)+'</span>'):'<span class="dt-cono fijo vacio"></span>')+'</div>';}  var miCus=miSi>=0&&l.a[miSi]&&l.a[miSi].cus;
   s+=caja('Elegí a tu DT',filas);
   if(host)s+='<button class="bt bt-empezar" id="arrancar"'+(listos?'':' disabled')+'>'+(listos?PELOTA+'<span>¡Arrancar el partido!</span>'+PELOTA:'<span>Faltan lugares por completar</span>')+'</button>';
@@ -1513,7 +1565,7 @@ function pantallaLobby(){
   document.getElementById('dejarLobby').onclick=function(){if(!host)lob(function(x){x.a=x.a.map(function(q){return q&&q.id===id?null:q;});});dejarSala(true);pantallaInicio();};
   app.querySelectorAll('[data-ll]').forEach(function(x){x.onclick=function(){lob(function(y){y.limite=+x.dataset.ll;});};});
   app.querySelectorAll('[data-lm]').forEach(function(x){x.onclick=function(){lob(function(y){y.modo=x.dataset.lm;});};});
-  app.querySelectorAll('[data-verficha]').forEach(function(x){x.onclick=function(){var v7=+x.dataset.verficha,o7=dts.indexOf(v7),q7=o7<l.n?l.a[o7]:null,pk=q7&&q7.pre!=null?q7.pre:v7,liga=pk>=0&&pk<5;ui.modal={tipo:'dt',dt:liga?(PRESETS[pk].dt):v7,cus:liga?null:(q7&&q7.cus||null),nom:q7&&q7.nom&&!q7.bot?q7.nom:P.DTS[v7].nombre};pintarModal(null,null,null);};});
+  app.querySelectorAll('[data-verficha]').forEach(function(x){x.onclick=function(){if(x.closest('.mio')&&miSi>=0){ui.modal=mDTon();pintarModal(null,null,null);return;}var v7=+x.dataset.verficha,o7=dts.indexOf(v7),q7=o7<l.n?l.a[o7]:null,pk=q7&&q7.pre!=null?q7.pre:v7,liga=pk>=0&&pk<5;ui.modal={tipo:'dt',dt:liga?(PRESETS[pk].dt):v7,cus:liga?null:(q7&&q7.cus||null),nom:q7&&q7.nom&&!q7.bot?q7.nom:P.DTS[v7].nombre};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-lpick]').forEach(function(x){x.onclick=function(){var v2=+x.dataset.lpick;lob(function(y){var dd=y.dts||[0,1,2,3,4],me=-1;y.a.forEach(function(q,ix2){if(q&&q.id===id&&ix2<y.n)me=ix2;});if(me<0)return;var o=dd.indexOf(v2);if(o===me)return;if(o<y.n&&y.a[o]&&!y.a[o].bot)return;var t=dd[me];dd[me]=v2;dd[o]=t;y.dts=dd;});};});
   // El botón de cada lugar (solo el que arma la sala): Desactivado → Libre → Máquina → Desactivado
   app.querySelectorAll('[data-lest]').forEach(function(x){x.onclick=function(){var v5=+x.dataset.lest,o0=dts.indexOf(v5);
@@ -1525,11 +1577,18 @@ function pantallaLobby(){
       y.dts=dd;});};});
   // Tu DT: flechas por la lista de 10 y cara al azar
   function miLugar(y){var me=-1;y.a.forEach(function(q,k){if(q&&q.id===id&&k<y.n)me=k;});return me;}
-  app.querySelectorAll('[data-lpre]').forEach(function(x){x.onclick=function(){var dl=+x.dataset.lpre;lob(function(y){var me=miLugar(y);if(me<0)return;var dd=y.dts||[0,1,2,3,4],q=y.a[me],sd=dd[me],cur=q.pre!=null?q.pre:sd;
+  function accPre(dl){lob(function(y){var me=miLugar(y);if(me<0)return;var dd=y.dts||[0,1,2,3,4],q=y.a[me],sd=dd[me],cur=q.pre!=null?q.pre:sd;
     var us=[];for(var k=0;k<y.n;k++){if(k===me||!y.a[k])continue;var pk=y.a[k].pre!=null?y.a[k].pre:dd[k];if(pk>=0)us.push(pk);}
     var desde=cur<0?(q.preAnt!=null?q.preAnt:sd):cur,nk=cur<0&&us.indexOf(desde)<0?desde:presetSig(desde,dl,us);
-    q.pre=nk;var r=presetCus(nk,sd);if(r)q.cus=r;else delete q.cus;q.nom=PRESETS[nk].n;});};});
-  app.querySelectorAll('[data-lazar]').forEach(function(x){x.onclick=function(){lob(function(y){var me=miLugar(y);if(me<0)return;var dd=y.dts||[0,1,2,3,4],q=y.a[me],cur=q.pre!=null?q.pre:dd[me];if(cur>=0)q.preAnt=cur;q.pre=-1;q.cus=comboAzar(dd[me]);});};});  // Mi DT en la sala, en el mismo renglón: flechas para la cara, nombre escrito ahí y dado para un nombre al azar
+    q.pre=nk;var r=presetCus(nk,sd);if(r)q.cus=r;else delete q.cus;q.nom=PRESETS[nk].n;});}
+  app.querySelectorAll('[data-lpre]').forEach(function(x){x.onclick=function(){accPre(+x.dataset.lpre);};});
+  function accAzar(){lob(function(y){var me=miLugar(y);if(me<0)return;var dd=y.dts||[0,1,2,3,4],q=y.a[me],cur=q.pre!=null?q.pre:dd[me];if(cur>=0)q.preAnt=cur;q.pre=-1;q.cus=comboAzar(dd[me]);});}
+  function ponerNomL(nv){nv=(nv||'').trim().slice(0,12);if(!nv)return;try{localStorage.setItem('pexa-nombre',nv);}catch(e){}lob(function(y){y.a.forEach(function(q){if(q&&q.id===id)q.nom=nv;});});}
+  // Lo mismo desde la ventana grande de tu DT
+  ui.lobAcc={pre:accPre,azar:accAzar,nom:ponerNomL,nomAzar:function(){var us=l.a.filter(function(q){return q&&q.nom;}).map(function(q){return q.nom;});ponerNomL(nombreAzar(us));},
+    pre0:function(){var q=miSi>=0?l.a[miSi]:null;return q&&q.pre!=null?q.pre:(miSi>=0?dts[miSi]:0);}};
+  function mDTon(){var q=l.a[miSi]||{},v8=dts[miSi],pk=q.pre!=null?q.pre:v8,liga=pk>=0&&pk<5;return {tipo:'dt',ed:true,online:true,dt:liga?PRESETS[pk].dt:v8,cus:liga?null:(q.cus||null),nom:q.nom||P.DTS[v8].nombre};}
+  if(ui.modal&&ui.modal.online&&ui.modal.tipo==='dt'&&miSi>=0){Object.assign(ui.modal,mDTon());limpiarModales();pintarModal(null,null,null);}  // Mi DT en la sala, en el mismo renglón: flechas para la cara, nombre escrito ahí y dado para un nombre al azar
   app.querySelectorAll('[data-lcara]').forEach(function(x){x.onclick=function(){if(miSi<0)return;var v6=dts[miSi],dl=+x.dataset.lcara,cur=l.a[miSi]&&l.a[miSi].cus||null;var H=ui.lhist&&ui.lhist.v===v6?ui.lhist:(ui.lhist={v:v6,h:[cur],i:0});
     if(dl>0){if(H.i<H.h.length-1)H.i++;else{H.h.push(comboAzar(v6));H.i=H.h.length-1;}}else{if(H.i>0)H.i--;else H.h.unshift(comboAzar(v6));}
     var r=H.h[H.i];lob(function(y){y.a.forEach(function(q){if(q&&q.id===id){if(r)q.cus=r;else delete q.cus;}});});};});

@@ -878,6 +878,9 @@
   };
   Object.keys(DT_FIG).forEach(function(id){var d=DT_FIG[id];C['dt_'+id]={nombre:'DT',c1:d.c1,c2:CREMA,fondo:'#efe7d4'};SHORT['dt_'+id]=id==='abuelo'?'#9a958c':INK;BANDA['dt_'+id]=CREMA;});
   function retratoDT(dt){return '<svg x="9" y="5" width="22" height="24" viewBox="45 18 110 120">'+figura('dt_'+dt.id,Object.assign({},DT_FIG[dt.id].o,{gag:null,globo:null,palitos:false}))+'</svg>';}
+  // v20 (13/11/2026): las Pizarras pasan a ser de cada Cábala. Mismos colores; el título, el dibujo y la frase son de la Cábala.
+  // Las frases son propuestas mías, a confirmar con Marcos.
+  var CAB_COL={cono:'#233a7a',muleta:'#26231f',piluso:'#e77fb3',botin:'#ee2a24',guante:'#1fa89a'};
   // ---------- Tablero ----------
   function P(r,deg){var a=deg*Math.PI/180;return [r*Math.cos(a),r*Math.sin(a)];}
   function pts(list){return list.map(function(p){return n1(p[0])+','+n1(p[1]);}).join(' ');}
@@ -1323,7 +1326,8 @@
   // los oscuros van al tono más oscuro, el color del Recurso queda igual y los claros van a un tinte casi blanco. Zonas de mala fama: grises.
   function hexRGB(h){return [parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)];}
   function tono(id,col){
-    var c=hexRGB(col), lc=(.3*c[0]+.59*c[1]+.11*c[2])/255, dk=c.map(function(v){return v*.2;}), lt=c.map(function(v){return v+(255-v)*.9;}), tab=[[],[],[]];
+    // v21 (ronda 52): de lejos, cada pieza es un color pleno y marcado; los detalles quedan en tonos muy cercanos, para verlos de cerca
+    var c=hexRGB(col), lc=(.3*c[0]+.59*c[1]+.11*c[2])/255, dk=c.map(function(v){return v*.66;}), lt=c.map(function(v){return v+(255-v)*.34;}), tab=[[],[],[]];
     for(var q=0;q<=16;q++){var t=q/16;for(var ch=0;ch<3;ch++){var v=t<lc?dk[ch]+(c[ch]-dk[ch])*t/lc:c[ch]+(lt[ch]-c[ch])*(t-lc)/(1-lc);tab[ch].push((v/255).toFixed(3));}}
     return '<filter id="'+id+'" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="'+tab[0].join(' ')+'"/><feFuncG type="table" tableValues="'+tab[1].join(' ')+'"/><feFuncB type="table" tableValues="'+tab[2].join(' ')+'"/></feComponentTransfer></filter>';
   }
@@ -1362,7 +1366,8 @@
     h+=tono('tz',GRIS);
     var piezas=[];
     for(var i=0;i<5;i++) piezas.push([hexIn[i],'te'+i],[piezaPredio(i),'tp'+i],[piezaZona(i),'tz']);
-    piezas.push([A,null]);
+    // v21: el Palco va del mismo gris que las zonas de mala fama
+    piezas.push([A,'tz']);
     piezas.forEach(function(p,q){h+='<clipPath id="cpz'+q+'"><polygon points="'+pts(p[0])+'"/></clipPath>';});
     h+='</defs><rect x="-320" y="-320" width="640" height="640" fill="#d8c8a2"/>'+fo;
     piezas.forEach(function(p,q){h+='<g clip-path="url(#cpz'+q+')"'+(p[1]?' filter="url(#'+p[1]+')"':'')+'><use href="#'+arteId+'"/></g>';});
@@ -1371,6 +1376,8 @@
     var cortes=piezas.map(function(p){return pts(p[0]);});
     h+='<g fill="none" stroke-linejoin="round">'+cortes.map(function(p){return '<polygon points="'+p+'" stroke="#fbf8f1" stroke-width="3.6"/>';}).join('')+cortes.map(function(p){return '<polygon points="'+p+'" stroke="'+INK+'" stroke-width="1.6"/>';}).join('')+'</g>';
     h+=calles(rd);
+    // v21: en el centro del Palco, la base donde se para la Copa impresa en 3D (24 mm): queda ahí todo el partido y la levanta el que llega primero
+    h+='<circle r="16" fill="#000" opacity=".22" transform="translate(1 1.5)"/><circle r="16" fill="#e2bd57" stroke="'+INK+'" stroke-width="1.4"/><circle r="12.6" fill="#f6e7b0" stroke="#8a6a25" stroke-width=".8"/><circle r="14.3" fill="none" stroke="#8a6a25" stroke-width=".6" stroke-dasharray="1.4 1.2"/><path d="'+estrella(0,0,5.4)+'" fill="#e2bd57" stroke="#8a6a25" stroke-width=".6"/><text y="9.6" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="3.4" fill="#8a6a25">LA COPA</text>';
     // el 1 del Palco, una vez en cada tribuna, mirando a su cancha
     for(var i=0;i<5;i++){var m=P(29.6,TH[i]);
       h+=G(m[0],m[1],TH[i]+90)+'<circle r="7.6" fill="#000" opacity=".25" transform="translate(.7 1)"/><circle r="7.6" fill="'+NB+'" stroke="'+INK+'" stroke-width="1"/><circle r="6.2" fill="'+C[INNER[i]].c1+'" stroke="'+INK+'" stroke-width=".8"/><text y="4.4" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="12.5" fill="'+NB+'" stroke="'+INK+'" stroke-width="1.4" paint-order="stroke" stroke-linejoin="round">1</text>'+
