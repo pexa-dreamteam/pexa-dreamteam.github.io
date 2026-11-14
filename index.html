@@ -1067,6 +1067,33 @@ g.fig{transform-box:fill-box;transform-origin:50% 100%}
 .dtg-fl{flex:none;width:46px;height:46px;border-radius:50%;background:#fff;border:2.5px solid var(--tinta);box-shadow:0 3px 0 var(--tinta);font:700 30px/1 var(--t);padding:0 0 4px;cursor:pointer}
 .dtg-fl:active{transform:translateY(2px);box-shadow:none}
 .dtg-ed{width:100%;min-width:0}.dtg-ed .dt-grande{flex:1 1 0;min-width:0;max-width:calc(100% - 104px)}.dtg-ed .dt-grande svg{width:100%;height:auto}
+/* ===== Ronda 51 ===== */
+/* La cara del DT con su botón de cara al azar en la esquina */
+.dt-carab{position:relative;display:block;flex:none}
+.dt-azar{position:absolute;right:-6px;bottom:-5px;z-index:2;width:24px;height:24px;display:grid;place-items:center;padding:0;border-radius:7px;border:0;background:none;cursor:pointer;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.dt-azar.rueda-dado svg{animation:dadoGira .5s cubic-bezier(.2,1.4,.4,1)}
+.dt-caraed.sin .dt-fl{visibility:hidden}
+.dt-nomtx{flex:1;min-width:0;font:400 14.5px var(--d);color:var(--tinta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 1px}
+.dt-estado.fijo{cursor:default;box-shadow:none}
+.dt-cono.fijo{cursor:default;box-shadow:none}.dt-cono.vacio{visibility:hidden}
+.dtg-pie{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:13.5px;color:#5e5446}
+.dtg-pie .bt{min-height:38px}
+/* Inicio: en Juego online el encabezado y el cuadro de arriba son más grandes; en Juego local, más chicos para que entre todo sin bajar */
+.ini-com.tab-online .ini-cab .logo{width:74px}.ini-com.tab-online h1{font-size:36px}.ini-com.tab-online h1 small{font-size:15px}
+.ini-com.tab-online .hero{padding:14px 12px 14px;gap:10px}.ini-com.tab-online .hero h2{font-size:clamp(19px,5.6vw,24px)}
+.ini-com.tab-online .hp-vis{transform:scale(.7);margin:-12px 0 -10px}
+.ini-com.tab-online .hero-pasos b{font-size:13.5px}.ini-com.tab-online .hero-pasos li>span{display:block;font-size:11.5px}
+.ini-com.tab-online .hero-bts .bt{min-height:44px}
+.ini-com.tab-local .ini-cab .logo{width:38px}.ini-com.tab-local h1{font-size:22px}.ini-com.tab-local h1 small{font-size:10.5px}
+.ini-com.tab-local .hero{padding:6px 8px 7px;gap:5px}.ini-com.tab-local .hero h2{font-size:clamp(13.5px,3.8vw,16px)}
+.ini-com.tab-local .hp-vis{transform:scale(.3);margin:-38px 0 -38px}.ini-com.tab-local .hero-pasos li{padding:2px 3px 3px}.ini-com.tab-local .hero-pasos li::before{width:14px;height:14px;font-size:10px;line-height:14px}.ini-com.tab-local .lj-cama{margin-top:2px}.ini-com.tab-local .caja h3{margin:0}.ini-com.tab-local .dt-ed{padding:2px 6px}
+.ini-com.tab-local .hero-pasos b{font-size:11px}.ini-com.tab-local .hero-dato{display:none}
+.ini-com.tab-local .hero-bts .bt{min-height:32px;padding:3px 8px;font-size:14px}
+.ini-com.tab-local .lj-jueguito{transform:scale(.8);transform-origin:0 0}
+.ini-com.tab-local .dt-ed{padding:3px 6px;min-height:0}.ini-com.tab-local .dt-ed .dt-tog{width:40px;height:40px}
+.ini-com .dt-ed .dt-nom{height:26px;min-height:0;padding:1px 4px;font-size:14px}.ini-com .dt-ed .dt-dat{gap:2px}.ini-com .dt-ed .dt-estado{min-height:23px;padding-top:0;padding-bottom:0}
+.ini-com.tab-local .bt-op{padding-top:5px;padding-bottom:6px}.ini-com.tab-local .bt-op em{font-size:11px;line-height:1.2}
+.ini-com.tab-local .ini-tabs button{padding-top:5px;padding-bottom:4px}.ini-com.tab-local .ini-tabs b{font-size:16px}
 /* Ventanas: el gesto es de la ventana, no del navegador */
 .modal{overscroll-behavior:contain}.hoja{overscroll-behavior-y:contain}.hoja-asa{height:30px;margin:-6px -14px -10px}
 /* El botón del Mercado de Pases, en el tablero */

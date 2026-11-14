@@ -822,7 +822,7 @@ function pantallaInicio(){
   confeti(false);var hay=false;try{hay=!!localStorage.getItem(CLAVE);}catch(e){}
   var redOk=window.PEXA_RED&&PEXA_RED.disponible(),salaGuardada=null;try{salaGuardada=localStorage.getItem('pexa-sala');}catch(e){}
   if(!ui.iniTab)ui.iniTab=redOk?'online':'local';
-  var s='<div class="ini ini-com'+(hay?' con-guardado':'')+'"><div class="ini-cab"><span class="logo">'+K.logo('copa')+'</span><h1>PEXA<small>DREAM TEAM</small></h1>'+ljAsoma()+ljJueguito()+'</div>';
+  var s='<div class="ini ini-com tab-'+ui.iniTab+(hay?' con-guardado':'')+'"><div class="ini-cab"><span class="logo">'+K.logo('copa')+'</span><h1>PEXA<small>DREAM TEAM</small></h1>'+ljAsoma()+ljJueguito()+'</div>';
   s+='<div class="hero"><h2>Armá tu Dream Team y levantá la Copa antes que nadie.</h2><ol class="hero-pasos"><li><div class="hp-vis hp-esc">'+P.REC.map(function(r){return iconoCirc(r,30);}).join('')+'</div><b>Juntá Recursos</b><span>Tirás los dados y cobran todos.</span></li><li><div class="hp-vis hp-car">'+[['fans',0],['gol',1],['picardia',2],['sponsors',3]].map(function(x){return '<span>'+K.jugador(x[0],x[1])+'</span>';}).join('')+'</div><b>Contratá 4 Jugadores</b><span>Uno por posición, a tu gusto.</span></li><li><div class="hp-vis">'+COPA.replace('class="copa"','class="hp-copa"')+'</div><b>Levantá la Copa</b><span>El primero en el Palco gana.</span></li></ol><div class="hero-dato">2 a 5 DTs · 30 a 45 minutos</div><div class="hero-bts"><button class="bt oro bt-ic" id="verTuto">'+IC.tuto+'<span>Tutorial</span></button><button class="bt bt-ic" id="verReglas">'+IC.reglas+'<span>¿Cómo se juega?</span></button></div></div>';
   s+='<div class="ini-tabs" role="tablist">'+(ui.iniTab==='online'?ljColgado():'')+'<button role="tab" data-itab="online" aria-selected="'+(ui.iniTab==='online')+'"><b>Juego online</b><span>'+IC.online+'Cada uno desde su celu</span></button><button role="tab" data-itab="local" aria-selected="'+(ui.iniTab==='local')+'"><b>Juego local</b><span>'+IC.local+'Todos en este aparato</span></button></div><div class="ini-panel p-'+ui.iniTab+'">';
   if(ui.iniTab==='online'){
@@ -839,7 +839,7 @@ function pantallaInicio(){
     for(var k5=0;k5<5;k5++){var i=ORDEN_DT[k5],d=P.DTS[i],h=conf.filas[i].h,on=conf.sel.indexOf(i)>=0,nom=conf.nombres[i]||d.nombre;
       // Todo en el mismo renglón: flechas a los costados de la cara para cambiarla, el nombre se escribe ahí mismo y el dado inventa uno
       filas+='<div class="dtelige dt-ed'+(on?' on':'')+'">'+
-        '<div class="dt-caraed"><button class="dt-fl" data-carafl="-1" data-i="'+i+'" aria-label="Cara anterior de '+esc(nom)+'">‹</button><button class="dt-tog" data-verdt="'+i+'" aria-label="Ver a '+esc(nom)+' de cuerpo entero">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-fl" data-carafl="1" data-i="'+i+'" aria-label="Otra cara para '+esc(nom)+'">›</button></div>'+
+        '<div class="dt-caraed"><button class="dt-fl" data-carafl="-1" data-i="'+i+'" aria-label="DT anterior">‹</button><span class="dt-carab"><button class="dt-tog" data-verdt="'+i+'" aria-label="Ver a '+esc(nom)+' de cuerpo entero">'+(conf.cus&&conf.cus[i]?K.dtCustom(conf.cus[i],false):K.retrato(i))+'</button><button class="dt-azar" data-caraazar="'+i+'" aria-label="Una cara al azar para '+esc(nom)+'">'+ICO_CARA_AZAR+'</button></span><button class="dt-fl" data-carafl="1" data-i="'+i+'" aria-label="DT siguiente">›</button></div>'+
         '<div class="dt-dat"><div class="dt-nomw"><input class="dt-nom" data-nom="'+i+'" value="'+esc(nom)+'" maxlength="12" aria-label="Nombre del DT: tocá para cambiarlo" spellcheck="false"><button class="dt-dado" data-nomazar="'+i+'" aria-label="Un nombre al azar">'+DADO_NOM+'</button></div>'+botonEstado(i,on,h,nom)+'</div><button class="dt-cono" data-ccdt="'+i+'" aria-label="Cábala de '+esc(nom)+': '+P.CONOS[ccLocal(i)].n+'. Tocá para cambiarla">'+cono({cc:ccLocal(i)},24)+'</button></div>';}    s+='<section class="caja lj-caja">'+ljEspia()+'<h3>¿Quiénes juegan? <small class="dt-cuenta">'+conf.sel.length+' DTs</small></h3>'+filas+'</section><div class="lj-cama">'+ljSiesta()+'<button class="bt bt-empezar" id="empezar">'+PELOTA+'<span>Empezar el partido</span>'+PELOTA+'</button></div>';
   }
   s+='</div>'+(hay?'<button class="bt bt-seguir" id="seguir">'+ICO_PLAY+'<span>Seguir el partido guardado</span></button>':'')+'</div>';
@@ -857,8 +857,9 @@ function pantallaInicio(){
     if(ix<0){conf.sel.push(v);ordenarSel();liberarCC(v);conf.filas[v].h=true;}
     else if(h){conf.filas[v].h=false;if(!conf.sel.some(function(q){return conf.filas[q].h;})){conf.filas[v].h=true;mostrarAviso('Tiene que jugar al menos una persona.');return;}}
     else{if(conf.sel.length<=2){conf.filas[v].h=true;mostrarAviso('Tienen que jugar 2 DTs como mínimo.');}else conf.sel.splice(ix,1);}
-    pantallaInicio();var b2=app.querySelector('[data-estado="'+v+'"]');if(b2)b2.classList.add('cambia');};});  app.querySelectorAll('[data-carafl]').forEach(function(x){x.onclick=function(){leerNombres();cambiarCara(+x.dataset.i,+x.dataset.carafl);pantallaInicio();};});
-  app.querySelectorAll('[data-verdt]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.verdt;ui.modal={tipo:'dt',dt:i3,ed:true,cus:conf.cus&&conf.cus[i3]||null,nom:conf.nombres[i3]||P.DTS[i3].nombre};pintarModal(null,null,null);};});
+    pantallaInicio();var b2=app.querySelector('[data-estado="'+v+'"]');if(b2)b2.classList.add('cambia');};});  app.querySelectorAll('[data-carafl]').forEach(function(x){x.onclick=function(){leerNombres();cambiarPreset(+x.dataset.i,+x.dataset.carafl);pantallaInicio();};});
+  app.querySelectorAll('[data-caraazar]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.caraazar;caraAzarLocal(i3);pantallaInicio();var b2=app.querySelector('[data-caraazar="'+i3+'"]');if(b2)b2.classList.add('rueda-dado');};});
+  app.querySelectorAll('[data-verdt]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.verdt;ui.modal=mDT(i3);pintarModal(null,null,null);};});
   app.querySelectorAll('[data-nomazar]').forEach(function(x){x.onclick=function(){leerNombres();var i3=+x.dataset.nomazar,usados=conf.sel.map(function(q){return conf.nombres[q]||P.DTS[q].nombre;});conf.nombres[i3]=nombreAzar(usados);pantallaInicio();var n2=app.querySelector('[data-nomazar="'+i3+'"]');if(n2)n2.classList.add('rueda-dado');};});
   app.querySelectorAll('[data-nom]').forEach(function(x){x.onchange=function(){leerNombres();};x.onkeydown=function(e){if(e.key==='Enter')x.blur();};});
   // Tocando el cono pasa al color siguiente que no use otro DT
@@ -887,7 +888,27 @@ var IC_OFF='<svg class="ic-i" viewBox="0 0 24 24" width="20" height="20" aria-hi
 // Cambiar la cara de un DT: cada flecha muestra otra combinación al azar; volviendo para atrás aparecen las que ya viste (la primera es el original)
 function cambiarCara(i3,dl){conf.hist=conf.hist||{};conf.cus=conf.cus||{};var H=conf.hist[i3]||(conf.hist[i3]={h:[conf.cus[i3]||null],i:0});
   if(dl>0){if(H.i<H.h.length-1)H.i++;else{H.h.push(comboAzar(i3));H.i=H.h.length-1;}}else{if(H.i>0)H.i--;else{H.h.unshift(comboAzar(i3));}}
-  var r=H.h[H.i];if(r)conf.cus[i3]=JSON.parse(JSON.stringify(r));else delete conf.cus[i3];}function ccLocal(i){return conf.cc&&conf.cc[i]!=null?conf.cc[i]:i;}
+  var r=H.h[H.i];if(r)conf.cus[i3]=JSON.parse(JSON.stringify(r));else delete conf.cus[i3];}// Los 10 DTs para elegir con las flechas: los 5 de la liga y 5 más, cada uno con su cara y su nombre. Aparte, el botón de la cara al azar.
+var PRESETS=[{n:'El Abuelo',dt:0},{n:'El Míster',dt:1},{n:'La Doña',dt:2},{n:'El Terror del Río',dt:3},{n:'El Gallo',dt:4},
+  {n:'La Capitana',r:{g:'f',pelo:7,color:0,barba:0,ojos:1,acc:4,cara:0,gesto:1,piel:2,ropa:1,pose:3,anim:0}},
+  {n:'El Mago',r:{g:'m',pelo:5,color:6,barba:3,ojos:4,acc:1,cara:2,gesto:2,piel:1,ropa:0,pose:4,anim:8}},
+  {n:'El Turbo',r:{g:'m',pelo:3,color:5,barba:1,ojos:2,acc:3,cara:3,gesto:4,piel:0,ropa:2,pose:5,anim:1}},
+  {n:'Doña Pocha',r:{g:'f',pelo:6,color:7,barba:0,ojos:1,acc:2,cara:1,gesto:0,piel:3,ropa:4,pose:2,anim:4}},
+  {n:'El Tano',r:{g:'m',pelo:1,color:0,barba:6,ojos:0,acc:0,cara:4,gesto:1,piel:2,ropa:3,pose:1,anim:2}}];
+// La cara de un DT de la lista para el lugar "seat": los de la liga se dibujan sobre su propio dibujo; si es el mismo lugar, sin cambios
+function presetCus(k,seat){var p=PRESETS[k];if(p.dt!=null)return p.dt===seat?null:{base:p.dt};return JSON.parse(JSON.stringify(p.r));}
+// El siguiente de la lista (para un lado o el otro) que no esté usando otro DT
+function presetSig(k,dl,usados){for(var s=1;s<=PRESETS.length;s++){var c=((k+dl*s)%PRESETS.length+PRESETS.length)%PRESETS.length;if(usados.indexOf(c)<0)return c;}return k;}
+var ICO_CARA_AZAR='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5" fill="#ffd83a" stroke="#2b2620" stroke-width="2"/><circle cx="8.2" cy="8.2" r="1.7" fill="#2b2620"/><circle cx="15.8" cy="8.2" r="1.7" fill="#2b2620"/><circle cx="12" cy="12" r="1.7" fill="#2b2620"/><circle cx="8.2" cy="15.8" r="1.7" fill="#2b2620"/><circle cx="15.8" cy="15.8" r="1.7" fill="#2b2620"/></svg>';
+// Juego local: qué DT de la lista tiene cada lugar (-1 = cara al azar)
+function preLocal(i){return conf.pre&&conf.pre[i]!=null?conf.pre[i]:i;}
+function cambiarPreset(i,dl){conf.pre=conf.pre||{};conf.cus=conf.cus||{};conf.preAnt=conf.preAnt||{};var cur=preLocal(i),desde=cur<0?(conf.preAnt[i]!=null?conf.preAnt[i]:i):cur;
+  var us=conf.sel.filter(function(q){return q!==i;}).map(preLocal).filter(function(x){return x>=0;});
+  var k=cur<0?(us.indexOf(desde)<0?desde:presetSig(desde,dl,us)):presetSig(desde,dl,us);
+  conf.pre[i]=k;var r=presetCus(k,i);if(r)conf.cus[i]=r;else delete conf.cus[i];conf.nombres[i]=PRESETS[k].n;}
+function caraAzarLocal(i){conf.pre=conf.pre||{};conf.cus=conf.cus||{};conf.preAnt=conf.preAnt||{};var cur=preLocal(i);if(cur>=0)conf.preAnt[i]=cur;conf.pre[i]=-1;conf.cus[i]=comboAzar(i);}
+// La ventana grande del DT, armada según lo que tiene ese lugar
+function mDT(i3){var k=preLocal(i3),liga=k>=0&&k<5;return {tipo:'dt',ed:true,seat:i3,dt:liga?k:i3,cus:liga?null:(conf.cus&&conf.cus[i3]||null),nom:conf.nombres[i3]||P.DTS[i3].nombre};}function ccLocal(i){return conf.cc&&conf.cc[i]!=null?conf.cc[i]:i;}
 // Al sumar un DT, si su Cábala ya la tiene otro de los que juegan, se lleva la primera libre (así no hay dos iguales)
 function liberarCC(v){var tom=conf.sel.filter(function(q){return q!==v;}).map(ccLocal);if(tom.indexOf(ccLocal(v))<0)return;for(var c=0;c<P.CONOS.length;c++)if(tom.indexOf(c)<0){conf.cc=conf.cc||{};if(c===v)delete conf.cc[v];else conf.cc[v]=c;return;}}
 function colorSiguiente(cur,tom){for(var k=1;k<=P.CONOS.length;k++){var c=(cur+k)%P.CONOS.length;if(tom.indexOf(c)<0)return c;}return cur;}
@@ -1205,7 +1226,7 @@ function pintarModal(g,yo,me){
 
   if(M.tipo==='dt'){var zd=PIZ[M.dt],dd=P.DTS[M.dt];s=M.cus?'<div class="dt-grande">'+K.dtCustom(M.cus,true)+'</div><h2 style="margin:0">'+esc(M.nom||dd.nombre)+'</h2><p class="dt-frase">Un DT hecho a medida.</p>':'<div class="dt-grande">'+K.dtEntero(M.dt)+'</div><h2 style="margin:0">'+esc(dd.nombre)+'</h2><p class="dt-frase">"'+esc(zd.frase)+'"</p><p style="margin:0">'+esc(zd.como)+'</p><p style="margin:0"><b>Cómo juega.</b> '+esc(zd.estilo)+'</p>';}
   // Si se abre desde la elección de DT, la cara se cambia acá también con flechas grandes
-  if(M.tipo==='dt'&&M.ed){s=s.replace('<div class="dt-grande">','<div class="dtg-ed"><button class="dtg-fl" data-dtfl="-1" aria-label="Cara anterior">‹</button><div class="dt-grande">').replace('</div>','</div><button class="dtg-fl" data-dtfl="1" aria-label="Otra cara">›</button></div>');s+='<p class="nota" style="margin:0;text-align:center">Con las flechas le cambiás la cara. Volviendo para atrás aparece la original.</p>';}
+  if(M.tipo==='dt'&&M.ed){s=s.replace('<div class="dt-grande">','<div class="dtg-ed"><button class="dtg-fl" data-dtfl="-1" aria-label="DT anterior">‹</button><div class="dt-grande">').replace('</div>','</div><button class="dtg-fl" data-dtfl="1" aria-label="DT siguiente">›</button></div>');s+='<div class="dtg-pie"><span>DT '+(preLocal(M.seat)>=0?(preLocal(M.seat)+1)+' de '+PRESETS.length:'con cara al azar')+'</span><button class="bt chico bt-ic" data-dtazar="1">'+ICO_CARA_AZAR+'<span>Cara al azar</span></button></div>';}
   if(M.tipo==='jug'){var c={club:M.club,pos:M.pos};s='<div class="grande">'+K.jugador(c.club,c.pos)+'</div><p style="margin:0"><b>'+P.POS[c.pos]+' de '+P.NOMBRE_REC[c.club]+'.</b> '+habilidadCarta(c)+'</p>';}
   if(M.tipo==='ben'){if(ui.tuto)M.solo=true;var ok=!M.solo&&!M.nuevo&&P.puedeUsarB(g,yo,M.b)&&!g.oferta;
     s='<div class="grande">'+K.beneficio(P.BENEF[M.b].n)+'</div>';
@@ -1247,7 +1268,7 @@ function pintarModal(g,yo,me){
   c2.querySelectorAll('[data-cerrar]').forEach(function(x){x.onclick=baja;});
   if(M.tipo==='crear')conectarCrear(c2,M);
   if(M.tipo==='editDT')conectarEditDT(c2,M);
-  c2.querySelectorAll('[data-dtfl]').forEach(function(b){b.onclick=function(){cambiarCara(M.dt,+b.dataset.dtfl);M.cus=conf.cus&&conf.cus[M.dt]||null;pantallaInicio();var h=c2.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;};});
+  c2.querySelectorAll('[data-dtfl],[data-dtazar]').forEach(function(b){b.onclick=function(){if(b.dataset.dtazar!=null)caraAzarLocal(M.seat);else cambiarPreset(M.seat,+b.dataset.dtfl);Object.assign(M,mDT(M.seat));pantallaInicio();var h=c2.querySelector('.hoja'),top=h?h.scrollTop:0;limpiarModales();pintarModal(null,null,null);var nh=document.querySelector('.modal .hoja');if(nh)nh.scrollTop=top;};});
   var ub=c2.querySelector('#usarB');if(ub)ub.onclick=function(){limpiarModales();usarBen(g,yo,M.b);};
   c2.querySelectorAll('[data-par]').forEach(function(x){x.onclick=function(){var v=x.dataset.val;if(x.dataset.par==='dt'||x.dataset.par==='pos')v=+v;M.a[x.dataset.par]=v;limpiarModales();pintarModal(g,yo,me);};});
   var cb=c2.querySelector('#confirmarB');if(cb)cb.onclick=function(){var a=Object.assign({t:'usar',b:M.b},M.a);limpiarModales();ui.modal=null;sala.enviar(yo,a);};
@@ -1456,11 +1477,17 @@ function pantallaLobby(){
   if(host)s+=botonesJuego(l.modo,l.limite||0,'data-lm','data-ll');
   else s+='<p class="nota" style="margin:0">'+l.n+' DTs · '+(l.modo==='rapido'?'Partido rápido (Jugadores a 1 Token)':'Partido completo (Jugadores a 2 Tokens)')+' · '+(l.limite?'reloj de '+l.limite+' s por turno':'sin límite de tiempo')+'.</p>';
   // Un solo lugar para elegir o cambiar de DT: cada DT aparece una vez. El que arma la sala suma o saca DTs con el botón de la izquierda: así se define cuántos juegan.
-  var filas='<p class="nota" style="margin:0">'+(host?'Con el botón de la izquierda sumás o sacás DTs: así se define cuántos juegan. ':'')+'Tocá la cara del DT que querés y el + para conocerlo. Con el lápiz le cambiás la cara y el nombre; tocando tu Cábala, la cambiás.</p>',miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
-  var lugarLibre=false,hayBot=false;for(i=0;i<l.n;i++){if(!l.a[i])lugarLibre=true;else if(l.a[i].bot)hayBot=true;}
-  for(var k5=0;k5<5;k5++){var v=ORDEN_DT[k5],ix=dts.indexOf(v),en=ix<l.n,a=en?l.a[ix]:null,mio=a&&a.id===id,gente=a&&!a.bot,est=mio?esc(a.nom||'Vos')+' (vos)':(a?(a.bot?IC.maquina+' La Máquina':esc(a.nom||'Otro DT')+(a.id===l.host?' · armó la sala':'')):(en?'Libre: esperando a un amigo':'No juega'));
-    filas+='<div class="dtelige'+(en?' on':'')+(mio?' mio dt-ed':'')+'">'+(host?'<button class="dt-add" data-ltog="'+v+'" aria-pressed="'+en+'" aria-label="'+(en?'Sacar a ':'Sumar a ')+P.DTS[v].nombre+'"'+(gente?' disabled':'')+'>'+(en?'✓':'+')+'</button>':'')+(mio?'<div class="dt-caraed"><button class="dt-fl" data-lcara="-1" aria-label="Cara anterior">‹</button><span class="dt-tog">'+(a.cus?K.dtCustom(a.cus,false):K.retrato(v))+'</span><button class="dt-fl" data-lcara="1" aria-label="Otra cara">›</button></div><div class="dt-dat"><div class="dt-nomw"><input class="dt-nom" id="lNom" value="'+esc(a.nom||P.DTS[v].nombre)+'" maxlength="12" aria-label="Tu nombre de DT: tocá para cambiarlo" spellcheck="false"><button class="dt-dado" id="lNomAzar" aria-label="Un nombre al azar">'+DADO_NOM+'</button></div><span class="nota">'+P.DTS[v].nombre+' · vos</span></div>':'<div class="dt-cara"><button class="dt-tog" data-lpick="'+v+'" aria-label="Elegir a '+P.DTS[v].nombre+'" aria-pressed="'+(!!mio)+'"'+((gente&&!mio)||miSi<0?' disabled':'')+'>'+(a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v))+'</button>'+(mio?'<button class="dt-lapiz" data-ledit="'+v+'" aria-label="Editar mi DT">'+LAPIZ+'</button>':'<button class="dt-mas" data-verficha="'+v+'" aria-label="Conocer a '+P.DTS[v].nombre+'">+</button>')+'</div><div class="dt-dat"><b>'+P.DTS[v].nombre+'</b><span class="nota">'+est+'</span></div>')+(host&&en&&(!a||a.bot)?'<button class="bt chico lb-maq" data-lb="'+ix+'">'+(a?'Dejar lugar':IC.maquina+'Máquina')+'</button>':(!en?'':(mio?'<button class="dt-cono" data-lcc="'+v+'" aria-label="Tu Cábala. Tocá para cambiarla">'+cono({cc:a.cc!=null?a.cc:v},24)+'</button>':cono({cc:(en&&ccEf[ix]!=null?ccEf[ix]:(a&&a.cc!=null?a.cc:v))},22))))+'</div>';}
-  var miCus=miSi>=0&&l.a[miSi]&&l.a[miSi].cus;
+  // Igual que en el juego local: un renglón por DT. Tu DT se elige con las flechas entre los 10 de la lista (o cara al azar), con tu nombre y tu Cábala.
+  // El que arma la sala define cada lugar con un solo botón: Desactivado, Libre (para un amigo) o Máquina.
+  var miSi=-1;l.a.forEach(function(q,ix){if(q&&q.id===id&&ix<l.n)miSi=ix;});
+  var filas='<p class="nota" style="margin:0">'+(host?'Con el botón de cada DT elegís si está Desactivado, Libre para un amigo o lo juega la Máquina. ':'')+'Con las flechas elegís tu DT; el dado de la cara te da una al azar y el otro dado, un nombre.</p>';
+  for(var k5=0;k5<5;k5++){var v=ORDEN_DT[k5],ix=dts.indexOf(v),en=ix<l.n,a=en?l.a[ix]:null,mio=!!(a&&a.id===id),gente=!!(a&&!a.bot);
+    var e=!en?'off':(!a?'libre':(a.bot?'maq':'per')),nomV=a&&a.nom&&!a.bot?a.nom:P.DTS[v].nombre,cara=a&&a.cus?K.dtCustom(a.cus,false):K.retrato(v);
+    var txE={off:'Desactivado',libre:'Libre',maq:'Máquina',per:mio?'Vos':'Persona'}[e],icE={off:IC_OFF,libre:IC.online,maq:IC.maquina,per:IC.persona}[e];
+    var estado=host&&e!=='per'?'<button class="dt-estado e-'+e+'" data-lest="'+v+'" aria-label="'+esc(P.DTS[v].nombre)+': '+txE+'. Tocá para cambiar">'+icE+'<span>'+txE+'</span><i class="de-fl" aria-hidden="true">⇄</i></button>':'<span class="dt-estado e-'+e+' fijo">'+icE+'<span>'+txE+(e==='per'&&a.id===l.host&&!mio?' · armó la sala':'')+'</span></span>';
+    filas+='<div class="dtelige dt-ed'+(en?' on':'')+(mio?' mio':'')+'"><div class="dt-caraed'+(mio?'':' sin')+'"><button class="dt-fl"'+(mio?' data-lpre="-1" aria-label="DT anterior"':' tabindex="-1" disabled aria-hidden="true"')+'>‹</button><span class="dt-carab"><button class="dt-tog" data-verficha="'+v+'" aria-label="Ver a '+esc(nomV)+'">'+cara+'</button>'+(mio?'<button class="dt-azar" data-lazar="1" aria-label="Una cara al azar">'+ICO_CARA_AZAR+'</button>':'')+'</span><button class="dt-fl"'+(mio?' data-lpre="1" aria-label="DT siguiente"':' tabindex="-1" disabled aria-hidden="true"')+'>›</button></div>'+
+      '<div class="dt-dat"><div class="dt-nomw">'+(mio?'<input class="dt-nom" id="lNom" value="'+esc(nomV)+'" maxlength="12" aria-label="Tu nombre de DT: tocá para cambiarlo" spellcheck="false"><button class="dt-dado" id="lNomAzar" aria-label="Un nombre al azar">'+DADO_NOM+'</button>':'<span class="dt-nomtx">'+esc(e==='libre'?'Esperando a un amigo':nomV)+'</span>')+'</div>'+estado+'</div>'+
+      (en&&a?(mio?'<button class="dt-cono" data-lcc="'+v+'" aria-label="Tu Cábala. Tocá para cambiarla">'+cono({cc:ccEf[ix]!=null?ccEf[ix]:v},24)+'</button>':'<span class="dt-cono fijo">'+cono({cc:ccEf[ix]!=null?ccEf[ix]:v},24)+'</span>'):'<span class="dt-cono fijo vacio"></span>')+'</div>';}  var miCus=miSi>=0&&l.a[miSi]&&l.a[miSi].cus;
   s+=caja('Elegí a tu DT',filas);
   if(host)s+='<button class="bt bt-empezar" id="arrancar"'+(listos?'':' disabled')+'>'+(listos?PELOTA+'<span>¡Arrancar el partido!</span>'+PELOTA:'<span>Faltan lugares por completar</span>')+'</button>';
   else s+='<div class="aviso"><b>Ya estás adentro</b>Esperá a que arranque el que armó la sala.</div>';
@@ -1486,9 +1513,23 @@ function pantallaLobby(){
   document.getElementById('dejarLobby').onclick=function(){if(!host)lob(function(x){x.a=x.a.map(function(q){return q&&q.id===id?null:q;});});dejarSala(true);pantallaInicio();};
   app.querySelectorAll('[data-ll]').forEach(function(x){x.onclick=function(){lob(function(y){y.limite=+x.dataset.ll;});};});
   app.querySelectorAll('[data-lm]').forEach(function(x){x.onclick=function(){lob(function(y){y.modo=x.dataset.lm;});};});
-  app.querySelectorAll('[data-verficha]').forEach(function(x){x.onclick=function(){ui.modal={tipo:'dt',dt:+x.dataset.verficha};pintarModal(null,null,null);};});
+  app.querySelectorAll('[data-verficha]').forEach(function(x){x.onclick=function(){var v7=+x.dataset.verficha,o7=dts.indexOf(v7),q7=o7<l.n?l.a[o7]:null,pk=q7&&q7.pre!=null?q7.pre:v7,liga=pk>=0&&pk<5;ui.modal={tipo:'dt',dt:liga?(PRESETS[pk].dt):v7,cus:liga?null:(q7&&q7.cus||null),nom:q7&&q7.nom&&!q7.bot?q7.nom:P.DTS[v7].nombre};pintarModal(null,null,null);};});
   app.querySelectorAll('[data-lpick]').forEach(function(x){x.onclick=function(){var v2=+x.dataset.lpick;lob(function(y){var dd=y.dts||[0,1,2,3,4],me=-1;y.a.forEach(function(q,ix2){if(q&&q.id===id&&ix2<y.n)me=ix2;});if(me<0)return;var o=dd.indexOf(v2);if(o===me)return;if(o<y.n&&y.a[o]&&!y.a[o].bot)return;var t=dd[me];dd[me]=v2;dd[o]=t;y.dts=dd;});};});
-  // Mi DT en la sala, en el mismo renglón: flechas para la cara, nombre escrito ahí y dado para un nombre al azar
+  // El botón de cada lugar (solo el que arma la sala): Desactivado → Libre → Máquina → Desactivado
+  app.querySelectorAll('[data-lest]').forEach(function(x){x.onclick=function(){var v5=+x.dataset.lest,o0=dts.indexOf(v5);
+    if(o0<l.n&&l.a[o0]&&l.a[o0].bot&&l.n<=2)mostrarAviso('Tienen que jugar 2 DTs como mínimo.');
+    lob(function(y){var dd=y.dts||[0,1,2,3,4],o=dd.indexOf(v5);
+      if(o>=y.n){if(y.n>=5)return;var t2=dd[y.n];dd[y.n]=v5;dd[o]=t2;y.a[y.n]=null;y.n++;}
+      else if(!y.a[o])y.a[o]={bot:true};
+      else if(y.a[o].bot){if(y.n<=2){y.a[o]=null;}else{dd.splice(o,1);dd.push(v5);y.a.splice(o,1);y.a.push(null);y.n--;}}
+      y.dts=dd;});};});
+  // Tu DT: flechas por la lista de 10 y cara al azar
+  function miLugar(y){var me=-1;y.a.forEach(function(q,k){if(q&&q.id===id&&k<y.n)me=k;});return me;}
+  app.querySelectorAll('[data-lpre]').forEach(function(x){x.onclick=function(){var dl=+x.dataset.lpre;lob(function(y){var me=miLugar(y);if(me<0)return;var dd=y.dts||[0,1,2,3,4],q=y.a[me],sd=dd[me],cur=q.pre!=null?q.pre:sd;
+    var us=[];for(var k=0;k<y.n;k++){if(k===me||!y.a[k])continue;var pk=y.a[k].pre!=null?y.a[k].pre:dd[k];if(pk>=0)us.push(pk);}
+    var desde=cur<0?(q.preAnt!=null?q.preAnt:sd):cur,nk=cur<0&&us.indexOf(desde)<0?desde:presetSig(desde,dl,us);
+    q.pre=nk;var r=presetCus(nk,sd);if(r)q.cus=r;else delete q.cus;q.nom=PRESETS[nk].n;});};});
+  app.querySelectorAll('[data-lazar]').forEach(function(x){x.onclick=function(){lob(function(y){var me=miLugar(y);if(me<0)return;var dd=y.dts||[0,1,2,3,4],q=y.a[me],cur=q.pre!=null?q.pre:dd[me];if(cur>=0)q.preAnt=cur;q.pre=-1;q.cus=comboAzar(dd[me]);});};});  // Mi DT en la sala, en el mismo renglón: flechas para la cara, nombre escrito ahí y dado para un nombre al azar
   app.querySelectorAll('[data-lcara]').forEach(function(x){x.onclick=function(){if(miSi<0)return;var v6=dts[miSi],dl=+x.dataset.lcara,cur=l.a[miSi]&&l.a[miSi].cus||null;var H=ui.lhist&&ui.lhist.v===v6?ui.lhist:(ui.lhist={v:v6,h:[cur],i:0});
     if(dl>0){if(H.i<H.h.length-1)H.i++;else{H.h.push(comboAzar(v6));H.i=H.h.length-1;}}else{if(H.i>0)H.i--;else H.h.unshift(comboAzar(v6));}
     var r=H.h[H.i];lob(function(y){y.a.forEach(function(q){if(q&&q.id===id){if(r)q.cus=r;else delete q.cus;}});});};});
