@@ -10,7 +10,7 @@ var PIZ=[
   {tit:'La Pizarra del Míster',sup:'#232528',t:'#efe9da',t2:'rgba(239,233,218,.66)',marco:'#3a3a40',frase:'En Europa esto no pasa.',como:'Pasó seis meses en Europa y volvió con corbata y acento. Pelado, barba gris y una ceja siempre levantada: todo le parece mejorable, sobre todo vos.',estilo:'Plan a largo plazo y mercado internacional. Mira los Mercados de Pases antes que nadie, ficha lo justo y negocia como si cerrara un traspaso millonario.'},
   {tit:'La Pizarra de la Doña',sup:'#f3c4d6',t:'#3a1f2b',t2:'rgba(58,31,43,.68)',marco:'#e0609a',frase:'Acá se viene a entrenar.',como:'Alta, flaca y con un silbato que se escucha del otro lado del río. Ella dice que tiene los ojos verdes y media tribuna jura que son marrones: son verdes, con una pincelada de miel.',estilo:'Orden y sushi. Está convencida de que un buen roll antes de entrenar sube el rendimiento de cualquier Jugador. Arma el equipo por posiciones y en un trato no regala nada.'},
   {tit:'La Pizarra del Terror del Río',sup:'#c9241f',t:'#fff4ec',t2:'rgba(255,244,236,.72)',marco:'#ee2a24',frase:'¡Para adelante, siempre para adelante!',como:'Pelo gris, entradas bien ganadas y una sonrisa gigante que se ve desde la otra orilla. Le dicen el Terror, pero el único que se asusta es el rival.',estilo:'Todo al ataque y con la mejor cara. Primero el Delantero y después vemos. Se come las Multas sonriendo y hace las cuentas cuando ya está adentro del Palco.'},
-  {tit:'La Pizarra del Gallo',sup:'#bfe9e3',t:'#0f3a35',t2:'rgba(15,58,53,.68)',marco:'#1fa89a',frase:'¡Posición de preacción!',como:'Cresta, pico y silbato. El profe de fútbol del colegio, el más querido por todos sus alumnos: generaciones enteras todavía se paran como él les enseñó.',estilo:'Todo empieza antes de que pase algo: rodillas flexionadas, cuerpo listo y la vista en la jugada. Se para donde va a caer la tirada y cuando salen los dados ya está en posición.'}];
+  {tit:'La Pizarra del Mago',sup:'#bfe9e3',t:'#0f3a35',t2:'rgba(15,58,53,.68)',marco:'#1fa89a',frase:'Lo que no se ve, también juega.',como:'Barba gris, pelo largo y anteojos redondos. Mira el partido como si ya supiera cómo termina, y casi siempre lo sabe.',estilo:'Juega a lo que nadie espera: se guarda un Beneficio para el momento justo y aparece por donde no lo buscan. Cuando los demás se dan cuenta, ya está en el Palco.'}];
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 // Los nombres de los DTs, en un recuadro de su color. conDT los busca en un texto, sin tocar las etiquetas.
 // El color del cono de cada DT en el partido (se puede elegir al armarlo)
@@ -921,7 +921,7 @@ function pantallaInicio(){
     sala.g=P.nuevaPartida({dts:d,modo:conf.modo,limite:conf.limite,semilla:Math.floor(Math.random()*1e9),t0:Date.now()});ui.yo=null;reiniciarVista();ui.verDT=null;sala.guardar();actualizarYo(sala.g);ui.cubierto=false;pintar();avanzarBots();};
 }
 // Nombres de DT al azar (hasta 12 letras)
-var NOMBRES_DT=['El Profe','El Mago','El Flaco','El Sabio','El Tata','El Bigote','El Turbo','El Loco','El Capo','El Dire','El Patrón','El Pelado','El Mostro','El Toto','El Bocha','El Pibe','Don Tito','Don Coco','Don Pepe','El Lungo','El Zurdo','El Chueco','El Petiso','El Gringo','El Charro','El Tano','El Vasco','El Polaco','El Payaso','El Pato','El Gato','El Toro','El Lobo','El Halcón','El Oso','El Bicho','El Tigre','El Pichi','El Chapa','El Ruso','El Colo','El Facha','El Bombón','El Galán','El Nene','El Abuelito','El Maestro','El Doctor','El Ingeniero','El Pastor','El Brujo','El Sheriff','El Capitán','El Duque','El Conde','El Mister X','El Guapo','El Ninja','El Rayo','El Trueno','El Tornado','El Cohete','El Motor','El Tractor','El Tanque','El Muro','El Pulpo','Don Ramón','Don Julio','Don Lucho','Don Cacho','Don Beto','Don Chicho','La Jefa','La Profe','La Maga','La Capi','La Tana','La Flaca','Doña Pocha','Doña Tota','La Patrona','La Rubia','La Gringa','La Turbo','La Dire','La Doctora','La Leona','La Tigresa','La Pantera','La Reina','La Duquesa','La Bruja','La Colo','La Chiqui','La Morocha','La Pocha','La Petisa','La Turca','La Vasca','La Polaca','Doña Rosa','Doña Chela','Doña Cata','La Maestra','La Rayo','La Cohete','La Ingeniera','La Capitana','La Sheriff','La Ninja'];
+var NOMBRES_DT=['El Profe','El Flaco','El Tata','El Bigote','El Turbo','El Loco','El Capo','El Dire','El Patrón','El Pelado','El Mostro','El Toto','El Bocha','El Pibe','Don Tito','Don Coco','Don Pepe','El Lungo','El Zurdo','El Chueco','El Petiso','El Gringo','El Charro','El Tano','El Vasco','El Polaco','El Payaso','El Pato','El Gato','El Toro','El Lobo','El Halcón','El Oso','El Bicho','El Tigre','El Pichi','El Chapa','El Ruso','El Colo','El Facha','El Bombón','El Galán','El Nene','El Abuelito','El Maestro','El Doctor','El Ingeniero','El Pastor','El Brujo','El Sheriff','El Capitán','El Duque','El Conde','El Mister X','El Guapo','El Ninja','El Rayo','El Trueno','El Tornado','El Cohete','El Motor','El Tractor','El Tanque','El Muro','El Pulpo','Don Ramón','Don Julio','Don Lucho','Don Cacho','Don Beto','Don Chicho','La Jefa','La Profe','La Maga','La Capi','La Tana','La Flaca','Doña Pocha','Doña Tota','La Patrona','La Rubia','La Gringa','La Turbo','La Dire','La Doctora','La Leona','La Tigresa','La Pantera','La Reina','La Duquesa','La Bruja','La Colo','La Chiqui','La Morocha','La Pocha','La Petisa','La Turca','La Vasca','La Polaca','Doña Rosa','Doña Chela','Doña Cata','La Maestra','La Rayo','La Cohete','La Ingeniera','La Capitana','La Sheriff','La Ninja'];
 function nombreAzar(usados){var l=NOMBRES_DT.filter(function(n){return usados.indexOf(n)<0;});if(!l.length)l=NOMBRES_DT;return l[Math.floor(Math.random()*l.length)];}
 var DADO_NOM='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4.5" fill="#fff" stroke="#2b2620" stroke-width="2"/><circle cx="8.2" cy="8.2" r="1.7" fill="#b23f3c"/><circle cx="12" cy="12" r="1.7" fill="#b23f3c"/><circle cx="15.8" cy="15.8" r="1.7" fill="#b23f3c"/></svg>';// Un solo botón por DT que pasa por los tres estados: Desactivado, Persona y Máquina
 function botonEstado(i,on,h,nom){var e=on?(h?'per':'maq'):'off',tx={off:'Desactivado',per:'Persona',maq:'Máquina'}[e],ic={off:IC_OFF,per:IC.persona,maq:IC.maquina}[e];
@@ -931,9 +931,9 @@ var IC_OFF='<svg class="ic-i" viewBox="0 0 24 24" width="20" height="20" aria-hi
 function cambiarCara(i3,dl){conf.hist=conf.hist||{};conf.cus=conf.cus||{};var H=conf.hist[i3]||(conf.hist[i3]={h:[conf.cus[i3]||null],i:0});
   if(dl>0){if(H.i<H.h.length-1)H.i++;else{H.h.push(comboAzar(i3));H.i=H.h.length-1;}}else{if(H.i>0)H.i--;else{H.h.unshift(comboAzar(i3));}}
   var r=H.h[H.i];if(r)conf.cus[i3]=JSON.parse(JSON.stringify(r));else delete conf.cus[i3];}// Los 10 DTs para elegir con las flechas: los 5 de la liga y 5 más, cada uno con su cara y su nombre. Aparte, el botón de la cara al azar.
-var PRESETS=[{n:'El Abuelo',dt:0},{n:'El Míster',dt:1},{n:'La Doña',dt:2},{n:'El Terror del Río',dt:3},{n:'El Gallo',dt:4},
+var PRESETS=[{n:'El Abuelo',dt:0},{n:'El Míster',dt:1},{n:'La Doña',dt:2},{n:'El Terror del Río',dt:3},{n:'El Mago',dt:4},
   {n:'La Capitana',r:{g:'f',pelo:7,color:0,barba:0,ojos:1,acc:4,cara:0,gesto:1,piel:2,ropa:1,pose:3,anim:0}},
-  {n:'El Mago',r:{g:'m',pelo:5,color:6,barba:3,ojos:4,acc:1,cara:2,gesto:2,piel:1,ropa:0,pose:4,anim:8}},
+  {n:'El Sabio',r:{g:'m',pelo:5,color:6,barba:3,ojos:4,acc:1,cara:2,gesto:2,piel:1,ropa:0,pose:4,anim:8}},
   {n:'El Turbo',r:{g:'m',pelo:3,color:5,barba:1,ojos:2,acc:3,cara:3,gesto:4,piel:0,ropa:2,pose:5,anim:1}},
   {n:'Doña Pocha',r:{g:'f',pelo:6,color:7,barba:0,ojos:1,acc:2,cara:1,gesto:0,piel:3,ropa:4,pose:2,anim:4}},
   {n:'El Tano',r:{g:'m',pelo:1,color:0,barba:6,ojos:0,acc:0,cara:4,gesto:1,piel:2,ropa:3,pose:1,anim:2}}];
@@ -1201,8 +1201,9 @@ function tabCanjes(g,yo,me){
   // Multas: una por botón; con Arquero, también se puede pagar con su Recurso
   var nm=P.suma(me.multas),mu='',arq=P.hab(me,0);
   P.REC.forEach(function(r){if(!me.multas[r])return;
-    mu+=bt('data-pagar="'+r+'"',mio&&me.mano[r]>0,iconoMulta(r,26)+'<i class="ng-fl">➜</i>'+iconoCirc(r,20),'Pagar '+P.MULTA[r]+' con 1 de '+P.NOMBRE_REC[r]);
-    if(arq&&arq!==r)mu+=bt('data-pagar="'+r+'" data-con="'+arq+'"',mio&&me.mano[arq]>0&&!me.multas[arq],iconoMulta(r,26)+'<i class="ng-fl">➜</i>'+iconoCirc(arq,20)+'<small class="ng-arq">ARQ</small>','Pagar '+P.MULTA[r]+' con tu Arquero, con 1 de '+P.NOMBRE_REC[arq]);});
+    // Cada pago, a lo ancho y con palabras: qué Multa se paga y con qué
+    mu+=bt('data-pagar="'+r+'"',mio&&me.mano[r]>0,iconoMulta(r,30)+'<span class="ng-mtx"><b>Pagar '+esc(P.MULTA[r])+'</b><small>con 1 de '+iconoCirc(r,16)+' '+P.NOMBRE_REC[r]+'</small></span>','Pagar '+P.MULTA[r]+' con 1 de '+P.NOMBRE_REC[r],'ancho ng-mu');
+    if(arq&&arq!==r)mu+=bt('data-pagar="'+r+'" data-con="'+arq+'"',mio&&me.mano[arq]>0&&!me.multas[arq],iconoMulta(r,30)+'<span class="ng-mtx"><b>Pagar '+esc(P.MULTA[r])+'</b><small>con tu Arquero: 1 de '+iconoCirc(arq,16)+' '+P.NOMBRE_REC[arq]+'</small></span><span class="ng-arq">ARQUERO</span>','Pagar '+P.MULTA[r]+' con tu Arquero, con 1 de '+P.NOMBRE_REC[arq],'ancho ng-mu');});
   s+=sec('multas',multaGenerica(24),'Pagar Multas',nm?(turnoTxt||'Tenés '+nm):'Ninguna',mio&&nm>0,mu||'<span class="ng-nada">No tenés Multas.</span>');
   // Banco: primero elegís qué das; después, qué te llevás
   var bo=P.boleDe(g,me.pos),ba='';
@@ -1310,7 +1311,8 @@ function pintarModal(g,yo,me){
   c2._baja=baja;
   if(conX){c2.addEventListener('click',function(e){if(e.target===c2)baja();});var ab=c2.querySelector('[data-bajar]');if(ab)ab.onclick=function(){if(Date.now()-(hj._arr||0)<350)return;baja();};}
   // Entra deslizándose desde abajo (solo la primera vez, no cuando se redibuja) y se cierra arrastrándola hacia abajo
-  var hj=c2.querySelector('.hoja');if(ui.hojaDe!==M)hj.classList.add('entra');
+  // La animación de entrada se suelta al terminar: si quedara puesta, le ganaría al dedo y la ventana no se movería al arrastrarla
+  var hj=c2.querySelector('.hoja');if(ui.hojaDe!==M){hj.classList.add('entra');hj.addEventListener('animationend',function(e){if(e.target===hj)hj.classList.remove('entra');});}
   if(conX)deslizarParaCerrar(c2,hj,cierra);
   if(conX&&!ui.escBaja){ui.escBaja=true;document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;var mm=document.querySelectorAll('.modal');var u=mm[mm.length-1];if(u&&u._baja&&u.querySelector('[data-bajar]'))u._baja();});}
   if(g&&CON_BOTONES[M.tipo])conectarEn(c2,g,yo,me);
@@ -1336,7 +1338,7 @@ function manoNego(me){
 // Se agarra desde la manija o desde cualquier parte si el contenido está arriba de todo. El primer movimiento ya es nuestro: así el navegador no lo toma como scroll.
 function deslizarParaCerrar(c2,hj,cierra){
   var y0=0,dy=0,va=false,listo=false,ly=0,lt=0,vel=0;
-  function ini(y,desdeAsa){if(!desdeAsa&&hj.scrollTop>0){va=false;return;}y0=ly=y;dy=0;vel=0;lt=performance.now();va=true;listo=false;if(desdeAsa){listo=true;hj.style.transition='none';}}
+  function ini(y,desdeAsa){hj.classList.remove('entra');if(!desdeAsa&&hj.scrollTop>0){va=false;return;}y0=ly=y;dy=0;vel=0;lt=performance.now();va=true;listo=false;if(desdeAsa){listo=true;hj.style.transition='none';}}
   function mueve(y,e){if(!va)return;dy=y-y0;var now=performance.now();vel=(y-ly)/Math.max(1,now-lt);ly=y;lt=now;
     if(!listo){if(dy>=2){listo=true;hj.style.transition='none';}else if(dy<=-3&&hj.scrollHeight>hj.clientHeight+2){va=false;return;}else{if(e&&e.cancelable&&dy>=0)e.preventDefault();if(dy>-3)return;listo=true;hj.style.transition='none';}}
     if(e&&e.cancelable)e.preventDefault();

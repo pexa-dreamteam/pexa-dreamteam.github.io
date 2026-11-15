@@ -761,6 +761,9 @@
   };
   // ---------- Cartas de Beneficio: protagonizadas por La Escuelita ----------
   C.escuelita={nombre:'La Escuelita',c1:'#c8312b',c2:CREMA,fondo:'#f4dcd6'};
+  // Ronda 53: los que no son de La Escuelita, cada uno con su camiseta
+  C.rival={nombre:'Rival',c1:'#4a5a6a',c2:CREMA,fondo:'#e3e6ea'};C.plantate={nombre:'Plantate Wacho',c1:'#6a3d9a',c2:'#f2c94c',fondo:'#ece2f4'};C.acm={nombre:'AC Martínez',c1:'#2f8a57',c2:CREMA,fondo:'#dcefe2'};C.novias={nombre:'Las novias',c1:'#e77fb3',c2:CREMA,fondo:'#fbe3ee'};C.padre={nombre:'El padre',c1:'#9fb7d6',c2:CREMA,fondo:'#e6eef7'};C.gallo={nombre:'El Gallo',c1:'#4fb8d8',c2:CREMA,fondo:'#dff1f8'};SHORT.gallo=INK;BANDA.gallo=CREMA;
+  SHORT.rival=INK;SHORT.plantate=INK;SHORT.acm=CREMA;SHORT.novias='#3a4a7a';SHORT.padre='#4a4f5a';BANDA.rival=CREMA;BANDA.plantate='#f2c94c';BANDA.acm=CREMA;BANDA.novias=CREMA;BANDA.padre=CREMA;
   BANDA.escuelita=CREMA; SHORT.escuelita=INK;
   var ROJO='#c8312b', PC=PIEL.clara;
   function tokV(x,y,r){return '<g transform="translate('+(x-r)+' '+(y-r)+') scale('+(r/50)+')"><circle cx="50" cy="50" r="47" fill="#d9b25a" stroke="'+INK+'" stroke-width="3"/><circle cx="50" cy="50" r="40" fill="#e9c874" stroke="#a5822f" stroke-width="2"/><path d="M50 21L57.4 41.6L79.3 42.4L62 55.9L68 77L50 64.6L32 77L38 55.9L20.7 42.4L42.6 41.6Z" fill="#fff6d8" stroke="#8a6a25" stroke-width="2.6" stroke-linejoin="round"/></g>';}
@@ -816,7 +819,27 @@
     fer:['Fer',{piel:'clara',pelo:'rubio',w:52,jaw:46,h:50,ojo:6.5,ceja:3,nariz:1.1,corte:'corto',vol:6,gesto:'sonrisa',boca:12,cachetes:true,pose:'pizarra',remera:'lisa'},'Cara redonda y sonrisa tranquila. El jugador correcto: callado, siempre bien parado y sin equivocarse nunca.'],
     juambo:['Juambo',{piel:'clara',pelo:'oscuro',w:42,jaw:30,h:58,ojo:6,ceja:4.5,cejaAlta:2,nariz:1.4,barba:'candado',bigote:'fino',corte:'corto',vol:3,rodete:true,gesto:'canchero',boca:11,mono:true,pose:'valija',gag:'jet',remera:'lisa'},'Pelo largo atado en rodete, bigote con chivita y moño: el más elegante de La Escuelita viaja en jet privado.'],
     gaspi:['Gaspi',{piel:'clara',pelo:'negro',w:46,jaw:38,h:54,ojo:6,ceja:5.5,cejaEnojo:2.5,nariz:1.3,barba:'sombra',corte:'corto',vol:5,gesto:'firme',boca:10,cuerpo:'musculoso',pose:'tarjeta',remera:'lisa'},'Peleador de MMA, marcado hasta las cejas y con el fade recién hecho. Con Gaspi no se discute: la roja la saca él.'],
-    pancho:['Pancho',Object.assign({},{piel:'palida',pelo:'colorado',w:42,jaw:32,h:56,ceja:4,nariz:1.35,corte:'corto',vol:2,flequillo:'lado',gesto:'grin',boca:13,pose:'corre',gag:'corre',remera:'lisa'}),'Sin foto: dibujado como Piolo, pero sin barba. Encuentra la cancha libre y se va por el medio.']
+    pancho:['Pancho',Object.assign({},{piel:'palida',pelo:'colorado',w:42,jaw:32,h:56,ceja:4,nariz:1.35,corte:'corto',vol:2,flequillo:'lado',gesto:'grin',boca:13,pose:'corre',gag:'corre',remera:'lisa'}),'Sin foto: dibujado como Piolo, pero sin barba. Encuentra la cancha libre y se va por el medio.'],
+    // Ronda 53: los personajes que faltaban. El quinto dato, si está, es el club (la camiseta); el cuarto, una escena entera para la carta
+    chacha:['Chacha',{piel:'clara',pelo:'negro',w:46,jaw:40,h:54,ojo:6,ceja:5,nariz:1.35,barba:'llena',largoBarba:13,bigote:'grueso',corte:'corto',vol:4,gesto:'grin',boca:15,pose:'festeja',remera:'lisa',globo:['¡PRESENTE!',70,40,92]},'Barbudo como Mosca. Venía de invitado cuando nos faltaba uno y siempre cumplía: el Recurso que aparece justo cuando hace falta.'],
+    padre:['El padre exigente',{piel:'media',pelo:'gris',w:50,jaw:46,h:52,ojo:6,ceja:5.5,cejaEnojo:4,nariz:1.45,bigote:'grueso',corte:'entradas',vol:1,gesto:'grita',boca:10,cuerpo:'grandote',pose:'señala',camisa:true,mangaLarga:'#9fb7d6',vapor:true},'El papá de uno de los chicos: venía a todos los partidos y le pedía al hijo más de lo que podía dar. Le das uno y te pide dos.',null,'padre'],
+    guido:['Guidito',{piel:'clara',pelo:'castano',w:42,jaw:32,h:52,ojo:6.5,ceja:4,nariz:1.2,barba:'corta',largoBarba:3,corte:'corto',vol:3,flequillo:'recto',gesto:'sonrisa',boca:12,cuerpo:'flaco',bot:124,pose:'corre',gag:'corre',remera:'rayas'},'Guidito, el amigo de Teo (otro, no el Guido de Sponsor Juniors): más chico que todos y muy bueno. Lo cargábamos con que se parecía a Messi. Vale por dos.'],
+    bicicleta:['El Gordo Bicicleta',{piel:'trigueña',pelo:'negro',w:58,jaw:56,h:50,ojo:6,ceja:5,nariz:1.4,corte:'corto',vol:2,cachetes:true,gesto:'canchero',boca:13,cuerpo:'grandote',pose:'festeja',remera:'lisa'},'Un rival de peso considerable con una magia que no se explica: te amagaba y te pasaba la pelota con una bicicleta por arriba de la cabeza. Así te robaba lo que tenías.',function(){
+      var s=fondo('rival',{w:9,h:4})+figura('rival',{piel:'trigueña',pelo:'negro',w:58,jaw:56,h:50,ojo:6,ceja:5,nariz:1.4,corte:'corto',vol:2,cachetes:true,gesto:'canchero',boca:13,cuerpo:'grandote',pose:'festeja',remera:'lisa',sinFondo:true,zoom:.82,dy:-30});
+      return s+'<g fill="none" stroke="'+INK+'" stroke-width="2.4" stroke-dasharray="5 5" opacity=".6"><path d="M150 150Q120 -6 52 40"/></g>'+pelota(48,40,11)+'<g stroke="'+INK+'" stroke-width="2.4" stroke-linecap="round"><path d="M32 30l-8-4M34 46l-9 2M44 22l-4-8"/></g><text x="40" y="80" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="17" fill="'+INK+'" transform="rotate(-8 40 80)">¡OLÉ!</text>';},'rival'],
+    novias:['Las novias',{piel:'clara',pelo:'castano',g:'f',cuerpo:'flaco',bot:116,cintura:152,w:42,jaw:30,h:52,ojo:7,ojos:'felices',ceja:3,nariz:1.05,corte:'largo',vol:5,gesto:'grin',boca:14,pose:'festeja',remera:'lisa'},'Las novias de los Jugadores: alentaban desde afuera, y al final del partido a cada uno le sacaban algo.',function(){
+      var base={g:'f',cuerpo:'flaco',bot:116,cintura:152,ceja:3,nariz:1.05,remera:'lisa',sinFondo:true,zoom:.7,dy:-22};
+      function chica(dx,o){return '<g transform="translate('+dx+' 0)">'+figura('novias',Object.assign({},base,o))+'</g>';}
+      return fondo('novias',{w:5,h:9})+chica(-58,{piel:'trigueña',pelo:'negro',w:40,jaw:30,h:52,corte:'largo',vol:6,gesto:'sonrisa',boca:12,pose:'señala'})+chica(58,{piel:'palida',pelo:'rubio',w:40,jaw:28,h:54,corte:'medio',vol:4,ojos:'felices',gesto:'grin',boca:14,pose:'cruzados'})+chica(0,{piel:'clara',pelo:'castano',w:42,jaw:30,h:52,corte:'largo',vol:5,rodete:true,ojos:'felices',gesto:'grin',boca:14,pose:'festeja'})+
+        '<g transform="translate(44 14) rotate(-6)"><rect x="-38" y="-2" width="76" height="20" rx="4" fill="#fff" stroke="'+INK+'" stroke-width="2"/><text y="13" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="11" fill="#c8312b">¡VAMOS!</text></g>';},'novias'],
+    plantate:['Plantate Wacho',{piel:'media',pelo:'negro',w:48,jaw:42,h:52,ojo:6,ceja:6,cejaEnojo:5,nariz:1.4,barba:'sombra',corte:'corto',vol:2,gesto:'grita',boca:10,cuerpo:'musculoso',pose:'señala',remera:'lisa',vapor:true},'El rival que nos tocó varias veces: los partidos terminaban siempre re picantes. Con ellos, hasta las barras se ponían nerviosas.',function(){
+      var base={sinFondo:true,zoom:.72,dy:-24,remera:'lisa',vapor:true};
+      function uno(dx,o){return '<g transform="translate('+dx+' 0)">'+figura('plantate',Object.assign({},base,o))+'</g>';}
+      var aji=function(x,y,r){return '<g transform="translate('+x+' '+y+') rotate('+r+')"><path d="M0-10C8-8 10 4 2 14C0 8-6 0 0-10Z" fill="#d8261f" stroke="'+INK+'" stroke-width="1.6"/><path d="M0-10C0-14 4-16 6-16" fill="none" stroke="#3f7a3a" stroke-width="2.4" stroke-linecap="round"/></g>';};
+      return fondo('plantate',{w:2,h:7})+uno(-46,{piel:'media',pelo:'negro',w:48,jaw:42,h:52,ceja:6,cejaEnojo:5,nariz:1.4,barba:'sombra',corte:'corto',vol:2,gesto:'grita',boca:10,cuerpo:'musculoso',pose:'señala'})+uno(46,{piel:'clara',pelo:'rubio',w:44,jaw:36,h:54,ceja:5,cejaEnojo:4,nariz:1.3,corte:'revuelto',vol:4,gesto:'grita',boca:10,pose:'cruzados'})+
+        aji(22,34,-20)+aji(40,60,10)+aji(22,60,-20)+aji(178,58,24)+aji(176,96,-10);},'plantate'],
+    gallo:['El Gallo Claudio',{piel:'clara',pelo:'castano',w:45,jaw:34,h:52,ojo:7,ceja:4.5,cejaAlta:2,corte:'corto',vol:0,gallo:true,gesto:'mudo',boca:0,silbato:true,pose:'libreta',globo:['¡PENAL!',72,44,74]},'El profe de fútbol del colegio, con cresta, pico y silbato: el más querido de todos. Antes era DT; ahora cobra el penal más dudoso de la liga.',null,'gallo'],
+    acm:['AC Martínez',{piel:'clara',pelo:'castano',w:46,jaw:38,h:54,ojo:6,ceja:5,nariz:1.35,corte:'corto',vol:3,gesto:'firme',boca:9,pose:'hombros',remera:'lisa',gag:'marcador'},'El eterno rival, el que salía campeón siempre. En el partido final les ganamos 5 a 0 y lo seguimos festejando: los barrimos.',null,'acm']
   };
   // Un Beneficio de cada uno: el mazo no repite (v6)
   var BENEF=[
@@ -826,25 +849,25 @@
     ['Movimiento','Cancha Libre',1,'Este turno tu Cábala puede pasar por encima de Cábalas y Barrabravas.','pancho'],
     ['Movimiento','Arquero Volador',1,'Después de tirar, mové una intersección más o una menos de lo que marca el dado blanco.','muchi'],
     ['Movimiento','Jet Privado',1,'En vez de mover, poné tu Cábala en cualquier intersección libre o, si ya cumplís todo para ganar, levantá la Copa en el centro del Palco.','juambo'],
-    ['Recursos','Recurso Extra',1,'Tomá del Banco 1 Recurso a elección.',null,'extra'],
-    ['Recursos','Intercambio 1:2',1,'Devolvé 1 Recurso al Banco y tomá 2 a elección.',null,'unoauno'],
-    ['Recursos','Asistencia Forzosa',1,'Robale 1 Recurso al azar a cada DT.',null,'asistencia'],
+    ['Recursos','Recurso Extra',1,'Tomá del Banco 1 Recurso a elección.','chacha','extra'],
+    ['Recursos','Intercambio 1:2',1,'Devolvé 1 Recurso al Banco y tomá 2 a elección.','padre','unoauno'],
+    ['Recursos','Asistencia Forzosa',1,'Robale 1 Recurso al azar a cada DT.','novias','asistencia'],
     ['Recursos','Alargue',1,'Tirá el dado azul y cobrás solo vos: si tu Cábala toca un hexágono de ese número, levantás el doble. Si no, nada.','m'],
-    ['Recursos','Barrida',1,'Elegí un DT y nombrá un Recurso: te llevás todos los que tenga de ese tipo. Si no tiene, perdiste el Beneficio.',null,'barrida'],
+    ['Recursos','Barrida',1,'Elegí un DT y nombrá un Recurso: te llevás todos los que tenga de ese tipo. Si no tiene, perdiste el Beneficio.','acm','barrida'],
     ['Dados','Penal Burdo',1,'Tirá un dado. Con 4, 5 o 6, tomá un Token de Victoria del Banco. Con 1, 2 o 3, lo atajaron.','mark'],
-    ['Dados','Penal Dudoso',1,'Tirá un dado. Con 4, 5 o 6, tomá un Token de Efectivo del Banco. Con 1, 2 o 3, lo atajaron.',null,'dudoso'],
+    ['Dados','Penal Dudoso',1,'Tirá un dado. Con 4, 5 o 6, tomá un Token de Efectivo del Banco. Con 1, 2 o 3, lo atajaron.','gallo','dudoso'],
     ['Multas','Amnistía',1,'Hacé un canje o un intercambio como si no tuvieras Multas. Vale para una sola operación.',null,'amnistia'],
     ['Multas','Amigo del Poder',1,'Devolvé todas tus Multas sin pagarlas.',null,'exento'],
     ['Multas','La Tenés Adentro',1,'Pasale todas tus Multas a otro DT (hasta llegar a su límite de 5).','sora'],
     ['Tokens','La Mano de Dios',1,'Tomá 1 Token de Victoria del Banco.','tai'],
     ['Tokens','Petrodólares',1,'Tomá 1 Token de Efectivo del Banco.',null,'petro'],
-    ['Tokens','Valor por Valor',1,'Cambiá con el Banco 1 Token tuyo por uno del otro tipo.',null,'valorxvalor'],
+    ['Tokens','Valor por Valor',1,'Cambiá con el Banco 1 Token tuyo por uno del otro tipo.','guido','valorxvalor'],
     ['Tokens','Intercambio de Valores',1,'Cambiale a otro DT 1 Token tuyo por uno suyo del otro tipo. No se puede negar.',null,'intvalores'],
     ['Rivales','Espionaje',1,'Mirá en secreto las cartas de un Mercado de Pases.','golzalez'],
     ['Rivales','Cambio de Figuritas',1,'Elegí un DT que tenga un Jugador de una posición que vos también tenés: se cambian esos dos Jugadores.','teo'],
-    ['Rivales','Dame un Beneficio',1,'Robale al azar 1 Beneficio sin usar a otro DT.',null,'dame'],
+    ['Rivales','Dame un Beneficio',1,'Robale al azar 1 Beneficio sin usar a otro DT.','bicicleta','dame'],
     ['Rivales','Tarjeta Roja',1,'Elegí un DT: en su próximo turno no mueve su Cábala.','gaspi'],
-    ['Barras','Gas Pimienta',1,'Reubicá a todos los Barrabravas en intersecciones libres de la Avenida Circunvalación. No se usa con 2 DTs.',null,'gas'],
+    ['Barras','Gas Pimienta',1,'Reubicá a todos los Barrabravas en intersecciones libres de la Avenida Circunvalación. No se usa con 2 DTs.','plantate','gas'],
 
     ['Barras','Sospechoso Arreglo',1,'Este turno movés los Barrabravas antes que tu Cábala.',null,'arreglo']
   ];
@@ -855,7 +878,7 @@
     s+='<defs><pattern id="'+zz+'" width="44" height="22" patternUnits="userSpaceOnUse"><path d="M-2 18L10 6L22 18L34 6L46 18" fill="none" stroke="'+CREMA+'" stroke-width="5" opacity=".14"/></pattern><clipPath id="'+cl+'"><rect x="22" y="62" width="366" height="330" rx="14"/></clipPath></defs>';
     s+='<rect x="3" y="3" width="404" height="624" rx="24" fill="'+ROJO+'" stroke="'+INK+'" stroke-width="5"/><rect x="3" y="3" width="404" height="624" rx="24" fill="url(#'+zz+')"/>';
     s+='<text x="26" y="46" font-family="Bowlby One SC, sans-serif" font-size="26" letter-spacing="1" fill="'+CREMA+'">BENEFICIO</text><text x="384" y="44" text-anchor="end" font-family="Courier Prime, monospace" font-weight="700" font-size="16" letter-spacing="2" fill="'+CREMA+'">'+cat.toUpperCase()+'</text>';
-    var inner=q?figura('escuelita',Object.assign({zoom:.84,dy:-32},q[1])):fondo('escuelita',{w:i+3,h:i+5})+'<g class="fig g-dibujo" style="transform-origin:100px 90px"><g transform="translate(0 4)">'+ILUS[b[5]]()+'</g></g>';
+    var inner=q?(q[3]?q[3]():figura(q[4]||'escuelita',Object.assign({zoom:.84,dy:-32},q[1]))):fondo('escuelita',{w:i+3,h:i+5})+'<g class="fig g-dibujo" style="transform-origin:100px 90px"><g transform="translate(0 4)">'+ILUS[b[5]]()+'</g></g>';
     s+='<g clip-path="url(#'+cl+')"><svg x="22" y="62" width="366" height="330" viewBox="0 0 200 180" preserveAspectRatio="xMidYMid slice">'+inner+'</svg></g>';
     s+='<rect x="22" y="62" width="366" height="330" rx="14" fill="none" stroke="'+INK+'" stroke-width="5"/>';
     if(q) s+='<g transform="translate('+(368-q[0].length*8.5)+' 98) rotate(6)"><rect x="'+(-q[0].length*8.5-12)+'" y="-17" width="'+(q[0].length*17+24)+'" height="34" rx="4" fill="'+CREMA+'" opacity=".95" stroke="'+INK+'" stroke-width="3"/><text x="0" y="9" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="21" fill="'+ROJO+'">'+q[0].toUpperCase()+'</text></g>';
@@ -874,7 +897,8 @@
     mister:{c1:'#26272b',o:{piel:'clara',pelo:'canas',colorBarba:'canas',w:44,jaw:38,h:54,ojo:6,ceja:5,cejaAlta:3,nariz:1.3,barba:'llena',largoBarba:4,bigote:'grueso',corte:'pelado',vol:0,gesto:'canchero',boca:12,corbata:'#7b4fa0',pose:'cruzados'}},
     dona:{c1:'#e0609a',o:{piel:'media',pelo:'negro',w:38,jaw:27,h:54,bot:116,cintura:152,cuerpo:'flaco',ojo:8,iris:'#4f9a56',irisMiel:'#c8923a',ceja:3,cejaEnojo:2,nariz:1.05,corte:'largo',vol:5,gesto:'firme',boca:10,silbato:true,pose:'señala',gag:'sushi',palitos:true}},
     loco:{c1:'#7b4fa0',o:{piel:'clara',pelo:'gris',colorBarba:'gris',w:46,jaw:38,h:52,ojos:'felices',ojo:7,ceja:5,cejaAlta:3,nariz:1.35,corte:'entradas',vol:8,gesto:'grin',boca:22,pose:'arriba'}},
-    profe:{c1:'#4fb8d8',o:{piel:'clara',pelo:'castano',w:45,jaw:34,h:52,ojo:7,ceja:4.5,cejaAlta:2,corte:'corto',vol:0,gallo:true,gesto:'mudo',boca:0,silbato:true,pose:'libreta',zoom:.86,globo:['¡PREACCIÓN!',70,44,104]}}
+    // Ronda 54: El Gallo pasó a ser personaje de Beneficio (El Gallo Claudio); el quinto DT del juego digital es El Mago
+    profe:{c1:'#1fa89a',o:{piel:'clara',pelo:'gris',colorBarba:'gris',w:42,jaw:30,h:58,ojo:6,ceja:5,cejaAlta:2,nariz:1.4,barba:'llena',largoBarba:14,bigote:'grueso',corte:'largo',vol:4,anteojos:'redondos',gesto:'canchero',boca:12,pose:'hombros'}}
   };
   Object.keys(DT_FIG).forEach(function(id){var d=DT_FIG[id];C['dt_'+id]={nombre:'DT',c1:d.c1,c2:CREMA,fondo:'#efe7d4'};SHORT['dt_'+id]=id==='abuelo'?'#9a958c':INK;BANDA['dt_'+id]=CREMA;});
   function retratoDT(dt){return '<svg x="9" y="5" width="22" height="24" viewBox="45 18 110 120">'+figura('dt_'+dt.id,Object.assign({},DT_FIG[dt.id].o,{gag:null,globo:null,palitos:false}))+'</svg>';}
@@ -1096,8 +1120,8 @@
     // la casilla del mazo
     var c=P(RH,aF); s+=G(c[0],c[1],aF+90)+boleteriaDib(k)+'</g>';
     // el mostrador, en arco, con las tres ventanillas mirando a la isla
-    s+='<path d="'+sector(229,243,a1+1.6,a2-1.6)+'" fill="#000" opacity=".22" transform="translate(1 1.5)"/><path d="'+sector(229,243,a1+1.6,a2-1.6)+'" fill="'+b.pared+'" stroke="'+INK+'" stroke-width="1" stroke-linejoin="round"/><path d="'+sector(239.5,243,a1+1.6,a2-1.6)+'" fill="'+cl.c1+'" stroke="'+INK+'" stroke-width=".6"/>';
-    vent.forEach(function(v){var w=P(234.6,v[0]);s+=G(w[0],w[1],v[0]+90)+'<path d="M-5 5.4V-.6a5 4.6 0 0 1 10 0V5.4Z" fill="#9fd0e6" stroke="'+INK+'" stroke-width=".7"/><path d="M0-5.2V5.4" stroke="'+INK+'" stroke-width=".4"/><rect x="-6" y="4.4" width="12" height="2" fill="#a37c52" stroke="'+INK+'" stroke-width=".4"/></g>';});
+    s+='<path d="'+sector(229,243,a1+1.6,a2-1.6)+'" fill="#000" opacity=".22" transform="translate(1 1.5)"/><path d="'+sector(229,243,a1+1.6,a2-1.6)+'" fill="#efe5cf" stroke="'+INK+'" stroke-width="1" stroke-linejoin="round"/><path d="'+sector(239.5,243,a1+1.6,a2-1.6)+'" fill="#c9a77a" stroke="'+INK+'" stroke-width=".6"/>';
+    vent.forEach(function(v){var w=P(234.6,v[0]);s+=G(w[0],w[1],v[0]+90)+'<path d="M-5 5.4V-.6a5 4.6 0 0 1 10 0V5.4Z" fill="'+cl.c1+'" stroke="'+INK+'" stroke-width=".8"/><path d="M0-5.2V5.4" stroke="'+(k==='picardia'?INK:CREMA)+'" stroke-width=".5"/><rect x="-6" y="4.4" width="12" height="2" fill="#a37c52" stroke="'+INK+'" stroke-width=".4"/></g>';});
     return s;
   }
   // v12: el canje, escrito sobre el mostrador para que se lea aunque el mazo tape la casilla. Va arriba del filtro, en crema y negro.
@@ -1110,10 +1134,12 @@
   // la casilla del mazo, dibujada con el centro en (0, 0): el techo hacia el río y el mostrador hacia la isla
   function boleteriaDib(k){
     var b=BOLE[k], cl=C[k], s='';
-    s+='<path d="M-37.5-22H37.5V24H-37.5Z" fill="#000" opacity=".22" transform="translate(1.2 1.8)"/><rect x="-37.5" y="-23" width="75" height="46" rx="2" fill="'+cl.c1+'" stroke="'+INK+'" stroke-width="1"/>';
-    s+='<rect x="-33" y="-21.5" width="66" height="43" rx="1.6" fill="'+CREMA+'" stroke="'+INK+'" stroke-width=".7"/><rect x="-31.5" y="-20.5" width="63" height="41" rx="2" fill="none" stroke="'+cl.c1+'" stroke-width=".9" stroke-dasharray="2.4 1.6"/>';
-    s+=bdg(k,0,-9,.13)+'<text y="8.4" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.6" fill="'+INK+'">MAZO DE '+cl.rec.toUpperCase()+'</text>';
-    s+='<path d="M-41-21.5L-34.5-31H34.5L41-21.5Z" fill="'+b.techo+'" stroke="'+INK+'" stroke-width=".9" stroke-linejoin="round"/><path d="M-41-21.5L-34.5-31H34.5L41-21.5Z" fill="#000" opacity=".3"/>';
+    // v22: la Boletería es de madera; lo que se distingue es el lugar del mazo, del color pleno del Recurso
+    var tx=k==='picardia'?INK:CREMA;
+    s+='<path d="M-37.5-22H37.5V24H-37.5Z" fill="#000" opacity=".22" transform="translate(1.2 1.8)"/><rect x="-37.5" y="-23" width="75" height="46" rx="2" fill="#c9a77a" stroke="'+INK+'" stroke-width="1"/><path d="M-37.5-15H37.5M-37.5-7H37.5M-37.5 1H37.5M-37.5 9H37.5M-37.5 17H37.5" stroke="#a9875c" stroke-width=".5"/>';
+    s+='<rect x="-33" y="-21.5" width="66" height="43" rx="1.6" fill="'+cl.c1+'" stroke="'+INK+'" stroke-width=".9"/><rect x="-31" y="-19.5" width="62" height="39" rx="1.6" fill="none" stroke="'+tx+'" stroke-width=".9" stroke-dasharray="2.4 1.6"/>';
+    s+=bdg(k,0,-9,.13)+'<text y="8.4" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.6" fill="'+tx+'">MAZO DE '+cl.rec.toUpperCase()+'</text>';
+    s+='<path d="M-41-21.5L-34.5-31H34.5L41-21.5Z" fill="#6f655a" stroke="'+INK+'" stroke-width=".9" stroke-linejoin="round"/>';
     s+='<rect x="-24" y="-29.6" width="48" height="6.6" rx="1" fill="'+INK+'"/><text y="-24.8" text-anchor="middle" font-family="Bowlby One SC, sans-serif" font-size="4.2" letter-spacing=".4" fill="#f2c94c">BOLETERÍA</text>';
     return s;
   }
@@ -1341,7 +1367,7 @@
     fo+='<polygon points="'+pts(shrink(OUTL,1.085,[0,0]))+'" fill="#e8dcbc" stroke="#d2c29a" stroke-width="2" stroke-linejoin="round"/>';
     a+='<polygon points="'+pts(shrink(OUTL,1.03,[0,0]))+'" fill="'+PASTO+'"/>';
     // sobre el agua, las Boleterías (de los predios). Los Mercados de Pases van arriba del filtro, a todo color
-    for(var i=0;i<5;i++) a+=boleteria(i,OUTER[i]);
+    // v22: las Boleterías van arriba del filtro (ver más abajo), para que su mazo y sus ventanillas se vean del color pleno
     // zonas de mala fama: oscuras como las fichas de Multa
     for(var i=0;i<5;i++){
       var pg=pent[i], c=cen(pg);
@@ -1371,7 +1397,7 @@
     piezas.forEach(function(p,q){h+='<clipPath id="cpz'+q+'"><polygon points="'+pts(p[0])+'"/></clipPath>';});
     h+='</defs><rect x="-320" y="-320" width="640" height="640" fill="#d8c8a2"/>'+fo;
     piezas.forEach(function(p,q){h+='<g clip-path="url(#cpz'+q+')"'+(p[1]?' filter="url(#'+p[1]+')"':'')+'><use href="#'+arteId+'"/></g>';});
-    for(var i=0;i<5;i++) h+=casilla(TH[i])+canjeMostrador(i,OUTER[i]);
+    for(var i=0;i<5;i++) h+=boleteria(i,OUTER[i])+casilla(TH[i])+canjeMostrador(i,OUTER[i]);
     // los cortes de todas las piezas: crema por debajo y negro arriba. Sobre la isla, el corte va por el medio del sendero
     var cortes=piezas.map(function(p){return pts(p[0]);});
     h+='<g fill="none" stroke-linejoin="round">'+cortes.map(function(p){return '<polygon points="'+p+'" stroke="#fbf8f1" stroke-width="3.6"/>';}).join('')+cortes.map(function(p){return '<polygon points="'+p+'" stroke="'+INK+'" stroke-width="1.6"/>';}).join('')+'</g>';
@@ -1427,7 +1453,7 @@
   var G_J={gol:['cejas','festejo','baile','salto'],suerte:['no','trompo','lengua','festejo'],picardia:['si','saludo','baile','trompo'],fans:['saludo','pisoton','cejas','festejo'],sponsors:['baile','cejas','trompo','salto']};
   var G_DT=['no','cejas','pisoton','salto','si'];
   var G_CUS=['baile','salto','festejo','pisoton','saludo','no','cejas','lengua','trompo'];
-  var G_E={capitano:'baile',teo:'cejas',fer:'trompo',piolo:'festejo',pancho:'saludo',juambo:'baile',gaspi:'pisoton',m:'no',muchi:'salto',mark:'festejo',sora:'lengua',tai:'trompo',golzalez:'cejas',cocho:'pisoton'};
+  var G_E={capitano:'baile',teo:'cejas',fer:'trompo',piolo:'festejo',pancho:'saludo',juambo:'baile',gaspi:'pisoton',m:'no',muchi:'salto',mark:'festejo',sora:'lengua',tai:'trompo',golzalez:'cejas',cocho:'pisoton',chacha:'festejo',gallo:'saludo',padre:'pisoton',guido:'baile',bicicleta:'trompo',novias:'baile',plantate:'pisoton',acm:'no'};
   function conGesto(svg,g){return svg.replace('class="fig"','class="fig g-'+g+'"');}
   // Creá tu DT: cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo
   // Creá tu DT: los mismos rasgos para todos los DTs. Cada rasgo es una lista de opciones que se traducen a los parámetros del dibujo.
@@ -1482,7 +1508,7 @@
     // Para jugar: lo que sobra afuera de la isla va del mismo celeste que la mesa, y cada Boletería tiene su mazo de cartas encima
     tableroArte:function(outer,znum){OUTER=outer;ZNUM=znum;var mazos='';for(var i=0;i<5;i++){var aF=TH[i]+36,c=P(RH,aF),cr=cartaRecurso(outer[i]);mazos+=G(c[0],c[1],aF+90)+[2,1,0].map(function(q){return cr.replace('<svg ','<svg x="'+(q-14)+'" y="'+(-21.5-q)+'" width="28" height="43" ');}).join('')+'</g>';}return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-320 -320 640 640" width="2000" height="2000">'+dibujarTablero().replace('fill="#d8c8a2"','fill="#8fc3df"')+mazos+'</svg>';},
     geo:{get RS(){return RS;},get RH(){return RH;}},
-    escuelita:function(k){return guardo('x'+k,function(){return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura('escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>',G_E[k]||'salto');});},
+    escuelita:function(k){return guardo('x'+k,function(){return conGesto('<svg viewBox="0 0 200 220" aria-hidden="true">'+figura(ESC[k][4]||'escuelita',Object.assign({},ESC[k][1],{globo:null,gag:null}))+'</svg>',G_E[k]||'salto');});},
 
     escudo:function(k){return guardo('c'+k,function(){return escudoClub(k);});},
     logo:function(m){return guardo('l'+m,function(){return m==='solo'?'<svg viewBox="'+VB_SOLO+'" aria-hidden="true">'+logoSolo()+'</svg>':'<svg viewBox="-142 -142 284 284" aria-hidden="true">'+logoPexa(m)+'</svg>';});},
