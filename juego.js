@@ -203,7 +203,7 @@ function tirarDados(g){
   // Con un 1 devuelve la mitad solo el que ya tenía más de 9 antes de esta tirada
   var antes=g.jug.map(function(q){return suma(q.mano);});
   cobrar(g,d);resumenCobro(g);
-  if(d[0]===1||d[1]===1)g.jug.forEach(function(q){if(antes[q.id]>9&&!(defPrueba(g)==='mano'&&hab(q,1))){var dv=Math.floor(suma(q.mano)/2);g.descartes[q.id]=dv;anotar(g,'Salió un 1 y '+q.nombre+' tenía más de 9 Recursos ('+antes[q.id]+'): devuelve la mitad, '+dv+'.');}});
+  if(d[0]===1||d[1]===1)g.jug.forEach(function(q){if(antes[q.id]>9&&!(defPrueba(g)==='mano'&&hab(q,1))){var dv=Math.floor(antes[q.id]/2);g.descartes[q.id]=dv;anotar(g,'Salió un 1 y '+q.nombre+' tenía más de 9 Recursos antes de tirar ('+antes[q.id]+'): devuelve la mitad de esos, '+dv+'.');}});
   if(Object.keys(g.descartes).length){g.fase='descarte';return;}
   iniciarMover(g);
 }
@@ -377,7 +377,10 @@ function contratar(g,j,ix2){
   if(!puedeFichar(g,p,c)){var tq=tokenDe(g,c);falla(tq?'Este Jugador se paga con 1 Token de '+(tq==='V'?'Victoria':'Efectivo')+'.':'Se paga con 1 Token de Victoria y 1 de Efectivo.');}
   var tkj=tokenDe(g,c);
   g.mercados[m].splice(ix2,1);p.eq[c.pos]=c;if(tkj){p[tkj]--;g.tokens[tkj]++;}else{p.V--;p.E--;g.tokens.V++;g.tokens.E++;}p.contrato=true;
-  anotar(g,'¡'+p.nombre+' contrata a '+textoCarta(c)+'!');var dv=devuelveConDefensor(g,p,c);evento(g,{t:'jugador',j:j,c:c,cambio:false,dev:dv});cerrarMercado(g,j);
+  anotar(g,'¡'+p.nombre+' contrata a '+textoCarta(c)+'!');var dv=devuelveConDefensor(g,p,c);
+  // Último fichaje: con el equipo completo, se avisa a todos que va por la Copa
+  var ult=contratados(p)>=g.meta;if(ult){p.ultimo=true;anotar(g,'¡Último fichaje! '+p.nombre+' completó su equipo y va por la Copa.');}
+  evento(g,{t:'jugador',j:j,c:c,cambio:false,dev:dv,ultimo:ult});cerrarMercado(g,j);
 }
 // Al contratar a un Defensor se devuelven a la bolsa todas las Multas de su Recurso, sin pagarlas
 function devuelveConDefensor(g,p,c){
